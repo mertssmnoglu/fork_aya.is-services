@@ -19,7 +19,7 @@ sql:
       - plugin: golang
         out: "pkg/api"
         options:
-          module: "github.com/eser/acik.io/pkg/api"
+          module: "github.com/eser/aya.is-services/pkg/api"
           sql_package: "database/sql"
           initialisms: []
           emit_empty_slices: true

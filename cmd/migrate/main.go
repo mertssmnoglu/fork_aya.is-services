@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/eser/acik.io/pkg/api/adapters/appcontext"
+	"github.com/eser/aya.is-services/pkg/api/adapters/appcontext"
 	"github.com/pressly/goose/v3"
 )
 

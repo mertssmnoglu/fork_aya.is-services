@@ -4,8 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/eser/acik.io/pkg/api/adapters/storage"
-	"github.com/eser/acik.io/pkg/api/business/profiles"
 	"github.com/eser/ajan/datafx"
 	"github.com/eser/ajan/httpfx"
 	"github.com/eser/ajan/httpfx/middlewares"
@@ -15,6 +13,8 @@ import (
 	"github.com/eser/ajan/lib"
 	"github.com/eser/ajan/logfx"
 	"github.com/eser/ajan/metricsfx"
+	"github.com/eser/aya.is-services/pkg/api/adapters/storage"
+	"github.com/eser/aya.is-services/pkg/api/business/profiles"
 )
 
 func RegisterHttpRoutes(routes *httpfx.Router, logger *logfx.Logger, dataRegistry *datafx.Registry) {
@@ -25,7 +25,7 @@ func RegisterHttpRoutes(routes *httpfx.Router, logger *logfx.Logger, dataRegistr
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
 
-			service := profiles.NewService(store)
+			service := profiles.NewService(logger, store)
 
 			records, err := service.List(ctx.Request.Context())
 			if err != nil {

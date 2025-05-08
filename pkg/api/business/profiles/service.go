@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
+	"github.com/eser/ajan/logfx"
 )
 
 var (
@@ -12,23 +14,28 @@ var (
 	// ErrFailedToCreateRecord = errors.New("failed to create record").
 )
 
+type RecentPostsFetcher interface {
+	GetRecentPostsByUsername(ctx context.Context, username string, userId string) ([]*ExternalPost, error)
+}
+
 type Repository interface {
 	GetProfileById(ctx context.Context, id string) (*Profile, error)
 	GetProfileBySlug(ctx context.Context, slug string) (*Profile, error)
 	ListProfiles(ctx context.Context) ([]*Profile, error)
+	GetProfileLinksForKind(ctx context.Context, kind string) ([]*ProfileLink, error)
 	// CreateProfile(ctx context.Context, arg CreateProfileParams) (*Profile, error)
 	// UpdateProfile(ctx context.Context, arg UpdateProfileParams) (int64, error)
 	// DeleteProfile(ctx context.Context, id string) (int64, error)
 }
 
 type Service struct {
-	repo Repository
-
+	logger      *logfx.Logger
+	repo        Repository
 	idGenerator RecordIDGenerator
 }
 
-func NewService(repo Repository) *Service {
-	return &Service{repo: repo, idGenerator: DefaultIDGenerator}
+func NewService(logger *logfx.Logger, repo Repository) *Service {
+	return &Service{logger: logger, repo: repo, idGenerator: DefaultIDGenerator}
 }
 
 func (s *Service) GetById(ctx context.Context, id string) (*Profile, error) {
@@ -56,6 +63,26 @@ func (s *Service) List(ctx context.Context) ([]*Profile, error) {
 	}
 
 	return records, nil
+}
+
+func (s *Service) Import(ctx context.Context, fetcher RecentPostsFetcher) error {
+	links, err := s.repo.GetProfileLinksForKind(ctx, "x")
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
+	}
+
+	for _, link := range links {
+		s.logger.InfoContext(ctx, "importing posts", "kind", link.Kind, "title", link.Title)
+
+		posts, err := fetcher.GetRecentPostsByUsername(ctx, link.RemoteId, link.AuthToken)
+		if err != nil {
+			return fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
+		}
+
+		s.logger.InfoContext(ctx, "posts imported", "kind", link.Kind, "title", link.Title, "posts", posts)
+	}
+
+	return nil
 }
 
 // func (s *Service) Create(ctx context.Context, input *Profile) (*Profile, error) {

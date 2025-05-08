@@ -6,13 +6,15 @@ CREATE TABLE IF NOT EXISTS "user" (
   "email" TEXT CONSTRAINT "user_email_unique" UNIQUE,
   "phone" TEXT,
   "github_handle" TEXT,
+  "bsky_handle" TEXT,
   "x_handle" TEXT,
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   "updated_at" TIMESTAMP WITH TIME ZONE,
   "deleted_at" TIMESTAMP WITH TIME ZONE,
   "github_remote_id" TEXT CONSTRAINT "user_github_remote_id_unique" UNIQUE,
   "x_remote_id" TEXT,
-  "individual_profile_id" CHAR(26)
+  "bsky_remote_id" TEXT,
+  "individual_profile_id" CHAR(26) CONSTRAINT "user_individual_profile_id_fk" REFERENCES "profile"
 );
 
 CREATE TABLE IF NOT EXISTS "profile" (
@@ -32,12 +34,41 @@ CREATE TABLE IF NOT EXISTS "profile" (
 CREATE TABLE IF NOT EXISTS "profile_membership" (
   "id" CHAR(26) NOT NULL PRIMARY KEY,
   "kind" TEXT NOT NULL,
-  "profile_id" CHAR(26) NOT NULL,
-  "user_id" CHAR(26) NOT NULL,
+  "profile_id" CHAR(26) NOT NULL CONSTRAINT "profile_membership_profile_id_fk" REFERENCES "profile",
+  "user_id" CHAR(26) NOT NULL CONSTRAINT "profile_membership_user_id_fk" REFERENCES "user",
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   "updated_at" TIMESTAMP WITH TIME ZONE,
   "deleted_at" TIMESTAMP WITH TIME ZONE,
   CONSTRAINT "profile_membership_profile_id_user_id_unique" UNIQUE ("profile_id", "user_id")
+);
+
+CREATE TABLE IF NOT EXISTS "profile_link" (
+  "id" CHAR(26) NOT NULL PRIMARY KEY,
+  "kind" TEXT NOT NULL,
+  "profile_id" CHAR(26) NOT NULL CONSTRAINT "profile_link_profile_id_fk" REFERENCES "profile",
+  "remote_id" TEXT NOT NULL,
+  "title" TEXT NOT NULL,
+  "auth_provider" TEXT NOT NULL,
+  "auth_token_scope" TEXT NOT NULL,
+  "auth_token" TEXT NOT NULL,
+  "auth_token_expires_at" TIMESTAMP WITH TIME ZONE,
+  "auth_refresh_token" TEXT,
+  "auth_refresh_token_expires_at" TIMESTAMP WITH TIME ZONE,
+  "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  "updated_at" TIMESTAMP WITH TIME ZONE,
+  "deleted_at" TIMESTAMP WITH TIME ZONE,
+  CONSTRAINT "profile_link_profile_id_kind_remote_id_unique" UNIQUE ("profile_id", "kind", "remote_id")
+);
+
+CREATE TABLE IF NOT EXISTS "profile_link_import" (
+  "id" CHAR(26) NOT NULL PRIMARY KEY,
+  "profile_link_id" CHAR(26) NOT NULL CONSTRAINT "profile_link_import_profile_link_id_fk" REFERENCES "profile_link",
+  "remote_id" TEXT NOT NULL,
+  "data" TEXT NOT NULL,
+  "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  "updated_at" TIMESTAMP WITH TIME ZONE,
+  "deleted_at" TIMESTAMP WITH TIME ZONE,
+  CONSTRAINT "profile_link_import_profile_link_id_remote_id_unique" UNIQUE ("profile_link_id", "remote_id")
 );
 
 CREATE TABLE IF NOT EXISTS "session" (
@@ -46,7 +77,7 @@ CREATE TABLE IF NOT EXISTS "session" (
   "oauth_request_state" TEXT NOT NULL,
   "oauth_request_code_verifier" TEXT NOT NULL,
   "oauth_redirect_uri" TEXT,
-  "logged_in_user_id" CHAR(26),
+  "logged_in_user_id" CHAR(26) CONSTRAINT "session_logged_in_user_id_fk" REFERENCES "user",
   "logged_in_at" TIMESTAMP WITH TIME ZONE,
   "expires_at" TIMESTAMP WITH TIME ZONE,
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
@@ -57,7 +88,8 @@ CREATE INDEX IF NOT EXISTS "session_logged_in_user_id_index" ON "session" ("logg
 
 CREATE TABLE IF NOT EXISTS "question" (
   "id" CHAR(26) NOT NULL PRIMARY KEY,
-  "user_id" CHAR(26) NOT NULL,
+  "user_id" CHAR(26) NOT NULL CONSTRAINT "question_user_id_fk" REFERENCES "user",
+  "profile_id" CHAR(26) CONSTRAINT "question_profile_id_fk" REFERENCES "profile",
   "content" TEXT NOT NULL,
   "is_hidden" BOOLEAN DEFAULT FALSE NOT NULL,
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
@@ -72,8 +104,8 @@ CREATE TABLE IF NOT EXISTS "question" (
 
 CREATE TABLE IF NOT EXISTS "question_vote" (
   "id" CHAR(26) NOT NULL PRIMARY KEY,
-  "question_id" CHAR(26) NOT NULL,
-  "user_id" CHAR(26) NOT NULL,
+  "question_id" CHAR(26) NOT NULL CONSTRAINT "question_vote_question_id_fk" REFERENCES "question",
+  "user_id" CHAR(26) NOT NULL CONSTRAINT "question_vote_user_id_fk" REFERENCES "user",
   "score" INTEGER NOT NULL,
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   CONSTRAINT "question_vote_question_id_user_id_unique" UNIQUE ("question_id", "user_id")
@@ -91,7 +123,7 @@ CREATE TABLE IF NOT EXISTS "event" (
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   "updated_at" TIMESTAMP WITH TIME ZONE,
   "deleted_at" TIMESTAMP WITH TIME ZONE,
-  "series_id" CHAR(26),
+  "series_id" CHAR(26) CONSTRAINT "event_series_id_fk" REFERENCES "event_series",
   "status" TEXT DEFAULT 'draft'::TEXT NOT NULL,
   "attendance_uri" TEXT,
   "published_at" TIMESTAMP WITH TIME ZONE
@@ -100,8 +132,8 @@ CREATE TABLE IF NOT EXISTS "event" (
 CREATE TABLE IF NOT EXISTS "event_attendance" (
   "id" CHAR(26) NOT NULL PRIMARY KEY,
   "kind" TEXT NOT NULL,
-  "event_id" CHAR(26) NOT NULL,
-  "profile_id" CHAR(26) NOT NULL,
+  "event_id" CHAR(26) NOT NULL CONSTRAINT "event_attendance_event_id_fk" REFERENCES "event",
+  "profile_id" CHAR(26) NOT NULL CONSTRAINT "event_attendance_profile_id_fk" REFERENCES "profile",
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   "updated_at" TIMESTAMP WITH TIME ZONE,
   "deleted_at" TIMESTAMP WITH TIME ZONE,
@@ -128,7 +160,7 @@ CREATE TABLE IF NOT EXISTS "story" (
   "story_picture_uri" TEXT,
   "title" TEXT NOT NULL,
   "description" TEXT NOT NULL,
-  "author_profile_id" CHAR(26),
+  "author_profile_id" CHAR(26) CONSTRAINT "story_author_profile_id_fk" REFERENCES "profile",
   "content" TEXT NOT NULL,
   "published_at" TIMESTAMP WITH TIME ZONE,
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
@@ -153,6 +185,10 @@ DROP TABLE IF EXISTS "question";
 DROP INDEX IF EXISTS "session_logged_in_user_id_index";
 
 DROP TABLE IF EXISTS "session";
+
+DROP TABLE IF EXISTS "profile_link_import";
+
+DROP TABLE IF EXISTS "profile_link";
 
 DROP TABLE IF EXISTS "profile_membership";
 

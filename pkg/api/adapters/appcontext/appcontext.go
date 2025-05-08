@@ -11,6 +11,7 @@ import (
 	"github.com/eser/ajan/logfx"
 	"github.com/eser/ajan/metricsfx"
 	"github.com/eser/ajan/queuefx"
+	"github.com/eser/aya.is-services/pkg/api/adapters/arcade"
 )
 
 var ErrInitFailed = errors.New("failed to initialize app context")
@@ -21,6 +22,8 @@ type AppContext struct {
 	Metrics *metricsfx.MetricsProvider
 	Data    *datafx.Registry
 	Queue   *queuefx.Registry
+
+	Arcade *arcade.Arcade
 }
 
 func NewAppContext(ctx context.Context) (*AppContext, error) {
@@ -65,6 +68,8 @@ func NewAppContext(ctx context.Context) (*AppContext, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrInitFailed, err)
 	}
+
+	appContext.Arcade = arcade.New(appContext.Config.Externals.Arcade)
 
 	return appContext, nil
 }

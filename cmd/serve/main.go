@@ -4,8 +4,8 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/eser/acik.io/pkg/api/adapters/appcontext"
-	"github.com/eser/acik.io/pkg/api/adapters/http"
+	"github.com/eser/aya.is-services/pkg/api/adapters/appcontext"
+	"github.com/eser/aya.is-services/pkg/api/adapters/http"
 )
 
 func main() {

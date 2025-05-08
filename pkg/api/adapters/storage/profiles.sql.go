@@ -9,7 +9,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/eser/acik.io/pkg/api/business/profiles"
+	"github.com/eser/aya.is-services/pkg/api/business/profiles"
 )
 
 const createProfile = `-- name: CreateProfile :one
@@ -47,6 +47,7 @@ const deleteProfile = `-- name: DeleteProfile :execrows
 UPDATE "profile"
 SET deleted_at = NOW()
 WHERE id = $1
+  AND deleted_at IS NULL
 `
 
 // DeleteProfile
@@ -54,6 +55,7 @@ WHERE id = $1
 //	UPDATE "profile"
 //	SET deleted_at = NOW()
 //	WHERE id = $1
+//	  AND deleted_at IS NULL
 func (q *Queries) DeleteProfile(ctx context.Context, id string) (int64, error) {
 	result, err := q.db.ExecContext(ctx, deleteProfile, id)
 	if err != nil {
@@ -63,15 +65,19 @@ func (q *Queries) DeleteProfile(ctx context.Context, id string) (int64, error) {
 }
 
 const getProfileById = `-- name: GetProfileById :one
-SELECT id, kind, slug, profile_picture_uri, title, description, show_stories, show_projects, created_at, updated_at, deleted_at FROM "profile"
+SELECT id, kind, slug, profile_picture_uri, title, description, show_stories, show_projects, created_at, updated_at, deleted_at
+FROM "profile"
 WHERE id = $1
+  AND deleted_at IS NULL
 LIMIT 1
 `
 
 // GetProfileById
 //
-//	SELECT id, kind, slug, profile_picture_uri, title, description, show_stories, show_projects, created_at, updated_at, deleted_at FROM "profile"
+//	SELECT id, kind, slug, profile_picture_uri, title, description, show_stories, show_projects, created_at, updated_at, deleted_at
+//	FROM "profile"
 //	WHERE id = $1
+//	  AND deleted_at IS NULL
 //	LIMIT 1
 func (q *Queries) GetProfileById(ctx context.Context, id string) (*profiles.Profile, error) {
 	row := q.db.QueryRowContext(ctx, getProfileById, id)
@@ -96,15 +102,19 @@ func (q *Queries) GetProfileById(ctx context.Context, id string) (*profiles.Prof
 }
 
 const getProfileBySlug = `-- name: GetProfileBySlug :one
-SELECT id, kind, slug, profile_picture_uri, title, description, show_stories, show_projects, created_at, updated_at, deleted_at FROM "profile"
+SELECT id, kind, slug, profile_picture_uri, title, description, show_stories, show_projects, created_at, updated_at, deleted_at
+FROM "profile"
 WHERE slug = $1
+  AND deleted_at IS NULL
 LIMIT 1
 `
 
 // GetProfileBySlug
 //
-//	SELECT id, kind, slug, profile_picture_uri, title, description, show_stories, show_projects, created_at, updated_at, deleted_at FROM "profile"
+//	SELECT id, kind, slug, profile_picture_uri, title, description, show_stories, show_projects, created_at, updated_at, deleted_at
+//	FROM "profile"
 //	WHERE slug = $1
+//	  AND deleted_at IS NULL
 //	LIMIT 1
 func (q *Queries) GetProfileBySlug(ctx context.Context, slug string) (*profiles.Profile, error) {
 	row := q.db.QueryRowContext(ctx, getProfileBySlug, slug)
@@ -128,13 +138,72 @@ func (q *Queries) GetProfileBySlug(ctx context.Context, slug string) (*profiles.
 	return &i, err
 }
 
+const getProfileLinksForKind = `-- name: GetProfileLinksForKind :many
+SELECT pl.id, pl.kind, pl.profile_id, pl.remote_id, pl.title, pl.auth_provider, pl.auth_token_scope, pl.auth_token, pl.auth_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.created_at, pl.updated_at, pl.deleted_at
+FROM "profile_link" pl
+  INNER JOIN "profile" p ON pl.profile_id = p.id
+  AND p.deleted_at IS NULL
+WHERE pl.kind = $1
+  AND pl.deleted_at IS NULL
+`
+
+// GetProfileLinksForKind
+//
+//	SELECT pl.id, pl.kind, pl.profile_id, pl.remote_id, pl.title, pl.auth_provider, pl.auth_token_scope, pl.auth_token, pl.auth_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.created_at, pl.updated_at, pl.deleted_at
+//	FROM "profile_link" pl
+//	  INNER JOIN "profile" p ON pl.profile_id = p.id
+//	  AND p.deleted_at IS NULL
+//	WHERE pl.kind = $1
+//	  AND pl.deleted_at IS NULL
+func (q *Queries) GetProfileLinksForKind(ctx context.Context, kind string) ([]*profiles.ProfileLink, error) {
+	rows, err := q.db.QueryContext(ctx, getProfileLinksForKind, kind)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*profiles.ProfileLink{}
+	for rows.Next() {
+		var i profiles.ProfileLink
+		if err := rows.Scan(
+			&i.Id,
+			&i.Kind,
+			&i.ProfileId,
+			&i.RemoteId,
+			&i.Title,
+			&i.AuthProvider,
+			&i.AuthTokenScope,
+			&i.AuthToken,
+			&i.AuthTokenExpiresAt,
+			&i.AuthRefreshToken,
+			&i.AuthRefreshTokenExpiresAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listProfiles = `-- name: ListProfiles :many
-SELECT id, kind, slug, profile_picture_uri, title, description, show_stories, show_projects, created_at, updated_at, deleted_at FROM "profile"
+SELECT id, kind, slug, profile_picture_uri, title, description, show_stories, show_projects, created_at, updated_at, deleted_at
+FROM "profile"
+WHERE deleted_at IS NULL
 `
 
 // ListProfiles
 //
-//	SELECT id, kind, slug, profile_picture_uri, title, description, show_stories, show_projects, created_at, updated_at, deleted_at FROM "profile"
+//	SELECT id, kind, slug, profile_picture_uri, title, description, show_stories, show_projects, created_at, updated_at, deleted_at
+//	FROM "profile"
+//	WHERE deleted_at IS NULL
 func (q *Queries) ListProfiles(ctx context.Context) ([]*profiles.Profile, error) {
 	rows, err := q.db.QueryContext(ctx, listProfiles)
 	if err != nil {
@@ -172,17 +241,19 @@ func (q *Queries) ListProfiles(ctx context.Context) ([]*profiles.Profile, error)
 
 const updateProfile = `-- name: UpdateProfile :execrows
 UPDATE "profile"
-SET slug = $2
-WHERE id = $1
+SET slug = $1
+WHERE id = $2
+  AND deleted_at IS NULL
 `
 
 // UpdateProfile
 //
 //	UPDATE "profile"
-//	SET slug = $2
-//	WHERE id = $1
+//	SET slug = $1
+//	WHERE id = $2
+//	  AND deleted_at IS NULL
 func (q *Queries) UpdateProfile(ctx context.Context, arg profiles.UpdateProfileParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, updateProfile, arg.Id, arg.Slug)
+	result, err := q.db.ExecContext(ctx, updateProfile, arg.Slug, arg.Id)
 	if err != nil {
 		return 0, err
 	}

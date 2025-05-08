@@ -62,6 +62,33 @@ type Profile struct {
 	DeletedAt         sql.NullTime   `json:"deletedAt"`
 }
 
+type ProfileLink struct {
+	Id                        string         `json:"id"`
+	Kind                      string         `json:"kind"`
+	ProfileId                 string         `json:"profileId"`
+	RemoteId                  string         `json:"remoteId"`
+	Title                     string         `json:"title"`
+	AuthProvider              string         `json:"authProvider"`
+	AuthTokenScope            string         `json:"authTokenScope"`
+	AuthToken                 string         `json:"authToken"`
+	AuthTokenExpiresAt        sql.NullTime   `json:"authTokenExpiresAt"`
+	AuthRefreshToken          sql.NullString `json:"authRefreshToken"`
+	AuthRefreshTokenExpiresAt sql.NullTime   `json:"authRefreshTokenExpiresAt"`
+	CreatedAt                 time.Time      `json:"createdAt"`
+	UpdatedAt                 sql.NullTime   `json:"updatedAt"`
+	DeletedAt                 sql.NullTime   `json:"deletedAt"`
+}
+
+type ProfileLinkImport struct {
+	Id            string       `json:"id"`
+	ProfileLinkId string       `json:"profileLinkId"`
+	RemoteId      string       `json:"remoteId"`
+	Data          string       `json:"data"`
+	CreatedAt     time.Time    `json:"createdAt"`
+	UpdatedAt     sql.NullTime `json:"updatedAt"`
+	DeletedAt     sql.NullTime `json:"deletedAt"`
+}
+
 type ProfileMembership struct {
 	Id        string       `json:"id"`
 	Kind      string       `json:"kind"`
@@ -75,6 +102,7 @@ type ProfileMembership struct {
 type Question struct {
 	Id            string         `json:"id"`
 	UserId        string         `json:"userId"`
+	ProfileId     sql.NullString `json:"profileId"`
 	Content       string         `json:"content"`
 	IsHidden      bool           `json:"isHidden"`
 	CreatedAt     time.Time      `json:"createdAt"`
@@ -133,12 +161,14 @@ type User struct {
 	Email               sql.NullString `json:"email"`
 	Phone               sql.NullString `json:"phone"`
 	GithubHandle        sql.NullString `json:"githubHandle"`
+	BskyHandle          sql.NullString `json:"bskyHandle"`
 	XHandle             sql.NullString `json:"xHandle"`
 	CreatedAt           time.Time      `json:"createdAt"`
 	UpdatedAt           sql.NullTime   `json:"updatedAt"`
 	DeletedAt           sql.NullTime   `json:"deletedAt"`
 	GithubRemoteId      sql.NullString `json:"githubRemoteId"`
 	XRemoteId           sql.NullString `json:"xRemoteId"`
+	BskyRemoteId        sql.NullString `json:"bskyRemoteId"`
 	IndividualProfileId sql.NullString `json:"individualProfileId"`
 }
 
@@ -148,6 +178,6 @@ type CreateProfileParams struct {
 }
 
 type UpdateProfileParams struct {
-	Id   string `json:"id"`
 	Slug string `json:"slug"`
+	Id   string `json:"id"`
 }
