@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/eser/ajan/datafx"
 	"github.com/eser/ajan/httpfx"
@@ -13,31 +12,7 @@ import (
 	"github.com/eser/ajan/lib"
 	"github.com/eser/ajan/logfx"
 	"github.com/eser/ajan/metricsfx"
-	"github.com/eser/aya.is-services/pkg/api/adapters/storage"
-	"github.com/eser/aya.is-services/pkg/api/business/profiles"
 )
-
-func RegisterHttpRoutes(routes *httpfx.Router, logger *logfx.Logger, dataRegistry *datafx.Registry) {
-	routes.
-		Route("GET /profiles", func(ctx *httpfx.Context) httpfx.Result {
-			store, err := storage.NewFromDefault(dataRegistry)
-			if err != nil {
-				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
-			}
-
-			service := profiles.NewService(logger, store)
-
-			records, err := service.List(ctx.Request.Context())
-			if err != nil {
-				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
-			}
-
-			return ctx.Results.Json(records)
-		}).
-		HasSummary("List profiles").
-		HasDescription("List profiles.").
-		HasResponse(http.StatusOK)
-}
 
 func Run(ctx context.Context, config *httpfx.Config, metricsProvider *metricsfx.MetricsProvider, logger *logfx.Logger, dataRegistry *datafx.Registry) error { //nolint:lll
 	routes := httpfx.NewRouter("/")
@@ -57,7 +32,8 @@ func Run(ctx context.Context, config *httpfx.Config, metricsProvider *metricsfx.
 	profiling.RegisterHttpRoutes(routes, config)
 
 	// http routes
-	RegisterHttpRoutes(routes, logger, dataRegistry) //nolint:contextcheck
+	RegisterHttpRoutesForProfiles(routes, logger, dataRegistry)      //nolint:contextcheck
+	RegisterHttpRoutesForCustomDomains(routes, logger, dataRegistry) //nolint:contextcheck
 
 	// run
 	cleanup, err := httpService.Start(ctx)

@@ -2,7 +2,7 @@
 // versions:
 //   sqlc v1.29.0
 
-package profiles
+package custom_domains
 
 import (
 	"database/sql"
@@ -206,12 +206,12 @@ type User struct {
 	DeletedAt           sql.NullTime   `json:"deletedAt"`
 }
 
-type CreateProfileParams struct {
-	Id   string `json:"id"`
-	Slug string `json:"slug"`
-}
-
-type UpdateProfileParams struct {
-	Slug string `json:"slug"`
-	Id   string `json:"id"`
+type GetCustomDomainByDomainRow struct {
+	Id          string       `json:"id"`
+	Domain      string       `json:"domain"`
+	ProfileId   string       `json:"profileId"`
+	CreatedAt   time.Time    `json:"createdAt"`
+	UpdatedAt   sql.NullTime `json:"updatedAt"`
+	DeletedAt   sql.NullTime `json:"deletedAt"`
+	ProfileSlug string       `json:"profileSlug"`
 }

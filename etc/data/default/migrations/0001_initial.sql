@@ -194,7 +194,18 @@ CREATE TABLE IF NOT EXISTS "story" (
   CONSTRAINT "story_author_profile_id_slug_unique" UNIQUE ("author_profile_id", "slug")
 );
 
+CREATE TABLE IF NOT EXISTS "custom_domain" (
+  "id" CHAR(26) NOT NULL PRIMARY KEY,
+  "domain" TEXT NOT NULL CONSTRAINT "custom_domain_domain_unique" UNIQUE,
+  "profile_id" CHAR(26) NOT NULL CONSTRAINT "custom_domain_profile_id_fk" REFERENCES "profile",
+  "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  "updated_at" TIMESTAMP WITH TIME ZONE,
+  "deleted_at" TIMESTAMP WITH TIME ZONE
+);
+
 -- +goose Down
+DROP TABLE IF EXISTS "custom_domain";
+
 DROP TABLE IF EXISTS "story";
 
 DROP TABLE IF EXISTS "event_attendance";
