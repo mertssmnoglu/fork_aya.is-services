@@ -1,4 +1,3 @@
-//nolint:dupl
 package http
 
 import (
@@ -11,20 +10,20 @@ import (
 	"github.com/eser/aya.is-services/pkg/api/business/profiles"
 )
 
-func RegisterHttpRoutesForProfiles(routes *httpfx.Router, logger *logfx.Logger, dataRegistry *datafx.Registry) {
+func RegisterHttpRoutesForProfiles(routes *httpfx.Router, logger *logfx.Logger, dataRegistry *datafx.Registry) { //nolint:funlen,lll
 	routes.
 		Route("GET /{locale}/profiles", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
-			// localeParam := ctx.Request.PathValue("locale")
+			localeParam := ctx.Request.PathValue("locale")
 
-			store, err := storage.NewFromDefault(dataRegistry)
+			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
 
-			service := profiles.NewService(logger, store)
+			service := profiles.NewService(logger, repository)
 
-			records, err := service.List(ctx.Request.Context())
+			records, err := service.List(ctx.Request.Context(), localeParam)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
@@ -38,17 +37,17 @@ func RegisterHttpRoutesForProfiles(routes *httpfx.Router, logger *logfx.Logger, 
 	routes.
 		Route("GET /{locale}/profiles/{slug}", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
-			// localeParam := ctx.Request.PathValue("locale")
+			localeParam := ctx.Request.PathValue("locale")
 			slugParam := ctx.Request.PathValue("slug")
 
-			store, err := storage.NewFromDefault(dataRegistry)
+			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
 
-			service := profiles.NewService(logger, store)
+			service := profiles.NewService(logger, repository)
 
-			record, err := service.GetBySlug(ctx.Request.Context(), slugParam)
+			record, err := service.GetBySlug(ctx.Request.Context(), localeParam, slugParam)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
@@ -57,5 +56,29 @@ func RegisterHttpRoutesForProfiles(routes *httpfx.Router, logger *logfx.Logger, 
 		}).
 		HasSummary("Get profile by slug").
 		HasDescription("Get profile by slug.").
+		HasResponse(http.StatusOK)
+
+	routes.
+		Route("GET /{locale}/custom-domains/{domain}", func(ctx *httpfx.Context) httpfx.Result {
+			// get variables from path
+			localeParam := ctx.Request.PathValue("locale")
+			domainParam := ctx.Request.PathValue("domain")
+
+			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
+			if err != nil {
+				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
+			}
+
+			service := profiles.NewService(logger, repository)
+
+			records, err := service.GetByCustomDomain(ctx.Request.Context(), localeParam, domainParam)
+			if err != nil {
+				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
+			}
+
+			return ctx.Results.Json(records)
+		}).
+		HasSummary("Get profile by custom domain").
+		HasDescription("Get profile by custom domain.").
 		HasResponse(http.StatusOK)
 }

@@ -4,10 +4,6 @@ repos:
     hooks:
       - id: check-added-large-files
         args: ["--maxkb=1024"]
-        exclude: |
-          (?x)^(
-            bin/sqlc-gen-go.wasm
-          )$
       - id: check-case-conflict
       - id: check-executables-have-shebangs
       - id: check-json
@@ -72,7 +68,6 @@ repos:
         exclude: |
           (?x)^(
             .github/.*|
-            bin/sqlc-gen-go.wasm|
             ops/docker/resources/fluentd/Dockerfile|
             ops/docker/Dockerfile|
             .adr-dir|

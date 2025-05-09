@@ -1,21 +1,36 @@
 -- name: GetProfileById :one
-SELECT *
-FROM "profile"
-WHERE id = sqlc.arg(id)
-  AND deleted_at IS NULL
+SELECT sqlc.embed(p), sqlc.embed(pt)
+FROM "profile" p
+  INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
+  AND pt.locale_code = sqlc.arg(locale_code)
+WHERE p.id = sqlc.arg(id)
+  AND p.deleted_at IS NULL
 LIMIT 1;
 
 -- name: GetProfileBySlug :one
-SELECT *
-FROM "profile"
-WHERE slug = sqlc.arg(slug)
-  AND deleted_at IS NULL
+SELECT sqlc.embed(p), sqlc.embed(pt)
+FROM "profile" p
+  INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
+  AND pt.locale_code = sqlc.arg(locale_code)
+WHERE p.slug = sqlc.arg(slug)
+  AND p.deleted_at IS NULL
+LIMIT 1;
+
+-- name: GetProfileByCustomDomain :one
+SELECT sqlc.embed(p), sqlc.embed(pt)
+FROM "profile" p
+  INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
+  AND pt.locale_code = sqlc.arg(locale_code)
+WHERE p.custom_domain = sqlc.arg(domain)
+  AND p.deleted_at IS NULL
 LIMIT 1;
 
 -- name: ListProfiles :many
-SELECT *
-FROM "profile"
-WHERE deleted_at IS NULL;
+SELECT sqlc.embed(p), sqlc.embed(pt)
+FROM "profile" p
+  INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
+  AND pt.locale_code = sqlc.arg(locale_code)
+WHERE p.deleted_at IS NULL;
 
 -- name: CreateProfile :one
 INSERT INTO "profile" (id, slug)

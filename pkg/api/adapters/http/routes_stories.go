@@ -15,16 +15,16 @@ func RegisterHttpRoutesForStories(routes *httpfx.Router, logger *logfx.Logger, d
 	routes.
 		Route("GET /{locale}/stories", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
-			// localeParam := ctx.Request.PathValue("locale")
+			localeParam := ctx.Request.PathValue("locale")
 
-			store, err := storage.NewFromDefault(dataRegistry)
+			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
 
-			service := stories.NewService(logger, store)
+			service := stories.NewService(logger, repository)
 
-			records, err := service.List(ctx.Request.Context())
+			records, err := service.List(ctx.Request.Context(), localeParam)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
@@ -38,17 +38,17 @@ func RegisterHttpRoutesForStories(routes *httpfx.Router, logger *logfx.Logger, d
 	routes.
 		Route("GET /{locale}/stories/{slug}", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
-			// localeParam := ctx.Request.PathValue("locale")
+			localeParam := ctx.Request.PathValue("locale")
 			slugParam := ctx.Request.PathValue("slug")
 
-			store, err := storage.NewFromDefault(dataRegistry)
+			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
 
-			service := stories.NewService(logger, store)
+			service := stories.NewService(logger, repository)
 
-			record, err := service.GetBySlug(ctx.Request.Context(), slugParam)
+			record, err := service.GetBySlug(ctx.Request.Context(), localeParam, slugParam)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}

@@ -15,9 +15,9 @@ var (
 )
 
 type Repository interface {
-	GetStoryById(ctx context.Context, id string) (*Story, error)
-	GetStoryBySlug(ctx context.Context, slug string) (*Story, error)
-	ListStories(ctx context.Context) ([]*Story, error)
+	GetStoryById(ctx context.Context, localeCode string, id string) (*Story, error)
+	GetStoryBySlug(ctx context.Context, localeCode string, slug string) (*Story, error)
+	ListStories(ctx context.Context, localeCode string) ([]*Story, error)
 }
 
 type Service struct {
@@ -30,8 +30,8 @@ func NewService(logger *logfx.Logger, repo Repository) *Service {
 	return &Service{logger: logger, repo: repo, idGenerator: DefaultIDGenerator}
 }
 
-func (s *Service) GetById(ctx context.Context, id string) (*Story, error) {
-	record, err := s.repo.GetStoryById(ctx, id)
+func (s *Service) GetById(ctx context.Context, localeCode string, id string) (*Story, error) {
+	record, err := s.repo.GetStoryById(ctx, localeCode, id)
 	if err != nil {
 		return nil, fmt.Errorf("%w(id: %s): %w", ErrFailedToGetRecord, id, err)
 	}
@@ -39,8 +39,8 @@ func (s *Service) GetById(ctx context.Context, id string) (*Story, error) {
 	return record, nil
 }
 
-func (s *Service) GetBySlug(ctx context.Context, slug string) (*Story, error) {
-	record, err := s.repo.GetStoryBySlug(ctx, slug)
+func (s *Service) GetBySlug(ctx context.Context, localeCode string, slug string) (*Story, error) {
+	record, err := s.repo.GetStoryBySlug(ctx, localeCode, slug)
 	if err != nil {
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
 	}
@@ -48,8 +48,8 @@ func (s *Service) GetBySlug(ctx context.Context, slug string) (*Story, error) {
 	return record, nil
 }
 
-func (s *Service) List(ctx context.Context) ([]*Story, error) {
-	records, err := s.repo.ListStories(ctx)
+func (s *Service) List(ctx context.Context, localeCode string) ([]*Story, error) {
+	records, err := s.repo.ListStories(ctx, localeCode)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
 	}

@@ -28,14 +28,14 @@ func execProfilesList(ctx context.Context) error {
 		return err //nolint:wrapcheck
 	}
 
-	store, err := storage.NewFromDefault(appContext.Data)
+	repository, err := storage.NewRepositoryFromDefault(appContext.Data)
 	if err != nil {
 		panic(err)
 	}
 
-	service := profiles.NewService(appContext.Logger, store)
+	service := profiles.NewService(appContext.Logger, repository)
 
-	records, err := service.List(ctx)
+	records, err := service.List(ctx, "en")
 	if err != nil {
 		panic(err)
 	}

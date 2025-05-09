@@ -1,109 +1,27 @@
 version: "2"
 
-plugins:
-- name: golang
-  wasm:
-    url: file://./bin/sqlc-gen-go.wasm
-    sha256: "4fa2c7de11bd2ced2a0cbdf29fb737ff8c93ce65e8ab0fd78c532a8d7f64bd52"
-
 sql:
-  # Profiles
   - engine: "postgresql"
-    queries: "etc/data/default/queries/profiles.sql"
+    queries: "etc/data/default/queries/*.sql"
     schema: "etc/data/default/migrations"
     rules:
       - sqlc/db-prepare
-    codegen:
-      - plugin: golang
-        out: "pkg/api"
-        options:
-          module: "github.com/eser/aya.is-services/pkg/api"
-          sql_package: "database/sql"
-          initialisms: []
-          emit_empty_slices: true
-          emit_nil_records: true
-          emit_json_tags: true
-          emit_sql_as_comment: true
-          emit_result_struct_pointers: true
-          json_tags_case_style: "snake"
-          output_models_package: "profiles"
-          output_models_file_name: "business/profiles/types_gen.go"
-          output_db_package: "storage"
-          output_db_file_name: "adapters/storage/db_gen.go"
-          output_files_package: "storage"
-          output_files_prefix: "adapters/storage/"
-  # Users
-  - engine: "postgresql"
-    queries: "etc/data/default/queries/users.sql"
-    schema: "etc/data/default/migrations"
-    rules:
-      - sqlc/db-prepare
-    codegen:
-      - plugin: golang
-        out: "pkg/api"
-        options:
-          module: "github.com/eser/aya.is-services/pkg/api"
-          sql_package: "database/sql"
-          initialisms: []
-          emit_empty_slices: true
-          emit_nil_records: true
-          emit_json_tags: true
-          emit_sql_as_comment: true
-          emit_result_struct_pointers: true
-          json_tags_case_style: "snake"
-          output_models_package: "users"
-          output_models_file_name: "business/users/types_gen.go"
-          output_db_package: "storage"
-          output_db_file_name: "adapters/storage/db_gen.go"
-          output_files_package: "storage"
-          output_files_prefix: "adapters/storage/"
-  # Stories
-  - engine: "postgresql"
-    queries: "etc/data/default/queries/stories.sql"
-    schema: "etc/data/default/migrations"
-    rules:
-      - sqlc/db-prepare
-    codegen:
-      - plugin: golang
-        out: "pkg/api"
-        options:
-          module: "github.com/eser/aya.is-services/pkg/api"
-          sql_package: "database/sql"
-          initialisms: []
-          emit_empty_slices: true
-          emit_nil_records: true
-          emit_json_tags: true
-          emit_sql_as_comment: true
-          emit_result_struct_pointers: true
-          json_tags_case_style: "snake"
-          output_models_package: "stories"
-          output_models_file_name: "business/stories/types_gen.go"
-          output_db_package: "storage"
-          output_db_file_name: "adapters/storage/db_gen.go"
-          output_files_package: "storage"
-          output_files_prefix: "adapters/storage/"
-  # Custom Domains
-  - engine: "postgresql"
-    queries: "etc/data/default/queries/custom_domains.sql"
-    schema: "etc/data/default/migrations"
-    rules:
-      - sqlc/db-prepare
-    codegen:
-      - plugin: golang
-        out: "pkg/api"
-        options:
-          module: "github.com/eser/aya.is-services/pkg/api"
-          sql_package: "database/sql"
-          initialisms: []
-          emit_empty_slices: true
-          emit_nil_records: true
-          emit_json_tags: true
-          emit_sql_as_comment: true
-          emit_result_struct_pointers: true
-          json_tags_case_style: "snake"
-          output_models_package: "custom_domains"
-          output_models_file_name: "business/custom_domains/types_gen.go"
-          output_db_package: "storage"
-          output_db_file_name: "adapters/storage/db_gen.go"
-          output_files_package: "storage"
-          output_files_prefix: "adapters/storage/"
+    gen:
+      go:
+        out: "pkg/api/adapters/storage"
+        sql_package: "database/sql"
+        initialisms: []
+        query_parameter_limit: 0
+        emit_interface: true
+        emit_pointers_for_null_types: true
+        emit_empty_slices: true
+        emit_db_tags: true
+        emit_json_tags: true
+        emit_sql_as_comment: true
+        emit_result_struct_pointers: true
+        json_tags_case_style: "snake"
+        package: "storage"
+        output_models_file_name: "types_gen.go"
+        output_db_file_name: "db_gen.go"
+        output_querier_file_name: "querier_gen.go"
+        output_files_suffix: "_gen"

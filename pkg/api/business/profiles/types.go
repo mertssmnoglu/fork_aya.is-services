@@ -14,6 +14,21 @@ func DefaultIDGenerator() RecordID {
 	return RecordID(ulid.Make().String())
 }
 
+type Profile struct {
+	CreatedAt         time.Time  `json:"created_at"`
+	Properties        any        `json:"properties"`
+	CustomDomain      *string    `json:"custom_domain"`
+	ProfilePictureUri *string    `json:"profile_picture_uri"`
+	Pronouns          *string    `json:"pronouns"`
+	UpdatedAt         *time.Time `json:"updated_at"`
+	DeletedAt         *time.Time `json:"deleted_at"`
+	Id                string     `json:"id"`
+	Slug              string     `json:"slug"`
+	Kind              string     `json:"kind"`
+	Title             string     `json:"title"`
+	Description       string     `json:"description"`
+}
+
 type ExternalPost struct {
 	CreatedAt *time.Time `json:"created_at"` //nolint:tagliatelle
 	Id        string     `json:"id"`

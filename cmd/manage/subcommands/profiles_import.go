@@ -28,12 +28,12 @@ func execProfilesImport(ctx context.Context) error {
 		return err //nolint:wrapcheck
 	}
 
-	store, err := storage.NewFromDefault(appContext.Data)
+	repository, err := storage.NewRepositoryFromDefault(appContext.Data)
 	if err != nil {
 		panic(err)
 	}
 
-	service := profiles.NewService(appContext.Logger, store)
+	service := profiles.NewService(appContext.Logger, repository)
 
 	err = service.Import(ctx, appContext.Arcade)
 	if err != nil {

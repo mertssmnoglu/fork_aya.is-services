@@ -32,7 +32,7 @@ init-generators: ## Initializes generators.
 
 .PHONY: init-checkers
 init-checkers: ## Initializes checkers.
-	go tool -n golangci-lint >/dev/null || go get -tool github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	go tool -n golangci-lint >/dev/null || go get -tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 	go tool -n betteralign >/dev/null || go get -tool github.com/dkorunic/betteralign/cmd/betteralign@latest
 	go tool -n govulncheck >/dev/null || go get -tool golang.org/x/vuln/cmd/govulncheck@latest
 

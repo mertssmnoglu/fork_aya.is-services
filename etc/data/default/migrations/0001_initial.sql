@@ -6,12 +6,19 @@ CREATE TABLE IF NOT EXISTS "profile" (
   "custom_domain" TEXT,
   "profile_picture_uri" TEXT,
   "pronouns" TEXT,
-  "title" TEXT NOT NULL,
-  "description" TEXT NOT NULL,
   "properties" JSONB,
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   "updated_at" TIMESTAMP WITH TIME ZONE,
   "deleted_at" TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE IF NOT EXISTS "profile_tx" (
+  "profile_id" CHAR(26) NOT NULL,
+  "locale_code" CHAR(12) NOT NULL,
+  "title" TEXT NOT NULL,
+  "description" TEXT NOT NULL,
+  "properties" JSONB,
+  PRIMARY KEY ("profile_id", "locale_code")
 );
 
 CREATE TABLE IF NOT EXISTS "user" (
@@ -85,14 +92,20 @@ CREATE TABLE IF NOT EXISTS "profile_page" (
   "slug" TEXT NOT NULL,
   "order" INTEGER NOT NULL,
   "cover_picture_uri" TEXT,
-  "title" TEXT NOT NULL,
-  "summary" TEXT NOT NULL,
-  "content" TEXT NOT NULL,
   "published_at" TIMESTAMP WITH TIME ZONE,
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   "updated_at" TIMESTAMP WITH TIME ZONE,
   "deleted_at" TIMESTAMP WITH TIME ZONE,
   CONSTRAINT "profile_page_profile_id_slug_unique" UNIQUE ("profile_id", "slug")
+);
+
+CREATE TABLE IF NOT EXISTS "profile_page_tx" (
+  "profile_page_id" CHAR(26) NOT NULL,
+  "locale_code" CHAR(12) NOT NULL,
+  "title" TEXT NOT NULL,
+  "summary" TEXT NOT NULL,
+  "content" TEXT NOT NULL,
+  PRIMARY KEY ("profile_page_id", "locale_code")
 );
 
 CREATE TABLE IF NOT EXISTS "session" (
@@ -194,17 +207,17 @@ CREATE TABLE IF NOT EXISTS "story" (
   CONSTRAINT "story_author_profile_id_slug_unique" UNIQUE ("author_profile_id", "slug")
 );
 
-CREATE TABLE IF NOT EXISTS "custom_domain" (
-  "id" CHAR(26) NOT NULL PRIMARY KEY,
-  "domain" TEXT NOT NULL CONSTRAINT "custom_domain_domain_unique" UNIQUE,
-  "profile_id" CHAR(26) NOT NULL CONSTRAINT "custom_domain_profile_id_fk" REFERENCES "profile",
-  "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-  "updated_at" TIMESTAMP WITH TIME ZONE,
-  "deleted_at" TIMESTAMP WITH TIME ZONE
+CREATE TABLE IF NOT EXISTS "story_tx" (
+  "story_id" CHAR(26) NOT NULL,
+  "locale_code" CHAR(12) NOT NULL,
+  "title" TEXT NOT NULL,
+  "summary" TEXT NOT NULL,
+  "content" TEXT NOT NULL,
+  PRIMARY KEY ("story_id", "locale_code")
 );
 
 -- +goose Down
-DROP TABLE IF EXISTS "custom_domain";
+DROP TABLE IF EXISTS "story_tx";
 
 DROP TABLE IF EXISTS "story";
 
@@ -222,6 +235,8 @@ DROP INDEX IF EXISTS "session_logged_in_user_id_index";
 
 DROP TABLE IF EXISTS "session";
 
+DROP TABLE IF EXISTS "profile_page_tx";
+
 DROP TABLE IF EXISTS "profile_page";
 
 DROP TABLE IF EXISTS "profile_link_import";
@@ -231,5 +246,7 @@ DROP TABLE IF EXISTS "profile_link";
 DROP TABLE IF EXISTS "profile_membership";
 
 DROP TABLE IF EXISTS "user";
+
+DROP TABLE IF EXISTS "profile_tx";
 
 DROP TABLE IF EXISTS "profile";
