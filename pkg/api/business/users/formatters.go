@@ -14,16 +14,16 @@ func (s *User) MarshalJSON() ([]byte, error) {
 		Name         string  `json:"name"`
 		Email        *string `json:"email"`
 		Phone        *string `json:"phone"`
-		GithubHandle *string `json:"githubHandle"`
-		// GithubRemoteId      *string    `json:"githubRemoteId"`
-		BskyHandle *string `json:"bskyHandle"`
-		// BskyRemoteId        *string    `json:"bskyRemoteId"`
-		XHandle *string `json:"xHandle"`
-		// XRemoteId           *string    `json:"xRemoteId"`
-		IndividualProfileId *string    `json:"individualProfileId"`
-		CreatedAt           time.Time  `json:"createdAt"`
-		UpdatedAt           *time.Time `json:"updatedAt"`
-		DeletedAt           *time.Time `json:"deletedAt"`
+		GithubHandle *string `json:"github_handle"`
+		// GithubRemoteId      *string    `json:"github_remote_id"`
+		BskyHandle *string `json:"bsky_handle"`
+		// BskyRemoteId        *string    `json:"bsky_remote_id"`
+		XHandle *string `json:"x_handle"`
+		// XRemoteId           *string    `json:"x_remote_id"`
+		IndividualProfileId *string    `json:"individual_profile_id"`
+		CreatedAt           time.Time  `json:"created_at"`
+		UpdatedAt           *time.Time `json:"updated_at"`
+		DeletedAt           *time.Time `json:"deleted_at"`
 	}{
 		Id:           s.Id,
 		Kind:         s.Kind,

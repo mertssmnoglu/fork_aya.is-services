@@ -2,7 +2,7 @@
 // versions:
 //   sqlc v1.29.0
 
-package users
+package stories
 
 import (
 	"database/sql"
@@ -204,34 +204,4 @@ type User struct {
 	CreatedAt           time.Time      `json:"created_at"`
 	UpdatedAt           sql.NullTime   `json:"updated_at"`
 	DeletedAt           sql.NullTime   `json:"deleted_at"`
-}
-
-type CreateUserParams struct {
-	Id                  string         `json:"id"`
-	Kind                string         `json:"kind"`
-	Name                string         `json:"name"`
-	Email               sql.NullString `json:"email"`
-	Phone               sql.NullString `json:"phone"`
-	GithubHandle        sql.NullString `json:"github_handle"`
-	GithubRemoteId      sql.NullString `json:"github_remote_id"`
-	BskyHandle          sql.NullString `json:"bsky_handle"`
-	BskyRemoteId        sql.NullString `json:"bsky_remote_id"`
-	XHandle             sql.NullString `json:"x_handle"`
-	XRemoteId           sql.NullString `json:"x_remote_id"`
-	IndividualProfileId sql.NullString `json:"individual_profile_id"`
-}
-
-type UpdateUserParams struct {
-	Kind                string         `json:"kind"`
-	Name                string         `json:"name"`
-	Email               sql.NullString `json:"email"`
-	Phone               sql.NullString `json:"phone"`
-	GithubHandle        sql.NullString `json:"github_handle"`
-	GithubRemoteId      sql.NullString `json:"github_remote_id"`
-	BskyHandle          sql.NullString `json:"bsky_handle"`
-	BskyRemoteId        sql.NullString `json:"bsky_remote_id"`
-	XHandle             sql.NullString `json:"x_handle"`
-	XRemoteId           sql.NullString `json:"x_remote_id"`
-	IndividualProfileId sql.NullString `json:"individual_profile_id"`
-	Id                  string         `json:"id"`
 }

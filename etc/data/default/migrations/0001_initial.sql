@@ -181,7 +181,7 @@ CREATE TABLE IF NOT EXISTS "story" (
   "slug" TEXT NOT NULL,
   "kind" TEXT NOT NULL,
   "status" TEXT NOT NULL,
-  "is_featured" BOOLEAN DEFAULT FALSE,
+  "is_featured" BOOLEAN NOT NULL DEFAULT FALSE,
   "story_picture_uri" TEXT,
   "title" TEXT NOT NULL,
   "summary" TEXT NOT NULL,

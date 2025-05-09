@@ -14,178 +14,178 @@ import (
 type CustomDomain struct {
 	Id        string       `json:"id"`
 	Domain    string       `json:"domain"`
-	ProfileId string       `json:"profileId"`
-	CreatedAt time.Time    `json:"createdAt"`
-	UpdatedAt sql.NullTime `json:"updatedAt"`
-	DeletedAt sql.NullTime `json:"deletedAt"`
+	ProfileId string       `json:"profile_id"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
+	DeletedAt sql.NullTime `json:"deleted_at"`
 }
 
 type Event struct {
 	Id              string         `json:"id"`
 	Slug            string         `json:"slug"`
 	Kind            string         `json:"kind"`
-	EventPictureUri sql.NullString `json:"eventPictureUri"`
+	EventPictureUri sql.NullString `json:"event_picture_uri"`
 	Title           string         `json:"title"`
 	Description     string         `json:"description"`
-	TimeStart       time.Time      `json:"timeStart"`
-	TimeEnd         time.Time      `json:"timeEnd"`
-	CreatedAt       time.Time      `json:"createdAt"`
-	UpdatedAt       sql.NullTime   `json:"updatedAt"`
-	DeletedAt       sql.NullTime   `json:"deletedAt"`
-	SeriesId        sql.NullString `json:"seriesId"`
+	TimeStart       time.Time      `json:"time_start"`
+	TimeEnd         time.Time      `json:"time_end"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       sql.NullTime   `json:"updated_at"`
+	DeletedAt       sql.NullTime   `json:"deleted_at"`
+	SeriesId        sql.NullString `json:"series_id"`
 	Status          string         `json:"status"`
-	AttendanceUri   sql.NullString `json:"attendanceUri"`
-	PublishedAt     sql.NullTime   `json:"publishedAt"`
+	AttendanceUri   sql.NullString `json:"attendance_uri"`
+	PublishedAt     sql.NullTime   `json:"published_at"`
 }
 
 type EventAttendance struct {
 	Id        string       `json:"id"`
-	EventId   string       `json:"eventId"`
-	ProfileId string       `json:"profileId"`
+	EventId   string       `json:"event_id"`
+	ProfileId string       `json:"profile_id"`
 	Kind      string       `json:"kind"`
-	CreatedAt time.Time    `json:"createdAt"`
-	UpdatedAt sql.NullTime `json:"updatedAt"`
-	DeletedAt sql.NullTime `json:"deletedAt"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
+	DeletedAt sql.NullTime `json:"deleted_at"`
 }
 
 type EventSeries struct {
 	Id              string         `json:"id"`
 	Slug            string         `json:"slug"`
-	EventPictureUri sql.NullString `json:"eventPictureUri"`
+	EventPictureUri sql.NullString `json:"event_picture_uri"`
 	Title           string         `json:"title"`
 	Description     string         `json:"description"`
-	CreatedAt       time.Time      `json:"createdAt"`
-	UpdatedAt       sql.NullTime   `json:"updatedAt"`
-	DeletedAt       sql.NullTime   `json:"deletedAt"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       sql.NullTime   `json:"updated_at"`
+	DeletedAt       sql.NullTime   `json:"deleted_at"`
 }
 
 type Profile struct {
 	Id                string                `json:"id"`
 	Slug              string                `json:"slug"`
 	Kind              string                `json:"kind"`
-	CustomDomain      sql.NullString        `json:"customDomain"`
-	ProfilePictureUri sql.NullString        `json:"profilePictureUri"`
+	CustomDomain      sql.NullString        `json:"custom_domain"`
+	ProfilePictureUri sql.NullString        `json:"profile_picture_uri"`
 	Pronouns          sql.NullString        `json:"pronouns"`
 	Title             string                `json:"title"`
 	Description       string                `json:"description"`
 	Properties        pqtype.NullRawMessage `json:"properties"`
-	CreatedAt         time.Time             `json:"createdAt"`
-	UpdatedAt         sql.NullTime          `json:"updatedAt"`
-	DeletedAt         sql.NullTime          `json:"deletedAt"`
+	CreatedAt         time.Time             `json:"created_at"`
+	UpdatedAt         sql.NullTime          `json:"updated_at"`
+	DeletedAt         sql.NullTime          `json:"deleted_at"`
 }
 
 type ProfileLink struct {
 	Id                        string                `json:"id"`
-	ProfileId                 string                `json:"profileId"`
+	ProfileId                 string                `json:"profile_id"`
 	Kind                      string                `json:"kind"`
 	Order                     int32                 `json:"order"`
-	IsManaged                 bool                  `json:"isManaged"`
-	IsVerified                bool                  `json:"isVerified"`
-	RemoteId                  sql.NullString        `json:"remoteId"`
-	PublicId                  sql.NullString        `json:"publicId"`
+	IsManaged                 bool                  `json:"is_managed"`
+	IsVerified                bool                  `json:"is_verified"`
+	RemoteId                  sql.NullString        `json:"remote_id"`
+	PublicId                  sql.NullString        `json:"public_id"`
 	Uri                       sql.NullString        `json:"uri"`
 	Title                     string                `json:"title"`
-	AuthProvider              string                `json:"authProvider"`
-	AuthAccessTokenScope      string                `json:"authAccessTokenScope"`
-	AuthAccessToken           string                `json:"authAccessToken"`
-	AuthAccessTokenExpiresAt  sql.NullTime          `json:"authAccessTokenExpiresAt"`
-	AuthRefreshToken          sql.NullString        `json:"authRefreshToken"`
-	AuthRefreshTokenExpiresAt sql.NullTime          `json:"authRefreshTokenExpiresAt"`
+	AuthProvider              string                `json:"auth_provider"`
+	AuthAccessTokenScope      string                `json:"auth_access_token_scope"`
+	AuthAccessToken           string                `json:"auth_access_token"`
+	AuthAccessTokenExpiresAt  sql.NullTime          `json:"auth_access_token_expires_at"`
+	AuthRefreshToken          sql.NullString        `json:"auth_refresh_token"`
+	AuthRefreshTokenExpiresAt sql.NullTime          `json:"auth_refresh_token_expires_at"`
 	Properties                pqtype.NullRawMessage `json:"properties"`
-	CreatedAt                 time.Time             `json:"createdAt"`
-	UpdatedAt                 sql.NullTime          `json:"updatedAt"`
-	DeletedAt                 sql.NullTime          `json:"deletedAt"`
+	CreatedAt                 time.Time             `json:"created_at"`
+	UpdatedAt                 sql.NullTime          `json:"updated_at"`
+	DeletedAt                 sql.NullTime          `json:"deleted_at"`
 }
 
 type ProfileLinkImport struct {
 	Id            string                `json:"id"`
-	ProfileLinkId string                `json:"profileLinkId"`
-	RemoteId      sql.NullString        `json:"remoteId"`
+	ProfileLinkId string                `json:"profile_link_id"`
+	RemoteId      sql.NullString        `json:"remote_id"`
 	Properties    pqtype.NullRawMessage `json:"properties"`
-	CreatedAt     time.Time             `json:"createdAt"`
-	UpdatedAt     sql.NullTime          `json:"updatedAt"`
-	DeletedAt     sql.NullTime          `json:"deletedAt"`
+	CreatedAt     time.Time             `json:"created_at"`
+	UpdatedAt     sql.NullTime          `json:"updated_at"`
+	DeletedAt     sql.NullTime          `json:"deleted_at"`
 }
 
 type ProfileMembership struct {
 	Id         string                `json:"id"`
-	ProfileId  string                `json:"profileId"`
-	UserId     string                `json:"userId"`
+	ProfileId  string                `json:"profile_id"`
+	UserId     string                `json:"user_id"`
 	Kind       string                `json:"kind"`
 	Properties pqtype.NullRawMessage `json:"properties"`
-	CreatedAt  time.Time             `json:"createdAt"`
-	UpdatedAt  sql.NullTime          `json:"updatedAt"`
-	DeletedAt  sql.NullTime          `json:"deletedAt"`
+	CreatedAt  time.Time             `json:"created_at"`
+	UpdatedAt  sql.NullTime          `json:"updated_at"`
+	DeletedAt  sql.NullTime          `json:"deleted_at"`
 }
 
 type ProfilePage struct {
 	Id              string         `json:"id"`
-	ProfileId       string         `json:"profileId"`
+	ProfileId       string         `json:"profile_id"`
 	Slug            string         `json:"slug"`
 	Order           int32          `json:"order"`
-	CoverPictureUri sql.NullString `json:"coverPictureUri"`
+	CoverPictureUri sql.NullString `json:"cover_picture_uri"`
 	Title           string         `json:"title"`
 	Summary         string         `json:"summary"`
 	Content         string         `json:"content"`
-	PublishedAt     sql.NullTime   `json:"publishedAt"`
-	CreatedAt       time.Time      `json:"createdAt"`
-	UpdatedAt       sql.NullTime   `json:"updatedAt"`
-	DeletedAt       sql.NullTime   `json:"deletedAt"`
+	PublishedAt     sql.NullTime   `json:"published_at"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       sql.NullTime   `json:"updated_at"`
+	DeletedAt       sql.NullTime   `json:"deleted_at"`
 }
 
 type Question struct {
 	Id            string         `json:"id"`
-	UserId        string         `json:"userId"`
-	ProfileId     sql.NullString `json:"profileId"`
+	UserId        string         `json:"user_id"`
+	ProfileId     sql.NullString `json:"profile_id"`
 	Content       string         `json:"content"`
-	IsHidden      bool           `json:"isHidden"`
-	CreatedAt     time.Time      `json:"createdAt"`
-	UpdatedAt     sql.NullTime   `json:"updatedAt"`
-	DeletedAt     sql.NullTime   `json:"deletedAt"`
-	AnsweredAt    sql.NullTime   `json:"answeredAt"`
-	AnswerUri     sql.NullString `json:"answerUri"`
-	IsAnonymous   bool           `json:"isAnonymous"`
-	AnswerKind    sql.NullString `json:"answerKind"`
-	AnswerContent sql.NullString `json:"answerContent"`
+	IsHidden      bool           `json:"is_hidden"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     sql.NullTime   `json:"updated_at"`
+	DeletedAt     sql.NullTime   `json:"deleted_at"`
+	AnsweredAt    sql.NullTime   `json:"answered_at"`
+	AnswerUri     sql.NullString `json:"answer_uri"`
+	IsAnonymous   bool           `json:"is_anonymous"`
+	AnswerKind    sql.NullString `json:"answer_kind"`
+	AnswerContent sql.NullString `json:"answer_content"`
 }
 
 type QuestionVote struct {
 	Id         string    `json:"id"`
-	QuestionId string    `json:"questionId"`
-	UserId     string    `json:"userId"`
+	QuestionId string    `json:"question_id"`
+	UserId     string    `json:"user_id"`
 	Score      int32     `json:"score"`
-	CreatedAt  time.Time `json:"createdAt"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
 type Session struct {
 	Id                       string         `json:"id"`
 	Status                   string         `json:"status"`
-	OauthRequestState        string         `json:"oauthRequestState"`
-	OauthRequestCodeVerifier string         `json:"oauthRequestCodeVerifier"`
-	OauthRedirectUri         sql.NullString `json:"oauthRedirectUri"`
-	LoggedInUserId           sql.NullString `json:"loggedInUserId"`
-	LoggedInAt               sql.NullTime   `json:"loggedInAt"`
-	ExpiresAt                sql.NullTime   `json:"expiresAt"`
-	CreatedAt                time.Time      `json:"createdAt"`
-	UpdatedAt                sql.NullTime   `json:"updatedAt"`
+	OauthRequestState        string         `json:"oauth_request_state"`
+	OauthRequestCodeVerifier string         `json:"oauth_request_code_verifier"`
+	OauthRedirectUri         sql.NullString `json:"oauth_redirect_uri"`
+	LoggedInUserId           sql.NullString `json:"logged_in_user_id"`
+	LoggedInAt               sql.NullTime   `json:"logged_in_at"`
+	ExpiresAt                sql.NullTime   `json:"expires_at"`
+	CreatedAt                time.Time      `json:"created_at"`
+	UpdatedAt                sql.NullTime   `json:"updated_at"`
 }
 
 type Story struct {
 	Id              string                `json:"id"`
-	AuthorProfileId sql.NullString        `json:"authorProfileId"`
+	AuthorProfileId sql.NullString        `json:"author_profile_id"`
 	Slug            string                `json:"slug"`
 	Kind            string                `json:"kind"`
 	Status          string                `json:"status"`
-	IsFeatured      sql.NullBool          `json:"isFeatured"`
-	StoryPictureUri sql.NullString        `json:"storyPictureUri"`
+	IsFeatured      bool                  `json:"is_featured"`
+	StoryPictureUri sql.NullString        `json:"story_picture_uri"`
 	Title           string                `json:"title"`
 	Summary         string                `json:"summary"`
 	Content         string                `json:"content"`
 	Properties      pqtype.NullRawMessage `json:"properties"`
-	PublishedAt     sql.NullTime          `json:"publishedAt"`
-	CreatedAt       time.Time             `json:"createdAt"`
-	UpdatedAt       sql.NullTime          `json:"updatedAt"`
-	DeletedAt       sql.NullTime          `json:"deletedAt"`
+	PublishedAt     sql.NullTime          `json:"published_at"`
+	CreatedAt       time.Time             `json:"created_at"`
+	UpdatedAt       sql.NullTime          `json:"updated_at"`
+	DeletedAt       sql.NullTime          `json:"deleted_at"`
 }
 
 type User struct {
@@ -194,16 +194,16 @@ type User struct {
 	Name                string         `json:"name"`
 	Email               sql.NullString `json:"email"`
 	Phone               sql.NullString `json:"phone"`
-	GithubHandle        sql.NullString `json:"githubHandle"`
-	GithubRemoteId      sql.NullString `json:"githubRemoteId"`
-	BskyHandle          sql.NullString `json:"bskyHandle"`
-	BskyRemoteId        sql.NullString `json:"bskyRemoteId"`
-	XHandle             sql.NullString `json:"xHandle"`
-	XRemoteId           sql.NullString `json:"xRemoteId"`
-	IndividualProfileId sql.NullString `json:"individualProfileId"`
-	CreatedAt           time.Time      `json:"createdAt"`
-	UpdatedAt           sql.NullTime   `json:"updatedAt"`
-	DeletedAt           sql.NullTime   `json:"deletedAt"`
+	GithubHandle        sql.NullString `json:"github_handle"`
+	GithubRemoteId      sql.NullString `json:"github_remote_id"`
+	BskyHandle          sql.NullString `json:"bsky_handle"`
+	BskyRemoteId        sql.NullString `json:"bsky_remote_id"`
+	XHandle             sql.NullString `json:"x_handle"`
+	XRemoteId           sql.NullString `json:"x_remote_id"`
+	IndividualProfileId sql.NullString `json:"individual_profile_id"`
+	CreatedAt           time.Time      `json:"created_at"`
+	UpdatedAt           sql.NullTime   `json:"updated_at"`
+	DeletedAt           sql.NullTime   `json:"deleted_at"`
 }
 
 type CreateProfileParams struct {
