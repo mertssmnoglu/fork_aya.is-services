@@ -12,6 +12,8 @@ import (
 	"github.com/eser/ajan/metricsfx"
 	"github.com/eser/ajan/queuefx"
 	"github.com/eser/aya.is-services/pkg/api/adapters/arcade"
+
+	_ "github.com/lib/pq"
 )
 
 var ErrInitFailed = errors.New("failed to initialize app context")

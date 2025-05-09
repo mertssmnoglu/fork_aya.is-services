@@ -74,7 +74,7 @@ func (s *Service) Import(ctx context.Context, fetcher RecentPostsFetcher) error 
 	for _, link := range links {
 		s.logger.InfoContext(ctx, "importing posts", "kind", link.Kind, "title", link.Title)
 
-		posts, err := fetcher.GetRecentPostsByUsername(ctx, link.RemoteId, link.AuthToken)
+		posts, err := fetcher.GetRecentPostsByUsername(ctx, link.RemoteId.String, link.AuthAccessToken)
 		if err != nil {
 			return fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
 		}

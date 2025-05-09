@@ -15,8 +15,8 @@ func DefaultIDGenerator() RecordID {
 }
 
 type ExternalPost struct {
+	CreatedAt *time.Time `json:"created_at"` //nolint:tagliatelle
 	Id        string     `json:"id"`
 	Content   string     `json:"content"`
 	Permalink string     `json:"permalink"`
-	CreatedAt *time.Time `json:"created_at"` //nolint:tagliatelle
 }

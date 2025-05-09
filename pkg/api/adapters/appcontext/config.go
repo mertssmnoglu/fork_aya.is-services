@@ -14,9 +14,8 @@ type Externals struct {
 }
 
 type AppConfig struct {
+	Externals Externals `conf:"EXTERNALS"`
 	ajan.BaseConfig
 
 	Features FeatureFlags `conf:"FEATURES"`
-
-	Externals Externals `conf:"EXTERNALS"`
 }

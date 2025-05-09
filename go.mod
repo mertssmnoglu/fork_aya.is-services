@@ -5,9 +5,11 @@ go 1.24.1
 require (
 	github.com/eser/ajan v0.6.21
 	github.com/go-rod/rod v0.116.2
+	github.com/lib/pq v1.10.9
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/pressly/goose/v3 v3.24.3
 	github.com/spf13/cobra v1.9.1
+	github.com/sqlc-dev/pqtype v0.3.0
 )
 
 require (

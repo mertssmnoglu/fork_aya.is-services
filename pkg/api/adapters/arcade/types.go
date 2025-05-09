@@ -3,22 +3,22 @@ package arcade
 import "time"
 
 type ExecuteToolResponse struct {
+	FinishedAt    time.Time          `json:"finished_at"`
+	RunAt         *time.Time         `json:"run_at,omitempty"`
 	ID            string             `json:"id"`
 	ExecutionID   string             `json:"execution_id"`
 	ExecutionType string             `json:"execution_type"`
-	FinishedAt    time.Time          `json:"finished_at"`
-	Duration      float64            `json:"duration"`
 	Status        string             `json:"status"`
 	Output        ToolResponseOutput `json:"output"`
+	Duration      float64            `json:"duration"`
 	Success       bool               `json:"success"`
-	RunAt         *time.Time         `json:"run_at,omitempty"`
 }
 
 type ToolResponseOutput struct {
-	Value         ArcadeOutputValue `json:"value"` // NOTE: Spec defines 'value' as any (`{}`), this struct is specific.
 	Error         *ToolError        `json:"error,omitempty"`
-	Logs          []*ToolLog        `json:"logs,omitempty"`
 	Authorization *AuthResponse     `json:"authorization,omitempty"`
+	Value         ArcadeOutputValue `json:"value"` // NOTE: Spec defines 'value' as any (`{}`), this struct is specific.
+	Logs          []*ToolLog        `json:"logs,omitempty"`
 }
 
 // ArcadeOutputValue contains the main data, includes, and metadata.
@@ -33,14 +33,14 @@ type ArcadeOutputValue struct {
 
 // ArcadeTweetData represents a single tweet's data.
 type ArcadeTweetData struct {
+	Attachments         *ArcadeAttachments `json:"attachments,omitempty"` // Pointer for optional field
 	AuthorID            string             `json:"author_id"`
 	AuthorName          string             `json:"author_name,omitempty"`     // Optional, seems derived
 	AuthorUsername      string             `json:"author_username,omitempty"` // Optional, seems derived
-	EditHistoryTweetIDs []string           `json:"edit_history_tweet_ids"`
 	ID                  string             `json:"id"`
 	Text                string             `json:"text"`
 	TweetURL            string             `json:"tweet_url"`
-	Attachments         *ArcadeAttachments `json:"attachments,omitempty"` // Pointer for optional field
+	EditHistoryTweetIDs []string           `json:"edit_history_tweet_ids"`
 }
 
 // ArcadeAttachments holds media keys associated with a tweet.
@@ -56,10 +56,10 @@ type ArcadeIncludes struct {
 
 // ArcadeMedia represents a media item (photo, video, etc.).
 type ArcadeMedia struct {
-	Height   int    `json:"height"`
 	MediaKey string `json:"media_key"`
 	Type     string `json:"type"`
 	URL      string `json:"url"`
+	Height   int    `json:"height"`
 	Width    int    `json:"width"`
 }
 
@@ -84,10 +84,10 @@ type ArcadeUserURL struct {
 // ArcadeUserURLEntry represents a single URL entity.
 type ArcadeUserURLEntry struct {
 	DisplayURL  string `json:"display_url"`
-	End         int    `json:"end"`
 	ExpandedURL string `json:"expanded_url"`
-	Start       int    `json:"start"`
 	URL         string `json:"url"`
+	End         int    `json:"end"`
+	Start       int    `json:"start"`
 }
 
 // ArcadeMeta contains pagination and result count information.
@@ -101,10 +101,10 @@ type ArcadeMeta struct {
 // Based on spec: tool.Error.
 type ToolError struct {
 	AdditionalPromptContent string `json:"additional_prompt_content,omitempty"`
-	CanRetry                bool   `json:"can_retry,omitempty"`
 	DeveloperMessage        string `json:"developer_message,omitempty"`
 	Message                 string `json:"message"` // Required
 	RetryAfterMs            int    `json:"retry_after_ms,omitempty"`
+	CanRetry                bool   `json:"can_retry,omitempty"`
 }
 
 // Based on spec: tool.Log.
@@ -116,8 +116,8 @@ type ToolLog struct {
 
 // Based on spec: auth.AuthorizationContext.
 type AuthorizationContext struct {
-	Token    string         `json:"token,omitempty"`
 	UserInfo map[string]any `json:"user_info,omitempty"`
+	Token    string         `json:"token,omitempty"`
 }
 
 // Based on spec: auth.AuthorizationStatus.
@@ -134,17 +134,17 @@ type AuthResponse struct {
 	Context    *AuthorizationContext `json:"context,omitempty"`
 	ID         string                `json:"id,omitempty"`
 	ProviderID string                `json:"provider_id,omitempty"`
-	Scopes     []string              `json:"scopes,omitempty"`
 	Status     AuthorizationStatus   `json:"status,omitempty"`
 	URL        string                `json:"url,omitempty"`
 	UserID     string                `json:"user_id,omitempty"`
+	Scopes     []string              `json:"scopes,omitempty"`
 }
 
 type ExecuteToolRequest struct {
+	ToolVersion *string          `json:"tool_version,omitempty"`
 	Input       ExecuteToolInput `json:"input"`
 	ToolName    string           `json:"tool_name"`
 	UserID      string           `json:"user_id"`
-	ToolVersion *string          `json:"tool_version,omitempty"`
 }
 
 // ExecuteToolInput represents the input part of the request payload.
