@@ -1,3 +1,4 @@
+//nolint:dupl
 package http
 
 import (
@@ -7,12 +8,12 @@ import (
 	"github.com/eser/ajan/httpfx"
 	"github.com/eser/ajan/logfx"
 	"github.com/eser/aya.is-services/pkg/api/adapters/storage"
-	"github.com/eser/aya.is-services/pkg/api/business/profiles"
+	"github.com/eser/aya.is-services/pkg/api/business/users"
 )
 
-func RegisterHttpRoutesForProfiles(routes *httpfx.Router, logger *logfx.Logger, dataRegistry *datafx.Registry) {
+func RegisterHttpRoutesForUsers(routes *httpfx.Router, logger *logfx.Logger, dataRegistry *datafx.Registry) {
 	routes.
-		Route("GET /{locale}/profiles", func(ctx *httpfx.Context) httpfx.Result {
+		Route("GET /{locale}/users", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
 			// localeParam := ctx.Request.PathValue("locale")
 
@@ -21,7 +22,7 @@ func RegisterHttpRoutesForProfiles(routes *httpfx.Router, logger *logfx.Logger, 
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
 
-			service := profiles.NewService(logger, store)
+			service := users.NewService(logger, store)
 
 			records, err := service.List(ctx.Request.Context())
 			if err != nil {
@@ -30,31 +31,31 @@ func RegisterHttpRoutesForProfiles(routes *httpfx.Router, logger *logfx.Logger, 
 
 			return ctx.Results.Json(records)
 		}).
-		HasSummary("List profiles").
-		HasDescription("List profiles.").
+		HasSummary("List users").
+		HasDescription("List users.").
 		HasResponse(http.StatusOK)
 
 	routes.
-		Route("GET /{locale}/profiles/{slug}", func(ctx *httpfx.Context) httpfx.Result {
+		Route("GET /{locale}/users/{id}", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
 			// localeParam := ctx.Request.PathValue("locale")
-			slugParam := ctx.Request.PathValue("slug")
+			idParam := ctx.Request.PathValue("id")
 
 			store, err := storage.NewFromDefault(dataRegistry)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
 
-			service := profiles.NewService(logger, store)
+			service := users.NewService(logger, store)
 
-			record, err := service.GetBySlug(ctx.Request.Context(), slugParam)
+			record, err := service.GetById(ctx.Request.Context(), idParam)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
 
 			return ctx.Results.Json(record)
 		}).
-		HasSummary("Get profile by slug").
-		HasDescription("Get profile by slug.").
+		HasSummary("Get profile by ID").
+		HasDescription("Get profile by ID.").
 		HasResponse(http.StatusOK)
 }

@@ -32,6 +32,31 @@ sql:
           output_db_file_name: "adapters/storage/db_gen.go"
           output_files_package: "storage"
           output_files_prefix: "adapters/storage/"
+  # Users
+  - engine: "postgresql"
+    queries: "etc/data/default/queries/users.sql"
+    schema: "etc/data/default/migrations"
+    rules:
+      - sqlc/db-prepare
+    codegen:
+      - plugin: golang
+        out: "pkg/api"
+        options:
+          module: "github.com/eser/aya.is-services/pkg/api"
+          sql_package: "database/sql"
+          initialisms: []
+          emit_empty_slices: true
+          emit_nil_records: true
+          emit_json_tags: true
+          emit_sql_as_comment: true
+          emit_result_struct_pointers: true
+          json_tags_case_style: "camel"
+          output_models_package: "users"
+          output_models_file_name: "business/users/types_gen.go"
+          output_db_package: "storage"
+          output_db_file_name: "adapters/storage/db_gen.go"
+          output_files_package: "storage"
+          output_files_prefix: "adapters/storage/"
   # Custom Domains
   - engine: "postgresql"
     queries: "etc/data/default/queries/custom_domains.sql"

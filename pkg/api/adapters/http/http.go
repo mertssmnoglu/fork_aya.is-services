@@ -34,6 +34,7 @@ func Run(ctx context.Context, config *httpfx.Config, metricsProvider *metricsfx.
 	// http routes
 	RegisterHttpRoutesForProfiles(routes, logger, dataRegistry)      //nolint:contextcheck
 	RegisterHttpRoutesForCustomDomains(routes, logger, dataRegistry) //nolint:contextcheck
+	RegisterHttpRoutesForUsers(routes, logger, dataRegistry)         //nolint:contextcheck
 
 	// run
 	cleanup, err := httpService.Start(ctx)
