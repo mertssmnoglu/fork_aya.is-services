@@ -55,7 +55,7 @@ func RegisterHttpRoutesForUsers(routes *httpfx.Router, logger *logfx.Logger, dat
 
 			return ctx.Results.Json(record)
 		}).
-		HasSummary("Get profile by ID").
-		HasDescription("Get profile by ID.").
+		HasSummary("Get user by ID").
+		HasDescription("Get user by ID.").
 		HasResponse(http.StatusOK)
 }

@@ -9,7 +9,7 @@ func main() {
 	rootCmd := &cobra.Command{ //nolint:exhaustruct
 		Use:   "manage",
 		Short: "aya.is-services CLI for site management",
-		Long:  "aya.is-services CLI provides various functionalities for site management including reporting and administration.",
+		Long:  "aya.is-services CLI provides various functionalities for site management including reporting and administration.", //nolint:lll
 	}
 
 	rootCmd.AddCommand(subcommands.CmdId())

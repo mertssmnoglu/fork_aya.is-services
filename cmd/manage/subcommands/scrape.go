@@ -2,7 +2,6 @@ package subcommands
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/go-rod/rod"
@@ -32,20 +31,20 @@ func execScrape(_ context.Context) error {
 
 	page := browser.MustPage(url)
 	page.MustWaitLoad()
-	time.Sleep(4 * time.Second)
+	time.Sleep(4 * time.Second) //nolint:mnd
 
-	articles, err := page.Elements("article")
+	_, err := page.Elements("article")
 	if err != nil {
 		panic(err)
 	}
 
-	if len(articles) > 1 {
-		fmt.Printf("➡️ Bu tweet bir cevap (reply). Conversation içinde.\n")
-	} else if len(articles) == 1 {
-		fmt.Printf("✅ Bu tweet bağımsız bir tweet.\n")
-	} else {
-		fmt.Println("⚠️ Tweet bulunamadı veya DOM yapısı değişmiş olabilir.")
-	}
+	// if len(articles) > 1 {
+	// 	fmt.Printf("➡️ Bu tweet bir cevap (reply). Conversation içinde.\n")
+	// } else if len(articles) == 1 {
+	// 	fmt.Printf("✅ Bu tweet bağımsız bir tweet.\n")
+	// } else {
+	// 	fmt.Println("⚠️ Tweet bulunamadı veya DOM yapısı değişmiş olabilir.")
+	// }
 
 	return nil
 }
