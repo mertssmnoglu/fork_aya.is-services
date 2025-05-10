@@ -14,7 +14,13 @@ import (
 	"github.com/eser/ajan/metricsfx"
 )
 
-func Run(ctx context.Context, config *httpfx.Config, metricsProvider *metricsfx.MetricsProvider, logger *logfx.Logger, dataRegistry *datafx.Registry) error { //nolint:lll
+func Run(
+	ctx context.Context,
+	config *httpfx.Config,
+	metricsProvider *metricsfx.MetricsProvider,
+	logger *logfx.Logger,
+	dataRegistry *datafx.Registry,
+) error {
 	routes := httpfx.NewRouter("/")
 	httpService := httpfx.NewHttpService(config, routes, metricsProvider, logger)
 

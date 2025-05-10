@@ -24,7 +24,13 @@ func main() {
 		slog.Any("features", appContext.Config.Features),
 	)
 
-	err = http.Run(ctx, &appContext.Config.Http, appContext.Metrics, appContext.Logger, appContext.Data)
+	err = http.Run(
+		ctx,
+		&appContext.Config.Http,
+		appContext.Metrics,
+		appContext.Logger,
+		appContext.Data,
+	)
 	if err != nil {
 		panic(err)
 	}

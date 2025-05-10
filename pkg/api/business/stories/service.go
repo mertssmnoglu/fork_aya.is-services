@@ -19,7 +19,11 @@ type Repository interface {
 	GetStoryById(ctx context.Context, localeCode string, id string) (*Story, error)
 	GetStoryBySlug(ctx context.Context, localeCode string, slug string) (*Story, error)
 	ListStories(ctx context.Context, localeCode string) ([]*Story, error)
-	ListStoriesWithCursor(ctx context.Context, localeCode string, cursor *cursors.Cursor) (cursors.Cursored[[]*Story], error) //nolint:lll
+	ListStoriesWithCursor(
+		ctx context.Context,
+		localeCode string,
+		cursor *cursors.Cursor,
+	) (cursors.Cursored[[]*Story], error)
 }
 
 type Service struct {
@@ -59,7 +63,11 @@ func (s *Service) List(ctx context.Context, localeCode string) ([]*Story, error)
 	return records, nil
 }
 
-func (s *Service) ListWithCursor(ctx context.Context, localeCode string, cursor *cursors.Cursor) (cursors.Cursored[[]*Story], error) { //nolint:lll
+func (s *Service) ListWithCursor(
+	ctx context.Context,
+	localeCode string,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*Story], error) {
 	records, err := s.repo.ListStoriesWithCursor(ctx, localeCode, cursor)
 	if err != nil {
 		return cursors.Cursored[[]*Story]{}, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)

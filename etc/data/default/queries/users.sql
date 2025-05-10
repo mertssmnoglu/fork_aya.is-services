@@ -63,7 +63,7 @@ SET kind = sqlc.arg(kind),
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
--- name: DeleteUser :execrows
+-- name: RemoveUser :execrows
 UPDATE "user"
 SET deleted_at = NOW()
 WHERE id = sqlc.arg(id)

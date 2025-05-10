@@ -100,7 +100,11 @@ func endsWithTweetURL(text string) bool {
 	return isTweetURL(lastWord)
 }
 
-func (arcade *Arcade) GetRecentPostsByUsername(ctx context.Context, username string, userId string) ([]*profiles.ExternalPost, error) { //nolint:lll
+func (arcade *Arcade) GetRecentPostsByUsername( //nolint:funlen
+	ctx context.Context,
+	username string,
+	userId string,
+) ([]*profiles.ExternalPost, error) {
 	url := arcade.Config.URL
 
 	requestData := ExecuteToolRequest{ //nolint:exhaustruct
@@ -119,7 +123,12 @@ func (arcade *Arcade) GetRecentPostsByUsername(ctx context.Context, username str
 
 	payloadReader := bytes.NewReader(payloadBytes)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, payloadReader) // Use payloadReader
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		url,
+		payloadReader,
+	) // Use payloadReader
 	if err != nil {
 		return nil, err //nolint:wrapcheck
 	}

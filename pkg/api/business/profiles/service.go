@@ -16,17 +16,34 @@ var (
 )
 
 type RecentPostsFetcher interface {
-	GetRecentPostsByUsername(ctx context.Context, username string, userId string) ([]*ExternalPost, error)
+	GetRecentPostsByUsername(
+		ctx context.Context,
+		username string,
+		userId string,
+	) ([]*ExternalPost, error)
 }
 
 type Repository interface {
+	GetProfileIdBySlug(ctx context.Context, slug string) (string, error)
 	GetProfileById(ctx context.Context, localeCode string, id string) (*Profile, error)
 	GetProfileBySlug(ctx context.Context, localeCode string, slug string) (*Profile, error)
-	GetProfileByCustomDomain(ctx context.Context, localeCode string, domain string) (*Profile, error)
+	GetProfileByCustomDomain(
+		ctx context.Context,
+		localeCode string,
+		domain string,
+	) (*Profile, error)
 	ListProfiles(ctx context.Context, localeCode string) ([]*Profile, error)
-	ListProfilesWithCursor(ctx context.Context, localeCode string, cursor *cursors.Cursor) (cursors.Cursored[[]*Profile], error) //nolint:lll
+	ListProfilesWithCursor(
+		ctx context.Context,
+		localeCode string,
+		cursor *cursors.Cursor,
+	) (cursors.Cursored[[]*Profile], error)
 	// GetProfileLinksForKind(ctx context.Context, kind string) ([]*ProfileLink, error)
-	GetProfilePagesByProfileId(ctx context.Context, localeCode string, profileId string) ([]*ProfilePageBrief, error)
+	GetProfilePagesByProfileId(
+		ctx context.Context,
+		localeCode string,
+		profileId string,
+	) ([]*ProfilePageBrief, error)
 	// CreateProfile(ctx context.Context, arg CreateProfileParams) (*Profile, error)
 	// UpdateProfile(ctx context.Context, arg UpdateProfileParams) (int64, error)
 	// DeleteProfile(ctx context.Context, id string) (int64, error)
@@ -52,7 +69,12 @@ func (s *Service) GetById(ctx context.Context, localeCode string, id string) (*P
 }
 
 func (s *Service) GetBySlug(ctx context.Context, localeCode string, slug string) (*Profile, error) {
-	record, err := s.repo.GetProfileBySlug(ctx, localeCode, slug)
+	profileId, err := s.repo.GetProfileIdBySlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	record, err := s.repo.GetProfileById(ctx, localeCode, profileId)
 	if err != nil {
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
 	}
@@ -60,8 +82,17 @@ func (s *Service) GetBySlug(ctx context.Context, localeCode string, slug string)
 	return record, nil
 }
 
-func (s *Service) GetBySlugEx(ctx context.Context, localeCode string, slug string) (*ProfileWithPages, error) {
-	record, err := s.repo.GetProfileBySlug(ctx, localeCode, slug)
+func (s *Service) GetBySlugEx(
+	ctx context.Context,
+	localeCode string,
+	slug string,
+) (*ProfileWithPages, error) {
+	profileId, err := s.repo.GetProfileIdBySlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	record, err := s.repo.GetProfileById(ctx, localeCode, profileId)
 	if err != nil {
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
 	}
@@ -79,7 +110,11 @@ func (s *Service) GetBySlugEx(ctx context.Context, localeCode string, slug strin
 	return result, nil
 }
 
-func (s *Service) GetByCustomDomain(ctx context.Context, localeCode string, domain string) (*Profile, error) {
+func (s *Service) GetByCustomDomain(
+	ctx context.Context,
+	localeCode string,
+	domain string,
+) (*Profile, error) {
 	record, err := s.repo.GetProfileByCustomDomain(ctx, localeCode, domain)
 	if err != nil {
 		return nil, fmt.Errorf("%w(custom_domain: %s): %w", ErrFailedToGetRecord, domain, err)
@@ -97,7 +132,11 @@ func (s *Service) List(ctx context.Context, localeCode string) ([]*Profile, erro
 	return records, nil
 }
 
-func (s *Service) ListWithCursor(ctx context.Context, localeCode string, cursor *cursors.Cursor) (cursors.Cursored[[]*Profile], error) { //nolint:lll
+func (s *Service) ListWithCursor(
+	ctx context.Context,
+	localeCode string,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*Profile], error) {
 	records, err := s.repo.ListProfilesWithCursor(ctx, localeCode, cursor)
 	if err != nil {
 		return cursors.Cursored[[]*Profile]{}, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)

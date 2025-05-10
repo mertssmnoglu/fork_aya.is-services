@@ -9,7 +9,11 @@ import (
 	"github.com/eser/aya.is-services/pkg/lib/vars"
 )
 
-func (r *Repository) GetUserById(ctx context.Context, localeCode string, id string) (*users.User, error) {
+func (r *Repository) GetUserById(
+	ctx context.Context,
+	localeCode string,
+	id string,
+) (*users.User, error) {
 	row, err := r.queries.GetUserById(ctx, GetUserByIdParams{Id: id})
 	if err != nil {
 		return nil, err
@@ -33,8 +37,15 @@ func (r *Repository) GetUserById(ctx context.Context, localeCode string, id stri
 	return result, nil
 }
 
-func (r *Repository) GetUserByEmail(ctx context.Context, localeCode string, email string) (*users.User, error) {
-	row, err := r.queries.GetUserByEmail(ctx, GetUserByEmailParams{Email: sql.NullString{String: email, Valid: true}})
+func (r *Repository) GetUserByEmail(
+	ctx context.Context,
+	localeCode string,
+	email string,
+) (*users.User, error) {
+	row, err := r.queries.GetUserByEmail(
+		ctx,
+		GetUserByEmailParams{Email: sql.NullString{String: email, Valid: true}},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +95,11 @@ func (r *Repository) ListUsers(ctx context.Context, localeCode string) ([]*users
 	return result, nil
 }
 
-func (r *Repository) ListUsersWithCursor(ctx context.Context, localeCode string, cursor *cursors.Cursor) (cursors.Cursored[[]*users.User], error) { //nolint:lll
+func (r *Repository) ListUsersWithCursor(
+	ctx context.Context,
+	localeCode string,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*users.User], error) {
 	var wrappedResponse cursors.Cursored[[]*users.User]
 
 	rows, err := r.queries.ListUsers(ctx)

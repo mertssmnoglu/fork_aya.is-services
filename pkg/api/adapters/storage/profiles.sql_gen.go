@@ -42,31 +42,6 @@ func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) (*
 	return &i, err
 }
 
-const deleteProfile = `-- name: DeleteProfile :execrows
-UPDATE "profile"
-SET deleted_at = NOW()
-WHERE id = $1
-  AND deleted_at IS NULL
-`
-
-type DeleteProfileParams struct {
-	Id string `db:"id" json:"id"`
-}
-
-// DeleteProfile
-//
-//	UPDATE "profile"
-//	SET deleted_at = NOW()
-//	WHERE id = $1
-//	  AND deleted_at IS NULL
-func (q *Queries) DeleteProfile(ctx context.Context, arg DeleteProfileParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, deleteProfile, arg.Id)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected()
-}
-
 const getProfileByCustomDomain = `-- name: GetProfileByCustomDomain :one
 SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 FROM "profile" p
@@ -221,6 +196,32 @@ func (q *Queries) GetProfileBySlug(ctx context.Context, arg GetProfileBySlugPara
 		&i.ProfileTx.Properties,
 	)
 	return &i, err
+}
+
+const getProfileIdBySlug = `-- name: GetProfileIdBySlug :one
+SELECT id
+FROM "profile"
+WHERE slug = $1
+  AND deleted_at IS NULL
+LIMIT 1
+`
+
+type GetProfileIdBySlugParams struct {
+	Slug string `db:"slug" json:"slug"`
+}
+
+// GetProfileIdBySlug
+//
+//	SELECT id
+//	FROM "profile"
+//	WHERE slug = $1
+//	  AND deleted_at IS NULL
+//	LIMIT 1
+func (q *Queries) GetProfileIdBySlug(ctx context.Context, arg GetProfileIdBySlugParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getProfileIdBySlug, arg.Slug)
+	var id string
+	err := row.Scan(&id)
+	return id, err
 }
 
 const getProfileLinksForKind = `-- name: GetProfileLinksForKind :many
@@ -410,6 +411,31 @@ func (q *Queries) ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*
 		return nil, err
 	}
 	return items, nil
+}
+
+const removeProfile = `-- name: RemoveProfile :execrows
+UPDATE "profile"
+SET deleted_at = NOW()
+WHERE id = $1
+  AND deleted_at IS NULL
+`
+
+type RemoveProfileParams struct {
+	Id string `db:"id" json:"id"`
+}
+
+// RemoveProfile
+//
+//	UPDATE "profile"
+//	SET deleted_at = NOW()
+//	WHERE id = $1
+//	  AND deleted_at IS NULL
+func (q *Queries) RemoveProfile(ctx context.Context, arg RemoveProfileParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, removeProfile, arg.Id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const updateProfile = `-- name: UpdateProfile :execrows

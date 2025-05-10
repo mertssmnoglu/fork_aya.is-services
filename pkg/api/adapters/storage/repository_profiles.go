@@ -10,7 +10,31 @@ import (
 	"github.com/eser/aya.is-services/pkg/lib/vars"
 )
 
-func (r *Repository) GetProfileById(ctx context.Context, localeCode string, id string) (*profiles.Profile, error) {
+func (r *Repository) GetProfileIdBySlug(ctx context.Context, slug string) (string, error) {
+	var result string
+
+	err := r.cache.Execute(
+		ctx,
+		"profile_id_by_slug."+slug,
+		&result,
+		func(ctx context.Context) (any, error) {
+			row, err := r.queries.GetProfileIdBySlug(ctx, GetProfileIdBySlugParams{Slug: slug})
+			if err != nil {
+				return nil, err
+			}
+
+			return row, nil
+		},
+	)
+
+	return result, err //nolint:wrapcheck
+}
+
+func (r *Repository) GetProfileById(
+	ctx context.Context,
+	localeCode string,
+	id string,
+) (*profiles.Profile, error) {
 	row, err := r.queries.GetProfileById(ctx, GetProfileByIdParams{LocaleCode: localeCode, Id: id})
 	if err != nil {
 		return nil, err
@@ -34,8 +58,15 @@ func (r *Repository) GetProfileById(ctx context.Context, localeCode string, id s
 	return result, nil
 }
 
-func (r *Repository) GetProfileBySlug(ctx context.Context, localeCode string, slug string) (*profiles.Profile, error) {
-	row, err := r.queries.GetProfileBySlug(ctx, GetProfileBySlugParams{LocaleCode: localeCode, Slug: slug})
+func (r *Repository) GetProfileBySlug(
+	ctx context.Context,
+	localeCode string,
+	slug string,
+) (*profiles.Profile, error) {
+	row, err := r.queries.GetProfileBySlug(
+		ctx,
+		GetProfileBySlugParams{LocaleCode: localeCode, Slug: slug},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -58,8 +89,18 @@ func (r *Repository) GetProfileBySlug(ctx context.Context, localeCode string, sl
 	return result, nil
 }
 
-func (r *Repository) GetProfileByCustomDomain(ctx context.Context, localeCode string, domain string) (*profiles.Profile, error) { //nolint:lll
-	row, err := r.queries.GetProfileByCustomDomain(ctx, GetProfileByCustomDomainParams{LocaleCode: localeCode, Domain: sql.NullString{String: domain, Valid: true}}) //nolint:lll
+func (r *Repository) GetProfileByCustomDomain(
+	ctx context.Context,
+	localeCode string,
+	domain string,
+) (*profiles.Profile, error) {
+	row, err := r.queries.GetProfileByCustomDomain(
+		ctx,
+		GetProfileByCustomDomainParams{
+			LocaleCode: localeCode,
+			Domain:     sql.NullString{String: domain, Valid: true},
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +123,10 @@ func (r *Repository) GetProfileByCustomDomain(ctx context.Context, localeCode st
 	return result, nil
 }
 
-func (r *Repository) ListProfiles(ctx context.Context, localeCode string) ([]*profiles.Profile, error) {
+func (r *Repository) ListProfiles(
+	ctx context.Context,
+	localeCode string,
+) ([]*profiles.Profile, error) {
 	rows, err := r.queries.ListProfiles(ctx, ListProfilesParams{LocaleCode: localeCode})
 	if err != nil {
 		return nil, err
@@ -109,7 +153,11 @@ func (r *Repository) ListProfiles(ctx context.Context, localeCode string) ([]*pr
 	return result, nil
 }
 
-func (r *Repository) ListProfilesWithCursor(ctx context.Context, localeCode string, cursor *cursors.Cursor) (cursors.Cursored[[]*profiles.Profile], error) { //nolint:lll
+func (r *Repository) ListProfilesWithCursor(
+	ctx context.Context,
+	localeCode string,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*profiles.Profile], error) {
 	var wrappedResponse cursors.Cursored[[]*profiles.Profile]
 
 	rows, err := r.queries.ListProfiles(ctx, ListProfilesParams{LocaleCode: localeCode})
@@ -144,8 +192,15 @@ func (r *Repository) ListProfilesWithCursor(ctx context.Context, localeCode stri
 	return wrappedResponse, nil
 }
 
-func (r *Repository) GetProfilePagesByProfileId(ctx context.Context, localeCode string, profileId string) ([]*profiles.ProfilePageBrief, error) { //nolint:lll
-	rows, err := r.queries.GetProfilePagesByProfileId(ctx, GetProfilePagesByProfileIdParams{LocaleCode: localeCode, ProfileId: profileId}) //nolint:lll
+func (r *Repository) GetProfilePagesByProfileId(
+	ctx context.Context,
+	localeCode string,
+	profileId string,
+) ([]*profiles.ProfilePageBrief, error) {
+	rows, err := r.queries.GetProfilePagesByProfileId(
+		ctx,
+		GetProfilePagesByProfileIdParams{LocaleCode: localeCode, ProfileId: profileId},
+	)
 	if err != nil {
 		return nil, err
 	}

@@ -45,20 +45,21 @@ type Querier interface {
 	//      $12
 	//    ) RETURNING id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
 	CreateUser(ctx context.Context, arg CreateUserParams) (*User, error)
-	//DeleteProfile
+	//GetFromCache
 	//
-	//  UPDATE "profile"
-	//  SET deleted_at = NOW()
-	//  WHERE id = $1
-	//    AND deleted_at IS NULL
-	DeleteProfile(ctx context.Context, arg DeleteProfileParams) (int64, error)
-	//DeleteUser
+	//  SELECT value, updated_at
+	//  FROM "cache"
+	//  WHERE key = $1
+	//  LIMIT 1
+	GetFromCache(ctx context.Context, arg GetFromCacheParams) (*GetFromCacheRow, error)
+	//GetFromCacheSince
 	//
-	//  UPDATE "user"
-	//  SET deleted_at = NOW()
-	//  WHERE id = $1
-	//    AND deleted_at IS NULL
-	DeleteUser(ctx context.Context, arg DeleteUserParams) (int64, error)
+	//  SELECT value, updated_at
+	//  FROM "cache"
+	//  WHERE key = $1
+	//    AND updated_at > $2
+	//  LIMIT 1
+	GetFromCacheSince(ctx context.Context, arg GetFromCacheSinceParams) (*GetFromCacheSinceRow, error)
 	//GetProfileByCustomDomain
 	//
 	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
@@ -89,6 +90,14 @@ type Querier interface {
 	//    AND p.deleted_at IS NULL
 	//  LIMIT 1
 	GetProfileBySlug(ctx context.Context, arg GetProfileBySlugParams) (*GetProfileBySlugRow, error)
+	//GetProfileIdBySlug
+	//
+	//  SELECT id
+	//  FROM "profile"
+	//  WHERE slug = $1
+	//    AND deleted_at IS NULL
+	//  LIMIT 1
+	GetProfileIdBySlug(ctx context.Context, arg GetProfileIdBySlugParams) (string, error)
 	//GetProfileLinksForKind
 	//
 	//  SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
@@ -166,6 +175,40 @@ type Querier interface {
 	//  FROM "user"
 	//  WHERE deleted_at IS NULL
 	ListUsers(ctx context.Context) ([]*User, error)
+	//RemoveAllFromCache
+	//
+	//  DELETE FROM "cache"
+	RemoveAllFromCache(ctx context.Context) (int64, error)
+	//RemoveExpiredFromCache
+	//
+	//  DELETE FROM "cache"
+	//  WHERE updated_at < $1
+	RemoveExpiredFromCache(ctx context.Context, arg RemoveExpiredFromCacheParams) (int64, error)
+	//RemoveFromCache
+	//
+	//  DELETE FROM "cache"
+	//  WHERE key = $1
+	RemoveFromCache(ctx context.Context, arg RemoveFromCacheParams) (int64, error)
+	//RemoveProfile
+	//
+	//  UPDATE "profile"
+	//  SET deleted_at = NOW()
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	RemoveProfile(ctx context.Context, arg RemoveProfileParams) (int64, error)
+	//RemoveUser
+	//
+	//  UPDATE "user"
+	//  SET deleted_at = NOW()
+	//  WHERE id = $1
+	//    AND deleted_at IS NULL
+	RemoveUser(ctx context.Context, arg RemoveUserParams) (int64, error)
+	//SetInCache
+	//
+	//  INSERT INTO "cache" (key, value, updated_at)
+	//  VALUES ($1, $2, NOW())
+	//  ON CONFLICT ("key") DO UPDATE SET value = $2, updated_at = NOW()
+	SetInCache(ctx context.Context, arg SetInCacheParams) (int64, error)
 	//UpdateProfile
 	//
 	//  UPDATE "profile"

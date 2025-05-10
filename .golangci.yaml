@@ -101,5 +101,13 @@ linters:
       - ops
       - tmp
 
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+    - golines
+
 issues:
   fix: true

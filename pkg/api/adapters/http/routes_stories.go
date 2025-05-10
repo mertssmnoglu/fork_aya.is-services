@@ -1,3 +1,4 @@
+//nolint:dupl
 package http
 
 import (
@@ -11,7 +12,11 @@ import (
 	"github.com/eser/aya.is-services/pkg/lib/cursors"
 )
 
-func RegisterHttpRoutesForStories(routes *httpfx.Router, logger *logfx.Logger, dataRegistry *datafx.Registry) {
+func RegisterHttpRoutesForStories(
+	routes *httpfx.Router,
+	logger *logfx.Logger,
+	dataRegistry *datafx.Registry,
+) {
 	routes.
 		Route("GET /{locale}/stories", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path

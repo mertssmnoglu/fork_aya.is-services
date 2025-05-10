@@ -11,6 +11,12 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
+type Cache struct {
+	Key       string                `db:"key" json:"key"`
+	Value     pqtype.NullRawMessage `db:"value" json:"value"`
+	UpdatedAt time.Time             `db:"updated_at" json:"updated_at"`
+}
+
 type Event struct {
 	Id              string         `db:"id" json:"id"`
 	Slug            string         `db:"slug" json:"slug"`

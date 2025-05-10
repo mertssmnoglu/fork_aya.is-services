@@ -9,7 +9,11 @@ import (
 	"github.com/eser/aya.is-services/pkg/lib/vars"
 )
 
-func (r *Repository) GetStoryById(ctx context.Context, localeCode string, id string) (*stories.Story, error) {
+func (r *Repository) GetStoryById(
+	ctx context.Context,
+	localeCode string,
+	id string,
+) (*stories.Story, error) {
 	row, err := r.queries.GetStoryById(ctx, GetStoryByIdParams{LocaleCode: localeCode, Id: id})
 	if err != nil {
 		return nil, err
@@ -36,8 +40,15 @@ func (r *Repository) GetStoryById(ctx context.Context, localeCode string, id str
 	return result, nil
 }
 
-func (r *Repository) GetStoryBySlug(ctx context.Context, localeCode string, slug string) (*stories.Story, error) {
-	row, err := r.queries.GetStoryBySlug(ctx, GetStoryBySlugParams{LocaleCode: localeCode, Slug: slug})
+func (r *Repository) GetStoryBySlug(
+	ctx context.Context,
+	localeCode string,
+	slug string,
+) (*stories.Story, error) {
+	row, err := r.queries.GetStoryBySlug(
+		ctx,
+		GetStoryBySlugParams{LocaleCode: localeCode, Slug: slug},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +104,11 @@ func (r *Repository) ListStories(ctx context.Context, localeCode string) ([]*sto
 	return result, nil
 }
 
-func (r *Repository) ListStoriesWithCursor(ctx context.Context, localeCode string, cursor *cursors.Cursor) (cursors.Cursored[[]*stories.Story], error) { //nolint:lll
+func (r *Repository) ListStoriesWithCursor(
+	ctx context.Context,
+	localeCode string,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*stories.Story], error) {
 	var wrappedResponse cursors.Cursored[[]*stories.Story]
 
 	rows, err := r.queries.ListStories(ctx, ListStoriesParams{LocaleCode: localeCode})

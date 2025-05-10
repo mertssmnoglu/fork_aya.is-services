@@ -19,7 +19,11 @@ type Repository interface {
 	GetUserById(ctx context.Context, localeCode string, id string) (*User, error)
 	GetUserByEmail(ctx context.Context, localeCode string, email string) (*User, error)
 	ListUsers(ctx context.Context, localeCode string) ([]*User, error)
-	ListUsersWithCursor(ctx context.Context, localeCode string, cursor *cursors.Cursor) (cursors.Cursored[[]*User], error) //nolint:lll
+	ListUsersWithCursor(
+		ctx context.Context,
+		localeCode string,
+		cursor *cursors.Cursor,
+	) (cursors.Cursored[[]*User], error)
 }
 
 type Service struct {
@@ -59,7 +63,11 @@ func (s *Service) List(ctx context.Context, localeCode string) ([]*User, error) 
 	return records, nil
 }
 
-func (s *Service) ListWithCursor(ctx context.Context, localeCode string, cursor *cursors.Cursor) (cursors.Cursored[[]*User], error) { //nolint:lll
+func (s *Service) ListWithCursor(
+	ctx context.Context,
+	localeCode string,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*User], error) {
 	records, err := s.repo.ListUsersWithCursor(ctx, localeCode, cursor)
 	if err != nil {
 		return cursors.Cursored[[]*User]{}, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)

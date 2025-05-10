@@ -217,7 +217,20 @@ CREATE TABLE IF NOT EXISTS "story_tx" (
   PRIMARY KEY ("story_id", "locale_code")
 );
 
+CREATE UNLOGGED TABLE IF NOT EXISTS "cache" (
+  "key" CHAR(200) NOT NULL,
+  "value" JSONB,
+  "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  CONSTRAINT "cache_key_unique" UNIQUE ("key")
+);
+
+CREATE INDEX IF NOT EXISTS "cache_key_index" ON "cache" ("key");
+
 -- +goose Down
+DROP INDEX IF EXISTS "cache_key_index";
+
+DROP TABLE IF EXISTS "cache";
+
 DROP TABLE IF EXISTS "story_tx";
 
 DROP TABLE IF EXISTS "story";

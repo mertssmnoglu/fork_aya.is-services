@@ -122,31 +122,6 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (*User, 
 	return &i, err
 }
 
-const deleteUser = `-- name: DeleteUser :execrows
-UPDATE "user"
-SET deleted_at = NOW()
-WHERE id = $1
-  AND deleted_at IS NULL
-`
-
-type DeleteUserParams struct {
-	Id string `db:"id" json:"id"`
-}
-
-// DeleteUser
-//
-//	UPDATE "user"
-//	SET deleted_at = NOW()
-//	WHERE id = $1
-//	  AND deleted_at IS NULL
-func (q *Queries) DeleteUser(ctx context.Context, arg DeleteUserParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, deleteUser, arg.Id)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected()
-}
-
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
 FROM "user"
@@ -279,6 +254,31 @@ func (q *Queries) ListUsers(ctx context.Context) ([]*User, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const removeUser = `-- name: RemoveUser :execrows
+UPDATE "user"
+SET deleted_at = NOW()
+WHERE id = $1
+  AND deleted_at IS NULL
+`
+
+type RemoveUserParams struct {
+	Id string `db:"id" json:"id"`
+}
+
+// RemoveUser
+//
+//	UPDATE "user"
+//	SET deleted_at = NOW()
+//	WHERE id = $1
+//	  AND deleted_at IS NULL
+func (q *Queries) RemoveUser(ctx context.Context, arg RemoveUserParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, removeUser, arg.Id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const updateUser = `-- name: UpdateUser :execrows

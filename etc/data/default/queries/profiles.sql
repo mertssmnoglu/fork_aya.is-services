@@ -1,3 +1,10 @@
+-- name: GetProfileIdBySlug :one
+SELECT id
+FROM "profile"
+WHERE slug = sqlc.arg(slug)
+  AND deleted_at IS NULL
+LIMIT 1;
+
 -- name: GetProfileById :one
 SELECT sqlc.embed(p), sqlc.embed(pt)
 FROM "profile" p
@@ -42,7 +49,7 @@ SET slug = sqlc.arg(slug)
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
--- name: DeleteProfile :execrows
+-- name: RemoveProfile :execrows
 UPDATE "profile"
 SET deleted_at = NOW()
 WHERE id = sqlc.arg(id)
