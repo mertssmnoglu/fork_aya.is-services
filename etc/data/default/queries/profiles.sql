@@ -5,30 +5,19 @@ WHERE slug = sqlc.arg(slug)
   AND deleted_at IS NULL
 LIMIT 1;
 
+-- name: GetProfileIdByCustomDomain :one
+SELECT id
+FROM "profile"
+WHERE custom_domain = sqlc.arg(custom_domain)
+  AND deleted_at IS NULL
+LIMIT 1;
+
 -- name: GetProfileById :one
 SELECT sqlc.embed(p), sqlc.embed(pt)
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
   AND pt.locale_code = sqlc.arg(locale_code)
 WHERE p.id = sqlc.arg(id)
-  AND p.deleted_at IS NULL
-LIMIT 1;
-
--- name: GetProfileBySlug :one
-SELECT sqlc.embed(p), sqlc.embed(pt)
-FROM "profile" p
-  INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
-  AND pt.locale_code = sqlc.arg(locale_code)
-WHERE p.slug = sqlc.arg(slug)
-  AND p.deleted_at IS NULL
-LIMIT 1;
-
--- name: GetProfileByCustomDomain :one
-SELECT sqlc.embed(p), sqlc.embed(pt)
-FROM "profile" p
-  INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
-  AND pt.locale_code = sqlc.arg(locale_code)
-WHERE p.custom_domain = sqlc.arg(domain)
   AND p.deleted_at IS NULL
 LIMIT 1;
 

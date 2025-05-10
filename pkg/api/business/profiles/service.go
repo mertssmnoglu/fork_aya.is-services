@@ -25,13 +25,8 @@ type RecentPostsFetcher interface {
 
 type Repository interface {
 	GetProfileIdBySlug(ctx context.Context, slug string) (string, error)
+	GetProfileIdByCustomDomain(ctx context.Context, domain string) (string, error)
 	GetProfileById(ctx context.Context, localeCode string, id string) (*Profile, error)
-	GetProfileBySlug(ctx context.Context, localeCode string, slug string) (*Profile, error)
-	GetProfileByCustomDomain(
-		ctx context.Context,
-		localeCode string,
-		domain string,
-	) (*Profile, error)
 	ListProfiles(ctx context.Context, localeCode string) ([]*Profile, error)
 	ListProfilesWithCursor(
 		ctx context.Context,
@@ -94,12 +89,12 @@ func (s *Service) GetBySlugEx(
 
 	record, err := s.repo.GetProfileById(ctx, localeCode, profileId)
 	if err != nil {
-		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileId, err)
 	}
 
 	pages, err := s.repo.GetProfilePagesByProfileId(ctx, localeCode, record.Id)
 	if err != nil {
-		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileId, err)
 	}
 
 	result := &ProfileWithPages{
@@ -115,9 +110,14 @@ func (s *Service) GetByCustomDomain(
 	localeCode string,
 	domain string,
 ) (*Profile, error) {
-	record, err := s.repo.GetProfileByCustomDomain(ctx, localeCode, domain)
+	profileId, err := s.repo.GetProfileIdByCustomDomain(ctx, domain)
 	if err != nil {
 		return nil, fmt.Errorf("%w(custom_domain: %s): %w", ErrFailedToGetRecord, domain, err)
+	}
+
+	record, err := s.repo.GetProfileById(ctx, localeCode, profileId)
+	if err != nil {
+		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileId, err)
 	}
 
 	return record, nil

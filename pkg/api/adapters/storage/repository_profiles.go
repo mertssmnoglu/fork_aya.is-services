@@ -1,4 +1,3 @@
-//nolint:dupl
 package storage
 
 import (
@@ -15,10 +14,38 @@ func (r *Repository) GetProfileIdBySlug(ctx context.Context, slug string) (strin
 
 	err := r.cache.Execute(
 		ctx,
-		"profile_id_by_slug."+slug,
+		"profile_id_by_slug:"+slug,
 		&result,
 		func(ctx context.Context) (any, error) {
 			row, err := r.queries.GetProfileIdBySlug(ctx, GetProfileIdBySlugParams{Slug: slug})
+			if err != nil {
+				return nil, err
+			}
+
+			return row, nil
+		},
+	)
+
+	return result, err //nolint:wrapcheck
+}
+
+func (r *Repository) GetProfileIdByCustomDomain(
+	ctx context.Context,
+	domain string,
+) (string, error) {
+	var result string
+
+	err := r.cache.Execute(
+		ctx,
+		"profile_id_by_custom_domain:"+domain,
+		&result,
+		func(ctx context.Context) (any, error) {
+			row, err := r.queries.GetProfileIdByCustomDomain(
+				ctx,
+				GetProfileIdByCustomDomainParams{
+					CustomDomain: sql.NullString{String: domain, Valid: true},
+				},
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -36,71 +63,6 @@ func (r *Repository) GetProfileById(
 	id string,
 ) (*profiles.Profile, error) {
 	row, err := r.queries.GetProfileById(ctx, GetProfileByIdParams{LocaleCode: localeCode, Id: id})
-	if err != nil {
-		return nil, err
-	}
-
-	result := &profiles.Profile{
-		Id:                row.Profile.Id,
-		Slug:              row.Profile.Slug,
-		Kind:              row.Profile.Kind,
-		CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
-		ProfilePictureUri: vars.ToStringPtr(row.Profile.ProfilePictureUri),
-		Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
-		Title:             row.ProfileTx.Title,
-		Description:       row.ProfileTx.Description,
-		Properties:        vars.ToRawMessage(row.Profile.Properties),
-		CreatedAt:         row.Profile.CreatedAt,
-		UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
-		DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
-	}
-
-	return result, nil
-}
-
-func (r *Repository) GetProfileBySlug(
-	ctx context.Context,
-	localeCode string,
-	slug string,
-) (*profiles.Profile, error) {
-	row, err := r.queries.GetProfileBySlug(
-		ctx,
-		GetProfileBySlugParams{LocaleCode: localeCode, Slug: slug},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	result := &profiles.Profile{
-		Id:                row.Profile.Id,
-		Slug:              row.Profile.Slug,
-		Kind:              row.Profile.Kind,
-		CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
-		ProfilePictureUri: vars.ToStringPtr(row.Profile.ProfilePictureUri),
-		Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
-		Title:             row.ProfileTx.Title,
-		Description:       row.ProfileTx.Description,
-		Properties:        vars.ToRawMessage(row.Profile.Properties),
-		CreatedAt:         row.Profile.CreatedAt,
-		UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
-		DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
-	}
-
-	return result, nil
-}
-
-func (r *Repository) GetProfileByCustomDomain(
-	ctx context.Context,
-	localeCode string,
-	domain string,
-) (*profiles.Profile, error) {
-	row, err := r.queries.GetProfileByCustomDomain(
-		ctx,
-		GetProfileByCustomDomainParams{
-			LocaleCode: localeCode,
-			Domain:     sql.NullString{String: domain, Valid: true},
-		},
-	)
 	if err != nil {
 		return nil, err
 	}

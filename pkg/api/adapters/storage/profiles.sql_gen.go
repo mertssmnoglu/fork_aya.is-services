@@ -42,58 +42,6 @@ func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) (*
 	return &i, err
 }
 
-const getProfileByCustomDomain = `-- name: GetProfileByCustomDomain :one
-SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
-FROM "profile" p
-  INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
-  AND pt.locale_code = $1
-WHERE p.custom_domain = $2
-  AND p.deleted_at IS NULL
-LIMIT 1
-`
-
-type GetProfileByCustomDomainParams struct {
-	LocaleCode string         `db:"locale_code" json:"locale_code"`
-	Domain     sql.NullString `db:"domain" json:"domain"`
-}
-
-type GetProfileByCustomDomainRow struct {
-	Profile   Profile   `db:"profile" json:"profile"`
-	ProfileTx ProfileTx `db:"profile_tx" json:"profile_tx"`
-}
-
-// GetProfileByCustomDomain
-//
-//	SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
-//	FROM "profile" p
-//	  INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
-//	  AND pt.locale_code = $1
-//	WHERE p.custom_domain = $2
-//	  AND p.deleted_at IS NULL
-//	LIMIT 1
-func (q *Queries) GetProfileByCustomDomain(ctx context.Context, arg GetProfileByCustomDomainParams) (*GetProfileByCustomDomainRow, error) {
-	row := q.db.QueryRowContext(ctx, getProfileByCustomDomain, arg.LocaleCode, arg.Domain)
-	var i GetProfileByCustomDomainRow
-	err := row.Scan(
-		&i.Profile.Id,
-		&i.Profile.Slug,
-		&i.Profile.Kind,
-		&i.Profile.CustomDomain,
-		&i.Profile.ProfilePictureUri,
-		&i.Profile.Pronouns,
-		&i.Profile.Properties,
-		&i.Profile.CreatedAt,
-		&i.Profile.UpdatedAt,
-		&i.Profile.DeletedAt,
-		&i.ProfileTx.ProfileId,
-		&i.ProfileTx.LocaleCode,
-		&i.ProfileTx.Title,
-		&i.ProfileTx.Description,
-		&i.ProfileTx.Properties,
-	)
-	return &i, err
-}
-
 const getProfileById = `-- name: GetProfileById :one
 SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 FROM "profile" p
@@ -146,56 +94,30 @@ func (q *Queries) GetProfileById(ctx context.Context, arg GetProfileByIdParams) 
 	return &i, err
 }
 
-const getProfileBySlug = `-- name: GetProfileBySlug :one
-SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
-FROM "profile" p
-  INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
-  AND pt.locale_code = $1
-WHERE p.slug = $2
-  AND p.deleted_at IS NULL
+const getProfileIdByCustomDomain = `-- name: GetProfileIdByCustomDomain :one
+SELECT id
+FROM "profile"
+WHERE custom_domain = $1
+  AND deleted_at IS NULL
 LIMIT 1
 `
 
-type GetProfileBySlugParams struct {
-	LocaleCode string `db:"locale_code" json:"locale_code"`
-	Slug       string `db:"slug" json:"slug"`
+type GetProfileIdByCustomDomainParams struct {
+	CustomDomain sql.NullString `db:"custom_domain" json:"custom_domain"`
 }
 
-type GetProfileBySlugRow struct {
-	Profile   Profile   `db:"profile" json:"profile"`
-	ProfileTx ProfileTx `db:"profile_tx" json:"profile_tx"`
-}
-
-// GetProfileBySlug
+// GetProfileIdByCustomDomain
 //
-//	SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
-//	FROM "profile" p
-//	  INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
-//	  AND pt.locale_code = $1
-//	WHERE p.slug = $2
-//	  AND p.deleted_at IS NULL
+//	SELECT id
+//	FROM "profile"
+//	WHERE custom_domain = $1
+//	  AND deleted_at IS NULL
 //	LIMIT 1
-func (q *Queries) GetProfileBySlug(ctx context.Context, arg GetProfileBySlugParams) (*GetProfileBySlugRow, error) {
-	row := q.db.QueryRowContext(ctx, getProfileBySlug, arg.LocaleCode, arg.Slug)
-	var i GetProfileBySlugRow
-	err := row.Scan(
-		&i.Profile.Id,
-		&i.Profile.Slug,
-		&i.Profile.Kind,
-		&i.Profile.CustomDomain,
-		&i.Profile.ProfilePictureUri,
-		&i.Profile.Pronouns,
-		&i.Profile.Properties,
-		&i.Profile.CreatedAt,
-		&i.Profile.UpdatedAt,
-		&i.Profile.DeletedAt,
-		&i.ProfileTx.ProfileId,
-		&i.ProfileTx.LocaleCode,
-		&i.ProfileTx.Title,
-		&i.ProfileTx.Description,
-		&i.ProfileTx.Properties,
-	)
-	return &i, err
+func (q *Queries) GetProfileIdByCustomDomain(ctx context.Context, arg GetProfileIdByCustomDomainParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getProfileIdByCustomDomain, arg.CustomDomain)
+	var id string
+	err := row.Scan(&id)
+	return id, err
 }
 
 const getProfileIdBySlug = `-- name: GetProfileIdBySlug :one

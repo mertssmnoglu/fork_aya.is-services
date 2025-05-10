@@ -60,16 +60,6 @@ type Querier interface {
 	//    AND updated_at > $2
 	//  LIMIT 1
 	GetFromCacheSince(ctx context.Context, arg GetFromCacheSinceParams) (*GetFromCacheSinceRow, error)
-	//GetProfileByCustomDomain
-	//
-	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
-	//  FROM "profile" p
-	//    INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
-	//    AND pt.locale_code = $1
-	//  WHERE p.custom_domain = $2
-	//    AND p.deleted_at IS NULL
-	//  LIMIT 1
-	GetProfileByCustomDomain(ctx context.Context, arg GetProfileByCustomDomainParams) (*GetProfileByCustomDomainRow, error)
 	//GetProfileById
 	//
 	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
@@ -80,16 +70,14 @@ type Querier interface {
 	//    AND p.deleted_at IS NULL
 	//  LIMIT 1
 	GetProfileById(ctx context.Context, arg GetProfileByIdParams) (*GetProfileByIdRow, error)
-	//GetProfileBySlug
+	//GetProfileIdByCustomDomain
 	//
-	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
-	//  FROM "profile" p
-	//    INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
-	//    AND pt.locale_code = $1
-	//  WHERE p.slug = $2
-	//    AND p.deleted_at IS NULL
+	//  SELECT id
+	//  FROM "profile"
+	//  WHERE custom_domain = $1
+	//    AND deleted_at IS NULL
 	//  LIMIT 1
-	GetProfileBySlug(ctx context.Context, arg GetProfileBySlugParams) (*GetProfileBySlugRow, error)
+	GetProfileIdByCustomDomain(ctx context.Context, arg GetProfileIdByCustomDomainParams) (string, error)
 	//GetProfileIdBySlug
 	//
 	//  SELECT id
