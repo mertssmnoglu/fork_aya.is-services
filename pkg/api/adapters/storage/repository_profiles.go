@@ -180,3 +180,32 @@ func (r *Repository) GetProfilePagesByProfileId(
 
 	return profilePages, nil
 }
+
+func (r *Repository) GetProfilePageByProfileIdAndSlug(
+	ctx context.Context,
+	localeCode string,
+	profileId string,
+	pageSlug string,
+) (*profiles.ProfilePageBrief, error) {
+	row, err := r.queries.GetProfilePageByProfileIdAndSlug(
+		ctx,
+		GetProfilePageByProfileIdAndSlugParams{
+			LocaleCode: localeCode,
+			ProfileId:  profileId,
+			PageSlug:   pageSlug,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &profiles.ProfilePageBrief{
+		Id:              row.Id,
+		Slug:            row.Slug,
+		CoverPictureUri: vars.ToStringPtr(row.CoverPictureUri),
+		Title:           row.Title,
+		Summary:         row.Summary,
+	}
+
+	return result, nil
+}

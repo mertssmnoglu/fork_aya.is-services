@@ -30,7 +30,7 @@ type Profile struct {
 }
 
 type ProfileWithPages struct {
-	Profile
+	*Profile
 	Pages []*ProfilePageBrief `json:"pages"`
 }
 

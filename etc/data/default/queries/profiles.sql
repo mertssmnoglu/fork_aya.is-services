@@ -60,3 +60,10 @@ FROM "profile_page" pp
 WHERE pp.profile_id = sqlc.arg(profile_id)
   AND pp.deleted_at IS NULL
 ORDER BY pp.order;
+
+-- name: GetProfilePageByProfileIdAndSlug :one
+SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary
+FROM "profile_page" pp
+  INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
+  AND ppt.locale_code = sqlc.arg(locale_code)
+WHERE pp.profile_id = sqlc.arg(profile_id) AND pp.slug = sqlc.arg(page_slug) AND pp.deleted_at IS NULL LIMIT 1;

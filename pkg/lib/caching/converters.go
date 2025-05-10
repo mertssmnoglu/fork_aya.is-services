@@ -8,7 +8,8 @@ import (
 
 var ErrInvalidType = errors.New("invalid type")
 
-func FromBytes[T any](bytes []byte) (T, error) { //nolint:ireturn
+//nolint:ireturn
+func FromBytes[T any](bytes []byte) (T, error) {
 	var result T
 
 	err := json.Unmarshal(bytes, &result)

@@ -211,6 +211,48 @@ func (q *Queries) GetProfileLinksForKind(ctx context.Context, arg GetProfileLink
 	return items, nil
 }
 
+const getProfilePageByProfileIdAndSlug = `-- name: GetProfilePageByProfileIdAndSlug :one
+SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary
+FROM "profile_page" pp
+  INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
+  AND ppt.locale_code = $1
+WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL LIMIT 1
+`
+
+type GetProfilePageByProfileIdAndSlugParams struct {
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+	ProfileId  string `db:"profile_id" json:"profile_id"`
+	PageSlug   string `db:"page_slug" json:"page_slug"`
+}
+
+type GetProfilePageByProfileIdAndSlugRow struct {
+	Id              string         `db:"id" json:"id"`
+	Slug            string         `db:"slug" json:"slug"`
+	CoverPictureUri sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
+	Title           string         `db:"title" json:"title"`
+	Summary         string         `db:"summary" json:"summary"`
+}
+
+// GetProfilePageByProfileIdAndSlug
+//
+//	SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary
+//	FROM "profile_page" pp
+//	  INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
+//	  AND ppt.locale_code = $1
+//	WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL LIMIT 1
+func (q *Queries) GetProfilePageByProfileIdAndSlug(ctx context.Context, arg GetProfilePageByProfileIdAndSlugParams) (*GetProfilePageByProfileIdAndSlugRow, error) {
+	row := q.db.QueryRowContext(ctx, getProfilePageByProfileIdAndSlug, arg.LocaleCode, arg.ProfileId, arg.PageSlug)
+	var i GetProfilePageByProfileIdAndSlugRow
+	err := row.Scan(
+		&i.Id,
+		&i.Slug,
+		&i.CoverPictureUri,
+		&i.Title,
+		&i.Summary,
+	)
+	return &i, err
+}
+
 const getProfilePagesByProfileId = `-- name: GetProfilePagesByProfileId :many
 SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary
 FROM "profile_page" pp

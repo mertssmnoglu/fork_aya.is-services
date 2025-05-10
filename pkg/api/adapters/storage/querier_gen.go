@@ -95,6 +95,14 @@ type Querier interface {
 	//  WHERE pl.kind = $1
 	//    AND pl.deleted_at IS NULL
 	GetProfileLinksForKind(ctx context.Context, arg GetProfileLinksForKindParams) ([]*ProfileLink, error)
+	//GetProfilePageByProfileIdAndSlug
+	//
+	//  SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary
+	//  FROM "profile_page" pp
+	//    INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
+	//    AND ppt.locale_code = $1
+	//  WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL LIMIT 1
+	GetProfilePageByProfileIdAndSlug(ctx context.Context, arg GetProfilePageByProfileIdAndSlugParams) (*GetProfilePageByProfileIdAndSlugRow, error)
 	//GetProfilePagesByProfileId
 	//
 	//  SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary

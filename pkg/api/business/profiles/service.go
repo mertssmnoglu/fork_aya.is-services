@@ -39,6 +39,12 @@ type Repository interface {
 		localeCode string,
 		profileId string,
 	) ([]*ProfilePageBrief, error)
+	GetProfilePageByProfileIdAndSlug(
+		ctx context.Context,
+		localeCode string,
+		profileId string,
+		pageSlug string,
+	) (*ProfilePageBrief, error)
 	// CreateProfile(ctx context.Context, arg CreateProfileParams) (*Profile, error)
 	// UpdateProfile(ctx context.Context, arg UpdateProfileParams) (int64, error)
 	// DeleteProfile(ctx context.Context, id string) (int64, error)
@@ -98,7 +104,7 @@ func (s *Service) GetBySlugEx(
 	}
 
 	result := &ProfileWithPages{
-		Profile: *record,
+		Profile: record,
 		Pages:   pages,
 	}
 
@@ -143,6 +149,49 @@ func (s *Service) ListWithCursor(
 	}
 
 	return records, nil
+}
+
+func (s *Service) ListPagesBySlug(
+	ctx context.Context,
+	localeCode string,
+	slug string,
+) ([]*ProfilePageBrief, error) {
+	profileId, err := s.repo.GetProfileIdBySlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	pages, err := s.repo.GetProfilePagesByProfileId(ctx, localeCode, profileId)
+	if err != nil {
+		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileId, err)
+	}
+
+	return pages, nil
+}
+
+func (s *Service) GetPageBySlug(
+	ctx context.Context,
+	localeCode string,
+	slug string,
+	pageSlug string,
+) (*ProfilePageBrief, error) {
+	profileId, err := s.repo.GetProfileIdBySlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	page, err := s.repo.GetProfilePageByProfileIdAndSlug(ctx, localeCode, profileId, pageSlug)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"%w(profile_id: %s, page_slug: %s): %w",
+			ErrFailedToGetRecord,
+			profileId,
+			pageSlug,
+			err,
+		)
+	}
+
+	return page, nil
 }
 
 func (s *Service) Import(ctx context.Context, fetcher RecentPostsFetcher) error {
