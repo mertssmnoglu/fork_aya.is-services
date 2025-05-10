@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/eser/ajan/logfx"
+	"github.com/eser/aya.is-services/pkg/lib/cursors"
 )
 
 var (
@@ -23,6 +24,7 @@ type Repository interface {
 	GetProfileBySlug(ctx context.Context, localeCode string, slug string) (*Profile, error)
 	GetProfileByCustomDomain(ctx context.Context, localeCode string, domain string) (*Profile, error)
 	ListProfiles(ctx context.Context, localeCode string) ([]*Profile, error)
+	ListProfilesWithCursor(ctx context.Context, localeCode string, cursor *cursors.Cursor) (cursors.Cursored[[]*Profile], error) //nolint:lll
 	// GetProfileLinksForKind(ctx context.Context, kind string) ([]*ProfileLink, error)
 	GetProfilePagesByProfileId(ctx context.Context, localeCode string, profileId string) ([]*ProfilePageBrief, error)
 	// CreateProfile(ctx context.Context, arg CreateProfileParams) (*Profile, error)
@@ -90,6 +92,15 @@ func (s *Service) List(ctx context.Context, localeCode string) ([]*Profile, erro
 	records, err := s.repo.ListProfiles(ctx, localeCode)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
+	}
+
+	return records, nil
+}
+
+func (s *Service) ListWithCursor(ctx context.Context, localeCode string, cursor *cursors.Cursor) (cursors.Cursored[[]*Profile], error) { //nolint:lll
+	records, err := s.repo.ListProfilesWithCursor(ctx, localeCode, cursor)
+	if err != nil {
+		return cursors.Cursored[[]*Profile]{}, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
 	}
 
 	return records, nil

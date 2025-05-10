@@ -8,6 +8,7 @@ import (
 	"github.com/eser/ajan/logfx"
 	"github.com/eser/aya.is-services/pkg/api/adapters/storage"
 	"github.com/eser/aya.is-services/pkg/api/business/profiles"
+	"github.com/eser/aya.is-services/pkg/lib/cursors"
 )
 
 func RegisterHttpRoutesForProfiles(routes *httpfx.Router, logger *logfx.Logger, dataRegistry *datafx.Registry) { //nolint:funlen,lll
@@ -15,6 +16,7 @@ func RegisterHttpRoutesForProfiles(routes *httpfx.Router, logger *logfx.Logger, 
 		Route("GET /{locale}/profiles", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
 			localeParam := ctx.Request.PathValue("locale")
+			cursor := cursors.NewCursorFromRequest(ctx.Request)
 
 			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
 			if err != nil {
@@ -23,7 +25,7 @@ func RegisterHttpRoutesForProfiles(routes *httpfx.Router, logger *logfx.Logger, 
 
 			service := profiles.NewService(logger, repository)
 
-			records, err := service.List(ctx.Request.Context(), localeParam)
+			records, err := service.ListWithCursor(ctx.Request.Context(), localeParam, cursor)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
@@ -52,7 +54,9 @@ func RegisterHttpRoutesForProfiles(routes *httpfx.Router, logger *logfx.Logger, 
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
 
-			return ctx.Results.Json(record)
+			wrappedResponse := cursors.WrapResponseWithCursor(record, nil)
+
+			return ctx.Results.Json(wrappedResponse)
 		}).
 		HasSummary("Get profile by slug").
 		HasDescription("Get profile by slug.").
@@ -76,7 +80,9 @@ func RegisterHttpRoutesForProfiles(routes *httpfx.Router, logger *logfx.Logger, 
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
 
-			return ctx.Results.Json(records)
+			wrappedResponse := cursors.WrapResponseWithCursor(records, nil)
+
+			return ctx.Results.Json(wrappedResponse)
 		}).
 		HasSummary("Get profile by custom domain").
 		HasDescription("Get profile by custom domain.").

@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/eser/ajan/logfx"
+	"github.com/eser/aya.is-services/pkg/lib/cursors"
 )
 
 var (
@@ -18,6 +19,7 @@ type Repository interface {
 	GetUserById(ctx context.Context, localeCode string, id string) (*User, error)
 	GetUserByEmail(ctx context.Context, localeCode string, email string) (*User, error)
 	ListUsers(ctx context.Context, localeCode string) ([]*User, error)
+	ListUsersWithCursor(ctx context.Context, localeCode string, cursor *cursors.Cursor) (cursors.Cursored[[]*User], error) //nolint:lll
 }
 
 type Service struct {
@@ -52,6 +54,15 @@ func (s *Service) List(ctx context.Context, localeCode string) ([]*User, error) 
 	records, err := s.repo.ListUsers(ctx, localeCode)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
+	}
+
+	return records, nil
+}
+
+func (s *Service) ListWithCursor(ctx context.Context, localeCode string, cursor *cursors.Cursor) (cursors.Cursored[[]*User], error) { //nolint:lll
+	records, err := s.repo.ListUsersWithCursor(ctx, localeCode, cursor)
+	if err != nil {
+		return cursors.Cursored[[]*User]{}, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
 	}
 
 	return records, nil
