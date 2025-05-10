@@ -288,6 +288,67 @@ func (q *Queries) GetProfileLinksForKind(ctx context.Context, arg GetProfileLink
 	return items, nil
 }
 
+const getProfilePagesByProfileId = `-- name: GetProfilePagesByProfileId :many
+SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary
+FROM "profile_page" pp
+  INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
+  AND ppt.locale_code = $1
+WHERE pp.profile_id = $2
+  AND pp.deleted_at IS NULL
+ORDER BY pp.order
+`
+
+type GetProfilePagesByProfileIdParams struct {
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+	ProfileId  string `db:"profile_id" json:"profile_id"`
+}
+
+type GetProfilePagesByProfileIdRow struct {
+	Id              string         `db:"id" json:"id"`
+	Slug            string         `db:"slug" json:"slug"`
+	CoverPictureUri sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
+	Title           string         `db:"title" json:"title"`
+	Summary         string         `db:"summary" json:"summary"`
+}
+
+// GetProfilePagesByProfileId
+//
+//	SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary
+//	FROM "profile_page" pp
+//	  INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
+//	  AND ppt.locale_code = $1
+//	WHERE pp.profile_id = $2
+//	  AND pp.deleted_at IS NULL
+//	ORDER BY pp.order
+func (q *Queries) GetProfilePagesByProfileId(ctx context.Context, arg GetProfilePagesByProfileIdParams) ([]*GetProfilePagesByProfileIdRow, error) {
+	rows, err := q.db.QueryContext(ctx, getProfilePagesByProfileId, arg.LocaleCode, arg.ProfileId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GetProfilePagesByProfileIdRow{}
+	for rows.Next() {
+		var i GetProfilePagesByProfileIdRow
+		if err := rows.Scan(
+			&i.Id,
+			&i.Slug,
+			&i.CoverPictureUri,
+			&i.Title,
+			&i.Summary,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listProfiles = `-- name: ListProfiles :many
 SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 FROM "profile" p

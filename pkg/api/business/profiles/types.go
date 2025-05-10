@@ -29,6 +29,19 @@ type Profile struct {
 	Description       string     `json:"description"`
 }
 
+type ProfileWithPages struct {
+	Profile
+	Pages []*ProfilePageBrief `json:"pages"`
+}
+
+type ProfilePageBrief struct {
+	Id              string  `json:"id"`
+	Slug            string  `json:"slug"`
+	CoverPictureUri *string `json:"cover_picture_uri"`
+	Title           string  `json:"title"`
+	Summary         string  `json:"summary"`
+}
+
 type ExternalPost struct {
 	CreatedAt *time.Time `json:"created_at"` //nolint:tagliatelle
 	Id        string     `json:"id"`

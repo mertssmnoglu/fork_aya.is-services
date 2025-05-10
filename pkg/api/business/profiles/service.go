@@ -24,6 +24,7 @@ type Repository interface {
 	GetProfileByCustomDomain(ctx context.Context, localeCode string, domain string) (*Profile, error)
 	ListProfiles(ctx context.Context, localeCode string) ([]*Profile, error)
 	// GetProfileLinksForKind(ctx context.Context, kind string) ([]*ProfileLink, error)
+	GetProfilePagesByProfileId(ctx context.Context, localeCode string, profileId string) ([]*ProfilePageBrief, error)
 	// CreateProfile(ctx context.Context, arg CreateProfileParams) (*Profile, error)
 	// UpdateProfile(ctx context.Context, arg UpdateProfileParams) (int64, error)
 	// DeleteProfile(ctx context.Context, id string) (int64, error)
@@ -55,6 +56,25 @@ func (s *Service) GetBySlug(ctx context.Context, localeCode string, slug string)
 	}
 
 	return record, nil
+}
+
+func (s *Service) GetBySlugEx(ctx context.Context, localeCode string, slug string) (*ProfileWithPages, error) {
+	record, err := s.repo.GetProfileBySlug(ctx, localeCode, slug)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	pages, err := s.repo.GetProfilePagesByProfileId(ctx, localeCode, record.Id)
+	if err != nil {
+		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
+	}
+
+	result := &ProfileWithPages{
+		Profile: *record,
+		Pages:   pages,
+	}
+
+	return result, nil
 }
 
 func (s *Service) GetByCustomDomain(ctx context.Context, localeCode string, domain string) (*Profile, error) {

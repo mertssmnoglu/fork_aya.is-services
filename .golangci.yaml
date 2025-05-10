@@ -44,6 +44,7 @@ linters:
             - github.com/prometheus/client_golang/prometheus
             - github.com/pressly/goose/v3
             - github.com/lib/pq
+            - github.com/sqlc-dev/pqtype
             - github.com/spf13/cobra
             - github.com/go-rod/rod
     revive:

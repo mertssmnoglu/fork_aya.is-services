@@ -24,7 +24,7 @@ func (r *Repository) GetProfileById(ctx context.Context, localeCode string, id s
 		Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 		Title:             row.ProfileTx.Title,
 		Description:       row.ProfileTx.Description,
-		Properties:        row.Profile.Properties,
+		Properties:        vars.ToRawMessage(row.Profile.Properties),
 		CreatedAt:         row.Profile.CreatedAt,
 		UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
 		DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
@@ -48,7 +48,7 @@ func (r *Repository) GetProfileBySlug(ctx context.Context, localeCode string, sl
 		Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 		Title:             row.ProfileTx.Title,
 		Description:       row.ProfileTx.Description,
-		Properties:        row.Profile.Properties,
+		Properties:        vars.ToRawMessage(row.Profile.Properties),
 		CreatedAt:         row.Profile.CreatedAt,
 		UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
 		DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
@@ -72,7 +72,7 @@ func (r *Repository) GetProfileByCustomDomain(ctx context.Context, localeCode st
 		Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 		Title:             row.ProfileTx.Title,
 		Description:       row.ProfileTx.Description,
-		Properties:        row.Profile.Properties,
+		Properties:        vars.ToRawMessage(row.Profile.Properties),
 		CreatedAt:         row.Profile.CreatedAt,
 		UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
 		DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
@@ -98,7 +98,7 @@ func (r *Repository) ListProfiles(ctx context.Context, localeCode string) ([]*pr
 			Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 			Title:             row.ProfileTx.Title,
 			Description:       row.ProfileTx.Description,
-			Properties:        row.Profile.Properties,
+			Properties:        vars.ToRawMessage(row.Profile.Properties),
 			CreatedAt:         row.Profile.CreatedAt,
 			UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
 			DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
@@ -106,4 +106,24 @@ func (r *Repository) ListProfiles(ctx context.Context, localeCode string) ([]*pr
 	}
 
 	return result, nil
+}
+
+func (r *Repository) GetProfilePagesByProfileId(ctx context.Context, localeCode string, profileId string) ([]*profiles.ProfilePageBrief, error) { //nolint:lll
+	rows, err := r.queries.GetProfilePagesByProfileId(ctx, GetProfilePagesByProfileIdParams{LocaleCode: localeCode, ProfileId: profileId}) //nolint:lll
+	if err != nil {
+		return nil, err
+	}
+
+	profilePages := make([]*profiles.ProfilePageBrief, len(rows))
+	for i, row := range rows {
+		profilePages[i] = &profiles.ProfilePageBrief{
+			Id:              row.Id,
+			Slug:            row.Slug,
+			CoverPictureUri: vars.ToStringPtr(row.CoverPictureUri),
+			Title:           row.Title,
+			Summary:         row.Summary,
+		}
+	}
+
+	return profilePages, nil
 }

@@ -55,3 +55,12 @@ FROM "profile_link" pl
   AND p.deleted_at IS NULL
 WHERE pl.kind = sqlc.arg(kind)
   AND pl.deleted_at IS NULL;
+
+-- name: GetProfilePagesByProfileId :many
+SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary
+FROM "profile_page" pp
+  INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
+  AND ppt.locale_code = sqlc.arg(locale_code)
+WHERE pp.profile_id = sqlc.arg(profile_id)
+  AND pp.deleted_at IS NULL
+ORDER BY pp.order;

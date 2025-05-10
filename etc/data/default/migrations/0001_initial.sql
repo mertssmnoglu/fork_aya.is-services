@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS "user" (
   "x_handle" TEXT,
   "x_remote_id" TEXT,
   "individual_profile_id" CHAR(26) CONSTRAINT "user_individual_profile_id_fk" REFERENCES "profile",
+  -- last_seen_at
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   "updated_at" TIMESTAMP WITH TIME ZONE,
   "deleted_at" TIMESTAMP WITH TIME ZONE
