@@ -6,6 +6,7 @@ import (
 	"github.com/eser/aya.is-services/pkg/api/adapters/appcontext"
 	"github.com/eser/aya.is-services/pkg/api/adapters/storage"
 	"github.com/eser/aya.is-services/pkg/api/business/profiles"
+	"github.com/eser/aya.is-services/pkg/lib/cursors"
 	"github.com/spf13/cobra"
 )
 
@@ -35,12 +36,12 @@ func execProfilesList(ctx context.Context) error {
 
 	service := profiles.NewService(appContext.Logger, repository)
 
-	records, err := service.List(ctx, "en")
+	profileList, err := service.List(ctx, "en", cursors.NewCursor(0, nil))
 	if err != nil {
 		panic(err)
 	}
 
-	for _, record := range records {
+	for _, record := range profileList.Data {
 		appContext.Logger.InfoContext(ctx, "profile entry", "profile", record)
 	}
 

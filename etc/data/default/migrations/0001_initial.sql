@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS "profile_link" (
   "order" INTEGER NOT NULL,
   "is_managed" BOOLEAN DEFAULT FALSE NOT NULL,
   "is_verified" BOOLEAN DEFAULT FALSE NOT NULL,
+  "is_hidden" BOOLEAN DEFAULT FALSE NOT NULL,
   "remote_id" TEXT,
   "public_id" TEXT,
   "uri" TEXT,

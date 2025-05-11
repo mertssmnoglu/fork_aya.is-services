@@ -76,6 +76,7 @@ type ProfileLink struct {
 	Order                     int32                 `db:"order" json:"order"`
 	IsManaged                 bool                  `db:"is_managed" json:"is_managed"`
 	IsVerified                bool                  `db:"is_verified" json:"is_verified"`
+	IsHidden                  bool                  `db:"is_hidden" json:"is_hidden"`
 	RemoteId                  sql.NullString        `db:"remote_id" json:"remote_id"`
 	PublicId                  sql.NullString        `db:"public_id" json:"public_id"`
 	Uri                       sql.NullString        `db:"uri" json:"uri"`

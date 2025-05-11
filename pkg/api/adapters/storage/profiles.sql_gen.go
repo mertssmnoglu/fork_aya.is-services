@@ -8,6 +8,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createProfile = `-- name: CreateProfile :one
@@ -146,13 +147,80 @@ func (q *Queries) GetProfileIdBySlug(ctx context.Context, arg GetProfileIdBySlug
 	return id, err
 }
 
+const getProfileLinksByProfileId = `-- name: GetProfileLinksByProfileId :many
+SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+FROM "profile_link"
+WHERE profile_id = $1
+  AND is_hidden = FALSE
+  AND deleted_at IS NULL
+ORDER BY "order"
+`
+
+type GetProfileLinksByProfileIdParams struct {
+	ProfileId string `db:"profile_id" json:"profile_id"`
+}
+
+// GetProfileLinksByProfileId
+//
+//	SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+//	FROM "profile_link"
+//	WHERE profile_id = $1
+//	  AND is_hidden = FALSE
+//	  AND deleted_at IS NULL
+//	ORDER BY "order"
+func (q *Queries) GetProfileLinksByProfileId(ctx context.Context, arg GetProfileLinksByProfileIdParams) ([]*ProfileLink, error) {
+	rows, err := q.db.QueryContext(ctx, getProfileLinksByProfileId, arg.ProfileId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ProfileLink{}
+	for rows.Next() {
+		var i ProfileLink
+		if err := rows.Scan(
+			&i.Id,
+			&i.ProfileId,
+			&i.Kind,
+			&i.Order,
+			&i.IsManaged,
+			&i.IsVerified,
+			&i.IsHidden,
+			&i.RemoteId,
+			&i.PublicId,
+			&i.Uri,
+			&i.Title,
+			&i.AuthProvider,
+			&i.AuthAccessTokenScope,
+			&i.AuthAccessToken,
+			&i.AuthAccessTokenExpiresAt,
+			&i.AuthRefreshToken,
+			&i.AuthRefreshTokenExpiresAt,
+			&i.Properties,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getProfileLinksForKind = `-- name: GetProfileLinksForKind :many
-SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
+SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
 FROM "profile_link" pl
   INNER JOIN "profile" p ON pl.profile_id = p.id
   AND p.deleted_at IS NULL
 WHERE pl.kind = $1
   AND pl.deleted_at IS NULL
+ORDER BY pl."order"
 `
 
 type GetProfileLinksForKindParams struct {
@@ -161,12 +229,13 @@ type GetProfileLinksForKindParams struct {
 
 // GetProfileLinksForKind
 //
-//	SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
+//	SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
 //	FROM "profile_link" pl
 //	  INNER JOIN "profile" p ON pl.profile_id = p.id
 //	  AND p.deleted_at IS NULL
 //	WHERE pl.kind = $1
 //	  AND pl.deleted_at IS NULL
+//	ORDER BY pl."order"
 func (q *Queries) GetProfileLinksForKind(ctx context.Context, arg GetProfileLinksForKindParams) ([]*ProfileLink, error) {
 	rows, err := q.db.QueryContext(ctx, getProfileLinksForKind, arg.Kind)
 	if err != nil {
@@ -183,6 +252,7 @@ func (q *Queries) GetProfileLinksForKind(ctx context.Context, arg GetProfileLink
 			&i.Order,
 			&i.IsManaged,
 			&i.IsVerified,
+			&i.IsHidden,
 			&i.RemoteId,
 			&i.PublicId,
 			&i.Uri,
@@ -212,11 +282,12 @@ func (q *Queries) GetProfileLinksForKind(ctx context.Context, arg GetProfileLink
 }
 
 const getProfilePageByProfileIdAndSlug = `-- name: GetProfilePageByProfileIdAndSlug :one
-SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary
+SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
   AND ppt.locale_code = $1
-WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL LIMIT 1
+WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL
+ORDER BY pp."order"
 `
 
 type GetProfilePageByProfileIdAndSlugParams struct {
@@ -227,40 +298,59 @@ type GetProfilePageByProfileIdAndSlugParams struct {
 
 type GetProfilePageByProfileIdAndSlugRow struct {
 	Id              string         `db:"id" json:"id"`
+	ProfileId       string         `db:"profile_id" json:"profile_id"`
 	Slug            string         `db:"slug" json:"slug"`
+	Order           int32          `db:"order" json:"order"`
 	CoverPictureUri sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
+	PublishedAt     sql.NullTime   `db:"published_at" json:"published_at"`
+	CreatedAt       time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt       sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt       sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	ProfilePageId   string         `db:"profile_page_id" json:"profile_page_id"`
+	LocaleCode      string         `db:"locale_code" json:"locale_code"`
 	Title           string         `db:"title" json:"title"`
 	Summary         string         `db:"summary" json:"summary"`
+	Content         string         `db:"content" json:"content"`
 }
 
 // GetProfilePageByProfileIdAndSlug
 //
-//	SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary
+//	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 //	FROM "profile_page" pp
 //	  INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
 //	  AND ppt.locale_code = $1
-//	WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL LIMIT 1
+//	WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL
+//	ORDER BY pp."order"
 func (q *Queries) GetProfilePageByProfileIdAndSlug(ctx context.Context, arg GetProfilePageByProfileIdAndSlugParams) (*GetProfilePageByProfileIdAndSlugRow, error) {
 	row := q.db.QueryRowContext(ctx, getProfilePageByProfileIdAndSlug, arg.LocaleCode, arg.ProfileId, arg.PageSlug)
 	var i GetProfilePageByProfileIdAndSlugRow
 	err := row.Scan(
 		&i.Id,
+		&i.ProfileId,
 		&i.Slug,
+		&i.Order,
 		&i.CoverPictureUri,
+		&i.PublishedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.ProfilePageId,
+		&i.LocaleCode,
 		&i.Title,
 		&i.Summary,
+		&i.Content,
 	)
 	return &i, err
 }
 
 const getProfilePagesByProfileId = `-- name: GetProfilePagesByProfileId :many
-SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary
+SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
   AND ppt.locale_code = $1
 WHERE pp.profile_id = $2
   AND pp.deleted_at IS NULL
-ORDER BY pp.order
+ORDER BY pp."order"
 `
 
 type GetProfilePagesByProfileIdParams struct {
@@ -270,21 +360,30 @@ type GetProfilePagesByProfileIdParams struct {
 
 type GetProfilePagesByProfileIdRow struct {
 	Id              string         `db:"id" json:"id"`
+	ProfileId       string         `db:"profile_id" json:"profile_id"`
 	Slug            string         `db:"slug" json:"slug"`
+	Order           int32          `db:"order" json:"order"`
 	CoverPictureUri sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
+	PublishedAt     sql.NullTime   `db:"published_at" json:"published_at"`
+	CreatedAt       time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt       sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt       sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	ProfilePageId   string         `db:"profile_page_id" json:"profile_page_id"`
+	LocaleCode      string         `db:"locale_code" json:"locale_code"`
 	Title           string         `db:"title" json:"title"`
 	Summary         string         `db:"summary" json:"summary"`
+	Content         string         `db:"content" json:"content"`
 }
 
 // GetProfilePagesByProfileId
 //
-//	SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary
+//	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 //	FROM "profile_page" pp
 //	  INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
 //	  AND ppt.locale_code = $1
 //	WHERE pp.profile_id = $2
 //	  AND pp.deleted_at IS NULL
-//	ORDER BY pp.order
+//	ORDER BY pp."order"
 func (q *Queries) GetProfilePagesByProfileId(ctx context.Context, arg GetProfilePagesByProfileIdParams) ([]*GetProfilePagesByProfileIdRow, error) {
 	rows, err := q.db.QueryContext(ctx, getProfilePagesByProfileId, arg.LocaleCode, arg.ProfileId)
 	if err != nil {
@@ -296,10 +395,19 @@ func (q *Queries) GetProfilePagesByProfileId(ctx context.Context, arg GetProfile
 		var i GetProfilePagesByProfileIdRow
 		if err := rows.Scan(
 			&i.Id,
+			&i.ProfileId,
 			&i.Slug,
+			&i.Order,
 			&i.CoverPictureUri,
+			&i.PublishedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.ProfilePageId,
+			&i.LocaleCode,
 			&i.Title,
 			&i.Summary,
+			&i.Content,
 		); err != nil {
 			return nil, err
 		}

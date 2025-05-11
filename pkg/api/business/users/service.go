@@ -18,8 +18,7 @@ var (
 type Repository interface {
 	GetUserById(ctx context.Context, localeCode string, id string) (*User, error)
 	GetUserByEmail(ctx context.Context, localeCode string, email string) (*User, error)
-	ListUsers(ctx context.Context, localeCode string) ([]*User, error)
-	ListUsersWithCursor(
+	ListUsers(
 		ctx context.Context,
 		localeCode string,
 		cursor *cursors.Cursor,
@@ -54,21 +53,12 @@ func (s *Service) GetByEmail(ctx context.Context, localeCode string, email strin
 	return record, nil
 }
 
-func (s *Service) List(ctx context.Context, localeCode string) ([]*User, error) {
-	records, err := s.repo.ListUsers(ctx, localeCode)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
-	}
-
-	return records, nil
-}
-
-func (s *Service) ListWithCursor(
+func (s *Service) List(
 	ctx context.Context,
 	localeCode string,
 	cursor *cursors.Cursor,
 ) (cursors.Cursored[[]*User], error) {
-	records, err := s.repo.ListUsersWithCursor(ctx, localeCode, cursor)
+	records, err := s.repo.ListUsers(ctx, localeCode, cursor)
 	if err != nil {
 		return cursors.Cursored[[]*User]{}, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
 	}

@@ -3,6 +3,7 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/eser/aya.is-services/pkg/api/business/stories"
 	"github.com/eser/aya.is-services/pkg/lib/cursors"
@@ -74,10 +75,16 @@ func (r *Repository) GetStoryBySlug(
 	return result, nil
 }
 
-func (r *Repository) ListStories(ctx context.Context, localeCode string) ([]*stories.Story, error) {
+func (r *Repository) ListStories(
+	ctx context.Context,
+	localeCode string,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*stories.Story], error) {
+	var wrappedResponse cursors.Cursored[[]*stories.Story]
+
 	rows, err := r.queries.ListStories(ctx, ListStoriesParams{LocaleCode: localeCode})
 	if err != nil {
-		return nil, err
+		return wrappedResponse, err
 	}
 
 	result := make([]*stories.Story, len(rows))
@@ -101,17 +108,30 @@ func (r *Repository) ListStories(ctx context.Context, localeCode string) ([]*sto
 		}
 	}
 
-	return result, nil
+	wrappedResponse.Data = result
+
+	if len(result) == cursor.Limit {
+		wrappedResponse.CursorPtr = &result[len(result)-1].Id
+	}
+
+	return wrappedResponse, nil
 }
 
-func (r *Repository) ListStoriesWithCursor(
+func (r *Repository) ListStoriesByAuthorProfileId(
 	ctx context.Context,
 	localeCode string,
+	authorProfileId string,
 	cursor *cursors.Cursor,
 ) (cursors.Cursored[[]*stories.Story], error) {
 	var wrappedResponse cursors.Cursored[[]*stories.Story]
 
-	rows, err := r.queries.ListStories(ctx, ListStoriesParams{LocaleCode: localeCode})
+	rows, err := r.queries.ListStoriesByAuthorProfileId(
+		ctx,
+		ListStoriesByAuthorProfileIdParams{
+			LocaleCode:      localeCode,
+			AuthorProfileId: sql.NullString{String: authorProfileId, Valid: true},
+		},
+	)
 	if err != nil {
 		return wrappedResponse, err
 	}

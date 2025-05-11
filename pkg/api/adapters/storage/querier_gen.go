@@ -86,32 +86,43 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetProfileIdBySlug(ctx context.Context, arg GetProfileIdBySlugParams) (string, error)
+	//GetProfileLinksByProfileId
+	//
+	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+	//  FROM "profile_link"
+	//  WHERE profile_id = $1
+	//    AND is_hidden = FALSE
+	//    AND deleted_at IS NULL
+	//  ORDER BY "order"
+	GetProfileLinksByProfileId(ctx context.Context, arg GetProfileLinksByProfileIdParams) ([]*ProfileLink, error)
 	//GetProfileLinksForKind
 	//
-	//  SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
+	//  SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
 	//  FROM "profile_link" pl
 	//    INNER JOIN "profile" p ON pl.profile_id = p.id
 	//    AND p.deleted_at IS NULL
 	//  WHERE pl.kind = $1
 	//    AND pl.deleted_at IS NULL
+	//  ORDER BY pl."order"
 	GetProfileLinksForKind(ctx context.Context, arg GetProfileLinksForKindParams) ([]*ProfileLink, error)
 	//GetProfilePageByProfileIdAndSlug
 	//
-	//  SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary
+	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 	//  FROM "profile_page" pp
 	//    INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
 	//    AND ppt.locale_code = $1
-	//  WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL LIMIT 1
+	//  WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL
+	//  ORDER BY pp."order"
 	GetProfilePageByProfileIdAndSlug(ctx context.Context, arg GetProfilePageByProfileIdAndSlugParams) (*GetProfilePageByProfileIdAndSlugRow, error)
 	//GetProfilePagesByProfileId
 	//
-	//  SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary
+	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 	//  FROM "profile_page" pp
 	//    INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
 	//    AND ppt.locale_code = $1
 	//  WHERE pp.profile_id = $2
 	//    AND pp.deleted_at IS NULL
-	//  ORDER BY pp.order
+	//  ORDER BY pp."order"
 	GetProfilePagesByProfileId(ctx context.Context, arg GetProfilePagesByProfileIdParams) ([]*GetProfilePagesByProfileIdRow, error)
 	//GetStoryById
 	//
@@ -165,6 +176,15 @@ type Querier interface {
 	//    AND st.locale_code = $1
 	//  WHERE s.deleted_at IS NULL
 	ListStories(ctx context.Context, arg ListStoriesParams) ([]*ListStoriesRow, error)
+	//ListStoriesByAuthorProfileId
+	//
+	//  SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
+	//  FROM "story" s
+	//    INNER JOIN "story_tx" st ON s.id = st.story_id
+	//    AND st.locale_code = $1
+	//  WHERE s.author_profile_id = $2
+	//    AND s.deleted_at IS NULL
+	ListStoriesByAuthorProfileId(ctx context.Context, arg ListStoriesByAuthorProfileIdParams) ([]*ListStoriesByAuthorProfileIdRow, error)
 	//ListUsers
 	//
 	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at

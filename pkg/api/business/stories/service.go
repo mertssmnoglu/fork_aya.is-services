@@ -16,12 +16,18 @@ var (
 )
 
 type Repository interface {
+	GetProfileIdBySlug(ctx context.Context, slug string) (string, error)
 	GetStoryById(ctx context.Context, localeCode string, id string) (*Story, error)
 	GetStoryBySlug(ctx context.Context, localeCode string, slug string) (*Story, error)
-	ListStories(ctx context.Context, localeCode string) ([]*Story, error)
-	ListStoriesWithCursor(
+	ListStories(
 		ctx context.Context,
 		localeCode string,
+		cursor *cursors.Cursor,
+	) (cursors.Cursored[[]*Story], error)
+	ListStoriesByAuthorProfileId(
+		ctx context.Context,
+		localeCode string,
+		authorProfileId string,
 		cursor *cursors.Cursor,
 	) (cursors.Cursored[[]*Story], error)
 }
@@ -54,21 +60,41 @@ func (s *Service) GetBySlug(ctx context.Context, localeCode string, slug string)
 	return record, nil
 }
 
-func (s *Service) List(ctx context.Context, localeCode string) ([]*Story, error) {
-	records, err := s.repo.ListStories(ctx, localeCode)
+func (s *Service) List(
+	ctx context.Context,
+	localeCode string,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*Story], error) {
+	records, err := s.repo.ListStories(ctx, localeCode, cursor)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
+		return cursors.Cursored[[]*Story]{}, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
 	}
 
 	return records, nil
 }
 
-func (s *Service) ListWithCursor(
+func (s *Service) ListByAuthorProfileSlug(
 	ctx context.Context,
 	localeCode string,
+	authorProfileSlug string,
 	cursor *cursors.Cursor,
 ) (cursors.Cursored[[]*Story], error) {
-	records, err := s.repo.ListStoriesWithCursor(ctx, localeCode, cursor)
+	authorProfileId, err := s.repo.GetProfileIdBySlug(ctx, authorProfileSlug)
+	if err != nil {
+		return cursors.Cursored[[]*Story]{}, fmt.Errorf(
+			"%w(slug: %s): %w",
+			ErrFailedToGetRecord,
+			authorProfileSlug,
+			err,
+		)
+	}
+
+	records, err := s.repo.ListStoriesByAuthorProfileId(
+		ctx,
+		localeCode,
+		authorProfileId,
+		cursor,
+	)
 	if err != nil {
 		return cursors.Cursored[[]*Story]{}, fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
 	}

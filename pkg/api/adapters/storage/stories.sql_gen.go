@@ -7,6 +7,7 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 )
 
 const getStoryById = `-- name: GetStoryById :one
@@ -156,6 +157,77 @@ func (q *Queries) ListStories(ctx context.Context, arg ListStoriesParams) ([]*Li
 	items := []*ListStoriesRow{}
 	for rows.Next() {
 		var i ListStoriesRow
+		if err := rows.Scan(
+			&i.Story.Id,
+			&i.Story.AuthorProfileId,
+			&i.Story.Slug,
+			&i.Story.Kind,
+			&i.Story.Status,
+			&i.Story.IsFeatured,
+			&i.Story.StoryPictureUri,
+			&i.Story.Title,
+			&i.Story.Summary,
+			&i.Story.Content,
+			&i.Story.Properties,
+			&i.Story.PublishedAt,
+			&i.Story.CreatedAt,
+			&i.Story.UpdatedAt,
+			&i.Story.DeletedAt,
+			&i.StoryTx.StoryId,
+			&i.StoryTx.LocaleCode,
+			&i.StoryTx.Title,
+			&i.StoryTx.Summary,
+			&i.StoryTx.Content,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStoriesByAuthorProfileId = `-- name: ListStoriesByAuthorProfileId :many
+SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
+FROM "story" s
+  INNER JOIN "story_tx" st ON s.id = st.story_id
+  AND st.locale_code = $1
+WHERE s.author_profile_id = $2
+  AND s.deleted_at IS NULL
+`
+
+type ListStoriesByAuthorProfileIdParams struct {
+	LocaleCode      string         `db:"locale_code" json:"locale_code"`
+	AuthorProfileId sql.NullString `db:"author_profile_id" json:"author_profile_id"`
+}
+
+type ListStoriesByAuthorProfileIdRow struct {
+	Story   Story   `db:"story" json:"story"`
+	StoryTx StoryTx `db:"story_tx" json:"story_tx"`
+}
+
+// ListStoriesByAuthorProfileId
+//
+//	SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
+//	FROM "story" s
+//	  INNER JOIN "story_tx" st ON s.id = st.story_id
+//	  AND st.locale_code = $1
+//	WHERE s.author_profile_id = $2
+//	  AND s.deleted_at IS NULL
+func (q *Queries) ListStoriesByAuthorProfileId(ctx context.Context, arg ListStoriesByAuthorProfileIdParams) ([]*ListStoriesByAuthorProfileIdRow, error) {
+	rows, err := q.db.QueryContext(ctx, listStoriesByAuthorProfileId, arg.LocaleCode, arg.AuthorProfileId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListStoriesByAuthorProfileIdRow{}
+	for rows.Next() {
+		var i ListStoriesByAuthorProfileIdRow
 		if err := rows.Scan(
 			&i.Story.Id,
 			&i.Story.AuthorProfileId,

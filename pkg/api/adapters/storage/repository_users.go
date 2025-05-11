@@ -68,34 +68,7 @@ func (r *Repository) GetUserByEmail(
 	return result, nil
 }
 
-func (r *Repository) ListUsers(ctx context.Context, localeCode string) ([]*users.User, error) {
-	rows, err := r.queries.ListUsers(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]*users.User, len(rows))
-	for i, row := range rows {
-		result[i] = &users.User{
-			Id:                  row.Id,
-			Kind:                row.Kind,
-			Name:                row.Name,
-			Email:               vars.ToStringPtr(row.Email),
-			Phone:               vars.ToStringPtr(row.Phone),
-			GithubHandle:        vars.ToStringPtr(row.GithubHandle),
-			BskyHandle:          vars.ToStringPtr(row.BskyHandle),
-			XHandle:             vars.ToStringPtr(row.XHandle),
-			IndividualProfileId: vars.ToStringPtr(row.IndividualProfileId),
-			CreatedAt:           row.CreatedAt,
-			UpdatedAt:           vars.ToTimePtr(row.UpdatedAt),
-			DeletedAt:           vars.ToTimePtr(row.DeletedAt),
-		}
-	}
-
-	return result, nil
-}
-
-func (r *Repository) ListUsersWithCursor(
+func (r *Repository) ListUsers(
 	ctx context.Context,
 	localeCode string,
 	cursor *cursors.Cursor,

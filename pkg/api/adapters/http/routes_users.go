@@ -30,7 +30,7 @@ func RegisterHttpRoutesForUsers(
 
 			service := users.NewService(logger, repository)
 
-			records, err := service.ListWithCursor(ctx.Request.Context(), localeParam, cursor)
+			records, err := service.List(ctx.Request.Context(), localeParam, cursor)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}

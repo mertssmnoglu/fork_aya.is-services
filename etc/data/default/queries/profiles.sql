@@ -50,20 +50,30 @@ FROM "profile_link" pl
   INNER JOIN "profile" p ON pl.profile_id = p.id
   AND p.deleted_at IS NULL
 WHERE pl.kind = sqlc.arg(kind)
-  AND pl.deleted_at IS NULL;
+  AND pl.deleted_at IS NULL
+ORDER BY pl."order";
 
 -- name: GetProfilePagesByProfileId :many
-SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary
+SELECT pp.*, ppt.*
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
   AND ppt.locale_code = sqlc.arg(locale_code)
 WHERE pp.profile_id = sqlc.arg(profile_id)
   AND pp.deleted_at IS NULL
-ORDER BY pp.order;
+ORDER BY pp."order";
 
 -- name: GetProfilePageByProfileIdAndSlug :one
-SELECT pp.id, pp.slug, pp.cover_picture_uri, ppt.title, ppt.summary
+SELECT pp.*, ppt.*
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
   AND ppt.locale_code = sqlc.arg(locale_code)
-WHERE pp.profile_id = sqlc.arg(profile_id) AND pp.slug = sqlc.arg(page_slug) AND pp.deleted_at IS NULL LIMIT 1;
+WHERE pp.profile_id = sqlc.arg(profile_id) AND pp.slug = sqlc.arg(page_slug) AND pp.deleted_at IS NULL
+ORDER BY pp."order";
+
+-- name: GetProfileLinksByProfileId :many
+SELECT *
+FROM "profile_link"
+WHERE profile_id = sqlc.arg(profile_id)
+  AND is_hidden = FALSE
+  AND deleted_at IS NULL
+ORDER BY "order";

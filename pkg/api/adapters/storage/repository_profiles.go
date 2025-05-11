@@ -88,36 +88,6 @@ func (r *Repository) GetProfileById(
 func (r *Repository) ListProfiles(
 	ctx context.Context,
 	localeCode string,
-) ([]*profiles.Profile, error) {
-	rows, err := r.queries.ListProfiles(ctx, ListProfilesParams{LocaleCode: localeCode})
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]*profiles.Profile, len(rows))
-	for i, row := range rows {
-		result[i] = &profiles.Profile{
-			Id:                row.Profile.Id,
-			Slug:              row.Profile.Slug,
-			Kind:              row.Profile.Kind,
-			CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
-			ProfilePictureUri: vars.ToStringPtr(row.Profile.ProfilePictureUri),
-			Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
-			Title:             row.ProfileTx.Title,
-			Description:       row.ProfileTx.Description,
-			Properties:        vars.ToRawMessage(row.Profile.Properties),
-			CreatedAt:         row.Profile.CreatedAt,
-			UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
-			DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
-		}
-	}
-
-	return result, nil
-}
-
-func (r *Repository) ListProfilesWithCursor(
-	ctx context.Context,
-	localeCode string,
 	cursor *cursors.Cursor,
 ) (cursors.Cursored[[]*profiles.Profile], error) {
 	var wrappedResponse cursors.Cursored[[]*profiles.Profile]
@@ -208,4 +178,32 @@ func (r *Repository) GetProfilePageByProfileIdAndSlug(
 	}
 
 	return result, nil
+}
+
+func (r *Repository) GetProfileLinksByProfileId(
+	ctx context.Context,
+	_localeCode string,
+	profileId string,
+) ([]*profiles.ProfileLinkBrief, error) {
+	rows, err := r.queries.GetProfileLinksByProfileId(
+		ctx,
+		GetProfileLinksByProfileIdParams{ProfileId: profileId},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	profileLinks := make([]*profiles.ProfileLinkBrief, len(rows))
+	for i, row := range rows {
+		profileLinks[i] = &profiles.ProfileLinkBrief{
+			Id:         row.Id,
+			Kind:       row.Kind,
+			IsVerified: row.IsVerified,
+			PublicId:   row.PublicId.String,
+			Uri:        row.Uri.String,
+			Title:      row.Title,
+		}
+	}
+
+	return profileLinks, nil
 }

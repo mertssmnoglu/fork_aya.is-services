@@ -29,9 +29,10 @@ type Profile struct {
 	Description       string     `json:"description"`
 }
 
-type ProfileWithPages struct {
+type ProfileWithChildren struct {
 	*Profile
 	Pages []*ProfilePageBrief `json:"pages"`
+	Links []*ProfileLinkBrief `json:"links"`
 }
 
 type ProfilePageBrief struct {
@@ -40,6 +41,15 @@ type ProfilePageBrief struct {
 	CoverPictureUri *string `json:"cover_picture_uri"`
 	Title           string  `json:"title"`
 	Summary         string  `json:"summary"`
+}
+
+type ProfileLinkBrief struct {
+	Id         string `json:"id"`
+	Kind       string `json:"kind"`
+	PublicId   string `json:"public_id"`
+	Uri        string `json:"uri"`
+	Title      string `json:"title"`
+	IsVerified bool   `json:"is_verified"`
 }
 
 type ExternalPost struct {

@@ -8,6 +8,7 @@ import (
 	"github.com/eser/ajan/logfx"
 	"github.com/eser/aya.is-services/pkg/api/adapters/storage"
 	"github.com/eser/aya.is-services/pkg/api/business/profiles"
+	"github.com/eser/aya.is-services/pkg/api/business/stories"
 	"github.com/eser/aya.is-services/pkg/lib/cursors"
 )
 
@@ -29,7 +30,7 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop
 
 			service := profiles.NewService(logger, repository)
 
-			records, err := service.ListWithCursor(ctx.Request.Context(), localeParam, cursor)
+			records, err := service.List(ctx.Request.Context(), localeParam, cursor)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
@@ -92,8 +93,8 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop
 
 			return ctx.Results.Json(wrappedResponse)
 		}).
-		HasSummary("Get profile pages by profile slug").
-		HasDescription("Get profile pages by profile slug.").
+		HasSummary("List profile pages by profile slug").
+		HasDescription("List profile pages by profile slug.").
 		HasResponse(http.StatusOK)
 
 	routes.
@@ -127,8 +128,68 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop
 				return ctx.Results.Json(wrappedResponse)
 			},
 		).
-		HasSummary("Get profile page by profile slug and page slug").
-		HasDescription("Get profile page by profile slug and page slug.").
+		HasSummary("List profile page by profile slug and page slug").
+		HasDescription("List profile page by profile slug and page slug.").
+		HasResponse(http.StatusOK)
+
+	routes.
+		Route("GET /{locale}/profiles/{slug}/links", func(ctx *httpfx.Context) httpfx.Result {
+			// get variables from path
+			localeParam := ctx.Request.PathValue("locale")
+			slugParam := ctx.Request.PathValue("slug")
+
+			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
+			if err != nil {
+				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
+			}
+
+			service := profiles.NewService(logger, repository)
+
+			record, err := service.ListLinksBySlug(
+				ctx.Request.Context(),
+				localeParam,
+				slugParam,
+			)
+			if err != nil {
+				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
+			}
+
+			wrappedResponse := cursors.WrapResponseWithCursor(record, nil)
+
+			return ctx.Results.Json(wrappedResponse)
+		}).
+		HasSummary("List profile links by profile slug").
+		HasDescription("List profile links by profile slug.").
+		HasResponse(http.StatusOK)
+
+	routes.
+		Route("GET /{locale}/profiles/{slug}/stories", func(ctx *httpfx.Context) httpfx.Result {
+			// get variables from path
+			localeParam := ctx.Request.PathValue("locale")
+			slugParam := ctx.Request.PathValue("slug")
+			cursor := cursors.NewCursorFromRequest(ctx.Request)
+
+			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
+			if err != nil {
+				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
+			}
+
+			service := stories.NewService(logger, repository)
+
+			records, err := service.ListByAuthorProfileSlug(
+				ctx.Request.Context(),
+				localeParam,
+				slugParam,
+				cursor,
+			)
+			if err != nil {
+				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
+			}
+
+			return ctx.Results.Json(records)
+		}).
+		HasSummary("List stories authored by profile slug").
+		HasDescription("List stories authored by profile slug.").
 		HasResponse(http.StatusOK)
 
 	routes.
