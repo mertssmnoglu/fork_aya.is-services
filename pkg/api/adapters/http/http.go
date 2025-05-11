@@ -39,8 +39,9 @@ func Run(
 
 	// http routes
 	// RegisterHttpRoutesForUsers(routes, logger, dataRegistry)    //nolint:contextcheck
-	RegisterHttpRoutesForProfiles(routes, logger, dataRegistry) //nolint:contextcheck
-	RegisterHttpRoutesForStories(routes, logger, dataRegistry)  //nolint:contextcheck
+	RegisterHttpRoutesForCustomDomains(routes, logger, dataRegistry) //nolint:contextcheck
+	RegisterHttpRoutesForProfiles(routes, logger, dataRegistry)      //nolint:contextcheck
+	RegisterHttpRoutesForStories(routes, logger, dataRegistry)       //nolint:contextcheck
 
 	// run
 	cleanup, err := httpService.Start(ctx)
