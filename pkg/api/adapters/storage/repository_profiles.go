@@ -156,7 +156,7 @@ func (r *Repository) GetProfilePageByProfileIdAndSlug(
 	localeCode string,
 	profileId string,
 	pageSlug string,
-) (*profiles.ProfilePageBrief, error) {
+) (*profiles.ProfilePage, error) {
 	row, err := r.queries.GetProfilePageByProfileIdAndSlug(
 		ctx,
 		GetProfilePageByProfileIdAndSlugParams{
@@ -169,12 +169,14 @@ func (r *Repository) GetProfilePageByProfileIdAndSlug(
 		return nil, err
 	}
 
-	result := &profiles.ProfilePageBrief{
+	result := &profiles.ProfilePage{
 		Id:              row.Id,
 		Slug:            row.Slug,
 		CoverPictureUri: vars.ToStringPtr(row.CoverPictureUri),
 		Title:           row.Title,
 		Summary:         row.Summary,
+		Content:         row.Content,
+		PublishedAt:     vars.ToTimePtr(row.PublishedAt),
 	}
 
 	return result, nil

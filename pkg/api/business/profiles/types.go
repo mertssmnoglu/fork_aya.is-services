@@ -35,6 +35,16 @@ type ProfileWithChildren struct {
 	Links []*ProfileLinkBrief `json:"links"`
 }
 
+type ProfilePage struct {
+	CoverPictureUri *string    `json:"cover_picture_uri"`
+	PublishedAt     *time.Time `json:"published_at"`
+	Id              string     `json:"id"`
+	Slug            string     `json:"slug"`
+	Title           string     `json:"title"`
+	Summary         string     `json:"summary"`
+	Content         string     `json:"content"`
+}
+
 type ProfilePageBrief struct {
 	Id              string  `json:"id"`
 	Slug            string  `json:"slug"`

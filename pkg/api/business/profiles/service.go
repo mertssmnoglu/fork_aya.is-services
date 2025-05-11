@@ -43,7 +43,7 @@ type Repository interface {
 		localeCode string,
 		profileId string,
 		pageSlug string,
-	) (*ProfilePageBrief, error)
+	) (*ProfilePage, error)
 	GetProfileLinksByProfileId(
 		ctx context.Context,
 		localeCode string,
@@ -182,7 +182,7 @@ func (s *Service) GetPageBySlug(
 	localeCode string,
 	slug string,
 	pageSlug string,
-) (*ProfilePageBrief, error) {
+) (*ProfilePage, error) {
 	profileId, err := s.repo.GetProfileIdBySlug(ctx, slug)
 	if err != nil {
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
