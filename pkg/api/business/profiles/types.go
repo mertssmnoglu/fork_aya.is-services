@@ -52,6 +52,13 @@ type ProfileLinkBrief struct {
 	IsVerified bool   `json:"is_verified"`
 }
 
+type ProfileMembership struct {
+	Properties any      `json:"properties"`
+	Profile    *Profile `json:"profile"`
+	Id         string   `json:"id"`
+	Kind       string   `json:"kind"`
+}
+
 type ExternalPost struct {
 	CreatedAt *time.Time `json:"created_at"` //nolint:tagliatelle
 	Id        string     `json:"id"`

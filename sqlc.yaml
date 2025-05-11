@@ -6,6 +6,8 @@ sql:
     schema: "etc/data/default/migrations"
     rules:
       - sqlc/db-prepare
+    # database:
+    #   uri: ${DATABASE_URI}
     gen:
       go:
         out: "pkg/api/adapters/storage"

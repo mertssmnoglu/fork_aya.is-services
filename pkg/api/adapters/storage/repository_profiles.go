@@ -207,3 +207,56 @@ func (r *Repository) GetProfileLinksByProfileId(
 
 	return profileLinks, nil
 }
+
+func (r *Repository) ListProfileMembershipsByProfileIdAndKind(
+	ctx context.Context,
+	localeCode string,
+	profileId string,
+	kind string,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*profiles.ProfileMembership], error) {
+	var wrappedResponse cursors.Cursored[[]*profiles.ProfileMembership]
+
+	rows, err := r.queries.ListProfileMembershipsByProfileIdAndKind(
+		ctx,
+		ListProfileMembershipsByProfileIdAndKindParams{
+			LocaleCode: localeCode,
+			ProfileId:  profileId,
+			Kind:       kind,
+		},
+	)
+	if err != nil {
+		return wrappedResponse, err
+	}
+
+	profileMemberships := make([]*profiles.ProfileMembership, len(rows))
+	for i, row := range rows {
+		profileMemberships[i] = &profiles.ProfileMembership{
+			Id:         row.ProfileMembership.Id,
+			Kind:       row.ProfileMembership.Kind,
+			Properties: vars.ToRawMessage(row.ProfileMembership.Properties),
+			Profile: &profiles.Profile{
+				Id:                row.Profile.Id,
+				Slug:              row.Profile.Slug,
+				Kind:              row.Profile.Kind,
+				CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
+				ProfilePictureUri: vars.ToStringPtr(row.Profile.ProfilePictureUri),
+				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
+				Title:             row.ProfileTx.Title,
+				Description:       row.ProfileTx.Description,
+				Properties:        vars.ToRawMessage(row.Profile.Properties),
+				CreatedAt:         row.Profile.CreatedAt,
+				UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
+				DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
+			},
+		}
+	}
+
+	wrappedResponse.Data = profileMemberships
+
+	if len(profileMemberships) == cursor.Limit {
+		wrappedResponse.CursorPtr = &profileMemberships[len(profileMemberships)-1].Id
+	}
+
+	return wrappedResponse, nil
+}

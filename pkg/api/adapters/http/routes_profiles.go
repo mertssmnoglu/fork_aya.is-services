@@ -12,7 +12,7 @@ import (
 	"github.com/eser/aya.is-services/pkg/lib/cursors"
 )
 
-func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop
+func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	dataRegistry *datafx.Registry,
@@ -22,6 +22,11 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop
 			// get variables from path
 			localeParam := ctx.Request.PathValue("locale")
 			cursor := cursors.NewCursorFromRequest(ctx.Request)
+
+			filterKind, filterKindOk := cursor.Filters["kind"]
+			if !filterKindOk || (filterKind != "organization" && filterKind != "product") {
+				return ctx.Results.Error(http.StatusBadRequest, []byte("filter_kind is required"))
+			}
 
 			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
 			if err != nil {
@@ -193,10 +198,20 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop
 		HasResponse(http.StatusOK)
 
 	routes.
-		Route("GET /{locale}/custom-domains/{domain}", func(ctx *httpfx.Context) httpfx.Result {
+		Route("GET /{locale}/profiles/{slug}/memberships", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
 			localeParam := ctx.Request.PathValue("locale")
-			domainParam := ctx.Request.PathValue("domain")
+			slugParam := ctx.Request.PathValue("slug")
+			cursor := cursors.NewCursorFromRequest(ctx.Request)
+
+			filterProfileKind, filterProfileKindOk := cursor.Filters["profile_kind"]
+			if !filterProfileKindOk ||
+				(filterProfileKind != "organization" && filterProfileKind != "product") {
+				return ctx.Results.Error(
+					http.StatusBadRequest,
+					[]byte("filter_profile_kind is required"),
+				)
+			}
 
 			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
 			if err != nil {
@@ -205,20 +220,20 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop
 
 			service := profiles.NewService(logger, repository)
 
-			records, err := service.GetByCustomDomain(
+			records, err := service.ListProfileMembershipsBySlugAndKind(
 				ctx.Request.Context(),
 				localeParam,
-				domainParam,
+				slugParam,
+				filterProfileKind,
+				cursor,
 			)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
 
-			wrappedResponse := cursors.WrapResponseWithCursor(records, nil)
-
-			return ctx.Results.Json(wrappedResponse)
+			return ctx.Results.Json(records)
 		}).
-		HasSummary("Get profile by custom domain").
-		HasDescription("Get profile by custom domain.").
+		HasSummary("List profile memberships by profile slug and kind").
+		HasDescription("List profile memberships by profile slug and kind.").
 		HasResponse(http.StatusOK)
 }

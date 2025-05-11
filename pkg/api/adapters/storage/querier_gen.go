@@ -64,7 +64,7 @@ type Querier interface {
 	//
 	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 	//  FROM "profile" p
-	//    INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
+	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = $1
 	//  WHERE p.id = $2
 	//    AND p.deleted_at IS NULL
@@ -99,7 +99,7 @@ type Querier interface {
 	//
 	//  SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
 	//  FROM "profile_link" pl
-	//    INNER JOIN "profile" p ON pl.profile_id = p.id
+	//    INNER JOIN "profile" p ON p.id = pl.profile_id
 	//    AND p.deleted_at IS NULL
 	//  WHERE pl.kind = $1
 	//    AND pl.deleted_at IS NULL
@@ -109,7 +109,7 @@ type Querier interface {
 	//
 	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 	//  FROM "profile_page" pp
-	//    INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
+	//    INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
 	//    AND ppt.locale_code = $1
 	//  WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL
 	//  ORDER BY pp."order"
@@ -118,7 +118,7 @@ type Querier interface {
 	//
 	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 	//  FROM "profile_page" pp
-	//    INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
+	//    INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
 	//    AND ppt.locale_code = $1
 	//  WHERE pp.profile_id = $2
 	//    AND pp.deleted_at IS NULL
@@ -128,7 +128,7 @@ type Querier interface {
 	//
 	//  SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
 	//  FROM "story" s
-	//    INNER JOIN "story_tx" st ON s.id = st.story_id
+	//    INNER JOIN "story_tx" st ON st.story_id = s.id
 	//    AND st.locale_code = $1
 	//  WHERE s.id = $2
 	//    AND s.deleted_at IS NULL
@@ -138,7 +138,7 @@ type Querier interface {
 	//
 	//  SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
 	//  FROM "story" s
-	//    INNER JOIN "story_tx" st ON s.id = st.story_id
+	//    INNER JOIN "story_tx" st ON st.story_id = s.id
 	//    AND st.locale_code = $1
 	//  WHERE s.slug = $2
 	//    AND s.deleted_at IS NULL
@@ -160,11 +160,27 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetUserById(ctx context.Context, arg GetUserByIdParams) (*User, error)
+	//ListProfileMembershipsByProfileIdAndKind
+	//
+	//  SELECT
+	//    pm.id, pm.profile_id, pm.user_id, pm.kind, pm.properties, pm.created_at, pm.updated_at, pm.deleted_at,
+	//    pp.id, pp.slug, pp.kind, pp.custom_domain, pp.profile_picture_uri, pp.pronouns, pp.properties, pp.created_at, pp.updated_at, pp.deleted_at,
+	//    ppt.profile_id, ppt.locale_code, ppt.title, ppt.description, ppt.properties
+	//  FROM
+	//  	"profile_membership" pm
+	//    INNER JOIN "profile" pp ON pp.id = pm.profile_id AND pp.kind = $1 AND pp.deleted_at IS NULL
+	//    INNER JOIN "profile_tx" ppt ON ppt.profile_id = pp.id
+	//  	  AND ppt.locale_code = $2
+	//    INNER JOIN "user" u ON u.id = pm.user_id AND u.deleted_at IS NULL
+	//    INNER JOIN "profile" pc ON pc.id = u.individual_profile_id AND pc.deleted_at IS NULL
+	//  WHERE pc.id = $3
+	//    AND pm.deleted_at IS NULL
+	ListProfileMembershipsByProfileIdAndKind(ctx context.Context, arg ListProfileMembershipsByProfileIdAndKindParams) ([]*ListProfileMembershipsByProfileIdAndKindRow, error)
 	//ListProfiles
 	//
 	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 	//  FROM "profile" p
-	//    INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
+	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = $1
 	//  WHERE p.deleted_at IS NULL
 	ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*ListProfilesRow, error)
@@ -172,7 +188,7 @@ type Querier interface {
 	//
 	//  SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
 	//  FROM "story" s
-	//    INNER JOIN "story_tx" st ON s.id = st.story_id
+	//    INNER JOIN "story_tx" st ON st.story_id = s.id
 	//    AND st.locale_code = $1
 	//  WHERE s.deleted_at IS NULL
 	ListStories(ctx context.Context, arg ListStoriesParams) ([]*ListStoriesRow, error)
@@ -180,7 +196,7 @@ type Querier interface {
 	//
 	//  SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
 	//  FROM "story" s
-	//    INNER JOIN "story_tx" st ON s.id = st.story_id
+	//    INNER JOIN "story_tx" st ON st.story_id = s.id
 	//    AND st.locale_code = $1
 	//  WHERE s.author_profile_id = $2
 	//    AND s.deleted_at IS NULL

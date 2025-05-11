@@ -38,8 +38,8 @@ func Run(
 	profiling.RegisterHttpRoutes(routes, config)
 
 	// http routes
+	// RegisterHttpRoutesForUsers(routes, logger, dataRegistry)    //nolint:contextcheck
 	RegisterHttpRoutesForProfiles(routes, logger, dataRegistry) //nolint:contextcheck
-	RegisterHttpRoutesForUsers(routes, logger, dataRegistry)    //nolint:contextcheck
 	RegisterHttpRoutesForStories(routes, logger, dataRegistry)  //nolint:contextcheck
 
 	// run

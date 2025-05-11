@@ -13,7 +13,7 @@ import (
 const getStoryById = `-- name: GetStoryById :one
 SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
 FROM "story" s
-  INNER JOIN "story_tx" st ON s.id = st.story_id
+  INNER JOIN "story_tx" st ON st.story_id = s.id
   AND st.locale_code = $1
 WHERE s.id = $2
   AND s.deleted_at IS NULL
@@ -34,7 +34,7 @@ type GetStoryByIdRow struct {
 //
 //	SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
 //	FROM "story" s
-//	  INNER JOIN "story_tx" st ON s.id = st.story_id
+//	  INNER JOIN "story_tx" st ON st.story_id = s.id
 //	  AND st.locale_code = $1
 //	WHERE s.id = $2
 //	  AND s.deleted_at IS NULL
@@ -70,7 +70,7 @@ func (q *Queries) GetStoryById(ctx context.Context, arg GetStoryByIdParams) (*Ge
 const getStoryBySlug = `-- name: GetStoryBySlug :one
 SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
 FROM "story" s
-  INNER JOIN "story_tx" st ON s.id = st.story_id
+  INNER JOIN "story_tx" st ON st.story_id = s.id
   AND st.locale_code = $1
 WHERE s.slug = $2
   AND s.deleted_at IS NULL
@@ -91,7 +91,7 @@ type GetStoryBySlugRow struct {
 //
 //	SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
 //	FROM "story" s
-//	  INNER JOIN "story_tx" st ON s.id = st.story_id
+//	  INNER JOIN "story_tx" st ON st.story_id = s.id
 //	  AND st.locale_code = $1
 //	WHERE s.slug = $2
 //	  AND s.deleted_at IS NULL
@@ -127,7 +127,7 @@ func (q *Queries) GetStoryBySlug(ctx context.Context, arg GetStoryBySlugParams) 
 const listStories = `-- name: ListStories :many
 SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
 FROM "story" s
-  INNER JOIN "story_tx" st ON s.id = st.story_id
+  INNER JOIN "story_tx" st ON st.story_id = s.id
   AND st.locale_code = $1
 WHERE s.deleted_at IS NULL
 `
@@ -145,7 +145,7 @@ type ListStoriesRow struct {
 //
 //	SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
 //	FROM "story" s
-//	  INNER JOIN "story_tx" st ON s.id = st.story_id
+//	  INNER JOIN "story_tx" st ON st.story_id = s.id
 //	  AND st.locale_code = $1
 //	WHERE s.deleted_at IS NULL
 func (q *Queries) ListStories(ctx context.Context, arg ListStoriesParams) ([]*ListStoriesRow, error) {
@@ -195,7 +195,7 @@ func (q *Queries) ListStories(ctx context.Context, arg ListStoriesParams) ([]*Li
 const listStoriesByAuthorProfileId = `-- name: ListStoriesByAuthorProfileId :many
 SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
 FROM "story" s
-  INNER JOIN "story_tx" st ON s.id = st.story_id
+  INNER JOIN "story_tx" st ON st.story_id = s.id
   AND st.locale_code = $1
 WHERE s.author_profile_id = $2
   AND s.deleted_at IS NULL
@@ -215,7 +215,7 @@ type ListStoriesByAuthorProfileIdRow struct {
 //
 //	SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
 //	FROM "story" s
-//	  INNER JOIN "story_tx" st ON s.id = st.story_id
+//	  INNER JOIN "story_tx" st ON st.story_id = s.id
 //	  AND st.locale_code = $1
 //	WHERE s.author_profile_id = $2
 //	  AND s.deleted_at IS NULL

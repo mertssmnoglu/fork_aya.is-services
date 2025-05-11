@@ -49,6 +49,13 @@ type Repository interface {
 		localeCode string,
 		profileId string,
 	) ([]*ProfileLinkBrief, error)
+	ListProfileMembershipsByProfileIdAndKind(
+		ctx context.Context,
+		localeCode string,
+		profileId string,
+		kind string,
+		cursor *cursors.Cursor,
+	) (cursors.Cursored[[]*ProfileMembership], error)
 	// CreateProfile(ctx context.Context, arg CreateProfileParams) (*Profile, error)
 	// UpdateProfile(ctx context.Context, arg UpdateProfileParams) (int64, error)
 	// DeleteProfile(ctx context.Context, id string) (int64, error)
@@ -211,6 +218,41 @@ func (s *Service) ListLinksBySlug(
 	}
 
 	return links, nil
+}
+
+func (s *Service) ListProfileMembershipsBySlugAndKind(
+	ctx context.Context,
+	localeCode string,
+	slug string,
+	kind string,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*ProfileMembership], error) {
+	profileId, err := s.repo.GetProfileIdBySlug(ctx, slug)
+	if err != nil {
+		return cursors.Cursored[[]*ProfileMembership]{}, fmt.Errorf(
+			"%w(slug: %s): %w",
+			ErrFailedToGetRecord,
+			slug,
+			err,
+		)
+	}
+
+	memberships, err := s.repo.ListProfileMembershipsByProfileIdAndKind(
+		ctx,
+		localeCode,
+		profileId,
+		kind,
+		cursor,
+	)
+	if err != nil {
+		return cursors.Cursored[[]*ProfileMembership]{}, fmt.Errorf(
+			"%w: %w",
+			ErrFailedToListRecords,
+			err,
+		)
+	}
+
+	return memberships, nil
 }
 
 func (s *Service) Import(ctx context.Context, fetcher RecentPostsFetcher) error {

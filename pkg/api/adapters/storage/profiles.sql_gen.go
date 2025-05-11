@@ -46,7 +46,7 @@ func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) (*
 const getProfileById = `-- name: GetProfileById :one
 SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 FROM "profile" p
-  INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
+  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
   AND pt.locale_code = $1
 WHERE p.id = $2
   AND p.deleted_at IS NULL
@@ -67,7 +67,7 @@ type GetProfileByIdRow struct {
 //
 //	SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 //	FROM "profile" p
-//	  INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
+//	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 //	  AND pt.locale_code = $1
 //	WHERE p.id = $2
 //	  AND p.deleted_at IS NULL
@@ -216,7 +216,7 @@ func (q *Queries) GetProfileLinksByProfileId(ctx context.Context, arg GetProfile
 const getProfileLinksForKind = `-- name: GetProfileLinksForKind :many
 SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
 FROM "profile_link" pl
-  INNER JOIN "profile" p ON pl.profile_id = p.id
+  INNER JOIN "profile" p ON p.id = pl.profile_id
   AND p.deleted_at IS NULL
 WHERE pl.kind = $1
   AND pl.deleted_at IS NULL
@@ -231,7 +231,7 @@ type GetProfileLinksForKindParams struct {
 //
 //	SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
 //	FROM "profile_link" pl
-//	  INNER JOIN "profile" p ON pl.profile_id = p.id
+//	  INNER JOIN "profile" p ON p.id = pl.profile_id
 //	  AND p.deleted_at IS NULL
 //	WHERE pl.kind = $1
 //	  AND pl.deleted_at IS NULL
@@ -284,7 +284,7 @@ func (q *Queries) GetProfileLinksForKind(ctx context.Context, arg GetProfileLink
 const getProfilePageByProfileIdAndSlug = `-- name: GetProfilePageByProfileIdAndSlug :one
 SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 FROM "profile_page" pp
-  INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
+  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
   AND ppt.locale_code = $1
 WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL
 ORDER BY pp."order"
@@ -317,7 +317,7 @@ type GetProfilePageByProfileIdAndSlugRow struct {
 //
 //	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 //	FROM "profile_page" pp
-//	  INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
+//	  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
 //	  AND ppt.locale_code = $1
 //	WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL
 //	ORDER BY pp."order"
@@ -346,7 +346,7 @@ func (q *Queries) GetProfilePageByProfileIdAndSlug(ctx context.Context, arg GetP
 const getProfilePagesByProfileId = `-- name: GetProfilePagesByProfileId :many
 SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 FROM "profile_page" pp
-  INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
+  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
   AND ppt.locale_code = $1
 WHERE pp.profile_id = $2
   AND pp.deleted_at IS NULL
@@ -379,7 +379,7 @@ type GetProfilePagesByProfileIdRow struct {
 //
 //	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 //	FROM "profile_page" pp
-//	  INNER JOIN "profile_page_tx" ppt ON pp.id = ppt.profile_page_id
+//	  INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
 //	  AND ppt.locale_code = $1
 //	WHERE pp.profile_id = $2
 //	  AND pp.deleted_at IS NULL
@@ -422,10 +422,100 @@ func (q *Queries) GetProfilePagesByProfileId(ctx context.Context, arg GetProfile
 	return items, nil
 }
 
+const listProfileMembershipsByProfileIdAndKind = `-- name: ListProfileMembershipsByProfileIdAndKind :many
+SELECT
+  pm.id, pm.profile_id, pm.user_id, pm.kind, pm.properties, pm.created_at, pm.updated_at, pm.deleted_at,
+  pp.id, pp.slug, pp.kind, pp.custom_domain, pp.profile_picture_uri, pp.pronouns, pp.properties, pp.created_at, pp.updated_at, pp.deleted_at,
+  ppt.profile_id, ppt.locale_code, ppt.title, ppt.description, ppt.properties
+FROM
+	"profile_membership" pm
+  INNER JOIN "profile" pp ON pp.id = pm.profile_id AND pp.kind = $1 AND pp.deleted_at IS NULL
+  INNER JOIN "profile_tx" ppt ON ppt.profile_id = pp.id
+	  AND ppt.locale_code = $2
+  INNER JOIN "user" u ON u.id = pm.user_id AND u.deleted_at IS NULL
+  INNER JOIN "profile" pc ON pc.id = u.individual_profile_id AND pc.deleted_at IS NULL
+WHERE pc.id = $3
+  AND pm.deleted_at IS NULL
+`
+
+type ListProfileMembershipsByProfileIdAndKindParams struct {
+	Kind       string `db:"kind" json:"kind"`
+	LocaleCode string `db:"locale_code" json:"locale_code"`
+	ProfileId  string `db:"profile_id" json:"profile_id"`
+}
+
+type ListProfileMembershipsByProfileIdAndKindRow struct {
+	ProfileMembership ProfileMembership `db:"profile_membership" json:"profile_membership"`
+	Profile           Profile           `db:"profile" json:"profile"`
+	ProfileTx         ProfileTx         `db:"profile_tx" json:"profile_tx"`
+}
+
+// ListProfileMembershipsByProfileIdAndKind
+//
+//	SELECT
+//	  pm.id, pm.profile_id, pm.user_id, pm.kind, pm.properties, pm.created_at, pm.updated_at, pm.deleted_at,
+//	  pp.id, pp.slug, pp.kind, pp.custom_domain, pp.profile_picture_uri, pp.pronouns, pp.properties, pp.created_at, pp.updated_at, pp.deleted_at,
+//	  ppt.profile_id, ppt.locale_code, ppt.title, ppt.description, ppt.properties
+//	FROM
+//		"profile_membership" pm
+//	  INNER JOIN "profile" pp ON pp.id = pm.profile_id AND pp.kind = $1 AND pp.deleted_at IS NULL
+//	  INNER JOIN "profile_tx" ppt ON ppt.profile_id = pp.id
+//		  AND ppt.locale_code = $2
+//	  INNER JOIN "user" u ON u.id = pm.user_id AND u.deleted_at IS NULL
+//	  INNER JOIN "profile" pc ON pc.id = u.individual_profile_id AND pc.deleted_at IS NULL
+//	WHERE pc.id = $3
+//	  AND pm.deleted_at IS NULL
+func (q *Queries) ListProfileMembershipsByProfileIdAndKind(ctx context.Context, arg ListProfileMembershipsByProfileIdAndKindParams) ([]*ListProfileMembershipsByProfileIdAndKindRow, error) {
+	rows, err := q.db.QueryContext(ctx, listProfileMembershipsByProfileIdAndKind, arg.Kind, arg.LocaleCode, arg.ProfileId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListProfileMembershipsByProfileIdAndKindRow{}
+	for rows.Next() {
+		var i ListProfileMembershipsByProfileIdAndKindRow
+		if err := rows.Scan(
+			&i.ProfileMembership.Id,
+			&i.ProfileMembership.ProfileId,
+			&i.ProfileMembership.UserId,
+			&i.ProfileMembership.Kind,
+			&i.ProfileMembership.Properties,
+			&i.ProfileMembership.CreatedAt,
+			&i.ProfileMembership.UpdatedAt,
+			&i.ProfileMembership.DeletedAt,
+			&i.Profile.Id,
+			&i.Profile.Slug,
+			&i.Profile.Kind,
+			&i.Profile.CustomDomain,
+			&i.Profile.ProfilePictureUri,
+			&i.Profile.Pronouns,
+			&i.Profile.Properties,
+			&i.Profile.CreatedAt,
+			&i.Profile.UpdatedAt,
+			&i.Profile.DeletedAt,
+			&i.ProfileTx.ProfileId,
+			&i.ProfileTx.LocaleCode,
+			&i.ProfileTx.Title,
+			&i.ProfileTx.Description,
+			&i.ProfileTx.Properties,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listProfiles = `-- name: ListProfiles :many
 SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 FROM "profile" p
-  INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
+  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
   AND pt.locale_code = $1
 WHERE p.deleted_at IS NULL
 `
@@ -443,7 +533,7 @@ type ListProfilesRow struct {
 //
 //	SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 //	FROM "profile" p
-//	  INNER JOIN "profile_tx" pt ON p.id = pt.profile_id
+//	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 //	  AND pt.locale_code = $1
 //	WHERE p.deleted_at IS NULL
 func (q *Queries) ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*ListProfilesRow, error) {
