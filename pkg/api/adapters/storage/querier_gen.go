@@ -144,6 +144,14 @@ type Querier interface {
 	//    AND s.deleted_at IS NULL
 	//  LIMIT 1
 	GetStoryBySlug(ctx context.Context, arg GetStoryBySlugParams) (*GetStoryBySlugRow, error)
+	//GetStoryIdBySlug
+	//
+	//  SELECT id
+	//  FROM "story"
+	//  WHERE slug = $1
+	//    AND deleted_at IS NULL
+	//  LIMIT 1
+	GetStoryIdBySlug(ctx context.Context, arg GetStoryIdBySlugParams) (string, error)
 	//GetUserByEmail
 	//
 	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at

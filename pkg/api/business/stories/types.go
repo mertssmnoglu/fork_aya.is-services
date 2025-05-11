@@ -3,6 +3,7 @@ package stories
 import (
 	"time"
 
+	"github.com/eser/aya.is-services/pkg/api/business/profiles"
 	"github.com/oklog/ulid/v2"
 )
 
@@ -30,4 +31,9 @@ type Story struct {
 	Summary         string     `json:"summary"`
 	Content         string     `json:"content"`
 	IsFeatured      bool       `json:"is_featured"`
+}
+
+type StoryWithChildren struct {
+	*Story
+	AuthorProfile *profiles.Profile `json:"author_profile"`
 }

@@ -10,6 +10,26 @@ import (
 	"github.com/eser/aya.is-services/pkg/lib/vars"
 )
 
+func (r *Repository) GetStoryIdBySlug(ctx context.Context, slug string) (string, error) {
+	var result string
+
+	err := r.cache.Execute(
+		ctx,
+		"story_id_by_slug:"+slug,
+		&result,
+		func(ctx context.Context) (any, error) {
+			row, err := r.queries.GetStoryIdBySlug(ctx, GetStoryIdBySlugParams{Slug: slug})
+			if err != nil {
+				return nil, err
+			}
+
+			return row, nil
+		},
+	)
+
+	return result, err //nolint:wrapcheck
+}
+
 func (r *Repository) GetStoryById(
 	ctx context.Context,
 	localeCode string,

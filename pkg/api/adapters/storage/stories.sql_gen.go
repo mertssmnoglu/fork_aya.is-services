@@ -124,6 +124,32 @@ func (q *Queries) GetStoryBySlug(ctx context.Context, arg GetStoryBySlugParams) 
 	return &i, err
 }
 
+const getStoryIdBySlug = `-- name: GetStoryIdBySlug :one
+SELECT id
+FROM "story"
+WHERE slug = $1
+  AND deleted_at IS NULL
+LIMIT 1
+`
+
+type GetStoryIdBySlugParams struct {
+	Slug string `db:"slug" json:"slug"`
+}
+
+// GetStoryIdBySlug
+//
+//	SELECT id
+//	FROM "story"
+//	WHERE slug = $1
+//	  AND deleted_at IS NULL
+//	LIMIT 1
+func (q *Queries) GetStoryIdBySlug(ctx context.Context, arg GetStoryIdBySlugParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getStoryIdBySlug, arg.Slug)
+	var id string
+	err := row.Scan(&id)
+	return id, err
+}
+
 const listStories = `-- name: ListStories :many
 SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
 FROM "story" s

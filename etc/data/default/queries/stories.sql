@@ -1,3 +1,10 @@
+-- name: GetStoryIdBySlug :one
+SELECT id
+FROM "story"
+WHERE slug = sqlc.arg(slug)
+  AND deleted_at IS NULL
+LIMIT 1;
+
 -- name: GetStoryById :one
 SELECT sqlc.embed(s), sqlc.embed(st)
 FROM "story" s
