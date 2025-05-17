@@ -11,10 +11,12 @@ import (
 )
 
 const getStoryById = `-- name: GetStoryById :one
-SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
+SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content, p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
   AND st.locale_code = $1
+  LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
+  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = $1
 WHERE s.id = $2
   AND s.deleted_at IS NULL
 LIMIT 1
@@ -26,16 +28,20 @@ type GetStoryByIdParams struct {
 }
 
 type GetStoryByIdRow struct {
-	Story   Story   `db:"story" json:"story"`
-	StoryTx StoryTx `db:"story_tx" json:"story_tx"`
+	Story     Story     `db:"story" json:"story"`
+	StoryTx   StoryTx   `db:"story_tx" json:"story_tx"`
+	Profile   Profile   `db:"profile" json:"profile"`
+	ProfileTx ProfileTx `db:"profile_tx" json:"profile_tx"`
 }
 
 // GetStoryById
 //
-//	SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
+//	SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content, p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 //	FROM "story" s
 //	  INNER JOIN "story_tx" st ON st.story_id = s.id
 //	  AND st.locale_code = $1
+//	  LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
+//	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = $1
 //	WHERE s.id = $2
 //	  AND s.deleted_at IS NULL
 //	LIMIT 1
@@ -63,63 +69,21 @@ func (q *Queries) GetStoryById(ctx context.Context, arg GetStoryByIdParams) (*Ge
 		&i.StoryTx.Title,
 		&i.StoryTx.Summary,
 		&i.StoryTx.Content,
-	)
-	return &i, err
-}
-
-const getStoryBySlug = `-- name: GetStoryBySlug :one
-SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
-FROM "story" s
-  INNER JOIN "story_tx" st ON st.story_id = s.id
-  AND st.locale_code = $1
-WHERE s.slug = $2
-  AND s.deleted_at IS NULL
-LIMIT 1
-`
-
-type GetStoryBySlugParams struct {
-	LocaleCode string `db:"locale_code" json:"locale_code"`
-	Slug       string `db:"slug" json:"slug"`
-}
-
-type GetStoryBySlugRow struct {
-	Story   Story   `db:"story" json:"story"`
-	StoryTx StoryTx `db:"story_tx" json:"story_tx"`
-}
-
-// GetStoryBySlug
-//
-//	SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
-//	FROM "story" s
-//	  INNER JOIN "story_tx" st ON st.story_id = s.id
-//	  AND st.locale_code = $1
-//	WHERE s.slug = $2
-//	  AND s.deleted_at IS NULL
-//	LIMIT 1
-func (q *Queries) GetStoryBySlug(ctx context.Context, arg GetStoryBySlugParams) (*GetStoryBySlugRow, error) {
-	row := q.db.QueryRowContext(ctx, getStoryBySlug, arg.LocaleCode, arg.Slug)
-	var i GetStoryBySlugRow
-	err := row.Scan(
-		&i.Story.Id,
-		&i.Story.AuthorProfileId,
-		&i.Story.Slug,
-		&i.Story.Kind,
-		&i.Story.Status,
-		&i.Story.IsFeatured,
-		&i.Story.StoryPictureUri,
-		&i.Story.Title,
-		&i.Story.Summary,
-		&i.Story.Content,
-		&i.Story.Properties,
-		&i.Story.PublishedAt,
-		&i.Story.CreatedAt,
-		&i.Story.UpdatedAt,
-		&i.Story.DeletedAt,
-		&i.StoryTx.StoryId,
-		&i.StoryTx.LocaleCode,
-		&i.StoryTx.Title,
-		&i.StoryTx.Summary,
-		&i.StoryTx.Content,
+		&i.Profile.Id,
+		&i.Profile.Slug,
+		&i.Profile.Kind,
+		&i.Profile.CustomDomain,
+		&i.Profile.ProfilePictureUri,
+		&i.Profile.Pronouns,
+		&i.Profile.Properties,
+		&i.Profile.CreatedAt,
+		&i.Profile.UpdatedAt,
+		&i.Profile.DeletedAt,
+		&i.ProfileTx.ProfileId,
+		&i.ProfileTx.LocaleCode,
+		&i.ProfileTx.Title,
+		&i.ProfileTx.Description,
+		&i.ProfileTx.Properties,
 	)
 	return &i, err
 }
@@ -151,13 +115,16 @@ func (q *Queries) GetStoryIdBySlug(ctx context.Context, arg GetStoryIdBySlugPara
 }
 
 const listStories = `-- name: ListStories :many
-SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
+SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content, p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
   AND ($1::TEXT IS NULL OR s.kind = $1::TEXT)
   AND ($2::CHAR(26) IS NULL OR s.author_profile_id = $2::CHAR(26))
   AND st.locale_code = $3
+  LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
+  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = $3
 WHERE s.deleted_at IS NULL
+ORDER BY s.published_at DESC
 `
 
 type ListStoriesParams struct {
@@ -167,19 +134,24 @@ type ListStoriesParams struct {
 }
 
 type ListStoriesRow struct {
-	Story   Story   `db:"story" json:"story"`
-	StoryTx StoryTx `db:"story_tx" json:"story_tx"`
+	Story     Story     `db:"story" json:"story"`
+	StoryTx   StoryTx   `db:"story_tx" json:"story_tx"`
+	Profile   Profile   `db:"profile" json:"profile"`
+	ProfileTx ProfileTx `db:"profile_tx" json:"profile_tx"`
 }
 
 // ListStories
 //
-//	SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
+//	SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content, p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 //	FROM "story" s
 //	  INNER JOIN "story_tx" st ON st.story_id = s.id
 //	  AND ($1::TEXT IS NULL OR s.kind = $1::TEXT)
 //	  AND ($2::CHAR(26) IS NULL OR s.author_profile_id = $2::CHAR(26))
 //	  AND st.locale_code = $3
+//	  LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
+//	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = $3
 //	WHERE s.deleted_at IS NULL
+//	ORDER BY s.published_at DESC
 func (q *Queries) ListStories(ctx context.Context, arg ListStoriesParams) ([]*ListStoriesRow, error) {
 	rows, err := q.db.QueryContext(ctx, listStories, arg.FilterKind, arg.FilterAuthorProfileId, arg.LocaleCode)
 	if err != nil {
@@ -210,6 +182,21 @@ func (q *Queries) ListStories(ctx context.Context, arg ListStoriesParams) ([]*Li
 			&i.StoryTx.Title,
 			&i.StoryTx.Summary,
 			&i.StoryTx.Content,
+			&i.Profile.Id,
+			&i.Profile.Slug,
+			&i.Profile.Kind,
+			&i.Profile.CustomDomain,
+			&i.Profile.ProfilePictureUri,
+			&i.Profile.Pronouns,
+			&i.Profile.Properties,
+			&i.Profile.CreatedAt,
+			&i.Profile.UpdatedAt,
+			&i.Profile.DeletedAt,
+			&i.ProfileTx.ProfileId,
+			&i.ProfileTx.LocaleCode,
+			&i.ProfileTx.Title,
+			&i.ProfileTx.Description,
+			&i.ProfileTx.Properties,
 		); err != nil {
 			return nil, err
 		}
