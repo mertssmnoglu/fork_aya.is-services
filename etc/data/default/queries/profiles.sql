@@ -26,7 +26,7 @@ SELECT sqlc.embed(p), sqlc.embed(pt)
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
   AND pt.locale_code = sqlc.arg(locale_code)
-WHERE (sqlc.narg(filter_kind)::TEXT IS NULL OR p.kind = sqlc.narg(filter_kind)::TEXT)
+WHERE (sqlc.narg(filter_kind)::TEXT IS NULL OR p.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
   AND p.deleted_at IS NULL;
 
 -- name: CreateProfile :one

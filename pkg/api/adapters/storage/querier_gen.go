@@ -182,7 +182,7 @@ type Querier interface {
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = $1
-	//  WHERE ($2::TEXT IS NULL OR p.kind = $2::TEXT)
+	//  WHERE ($2::TEXT IS NULL OR p.kind = ANY(string_to_array($2::TEXT, ',')))
 	//    AND p.deleted_at IS NULL
 	ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*ListProfilesRow, error)
 	//ListStories
@@ -190,7 +190,7 @@ type Querier interface {
 	//  SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content, p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 	//  FROM "story" s
 	//    INNER JOIN "story_tx" st ON st.story_id = s.id
-	//    AND ($1::TEXT IS NULL OR s.kind = $1::TEXT)
+	//    AND ($1::TEXT IS NULL OR s.kind = ANY(string_to_array($1::TEXT, ',')))
 	//    AND ($2::CHAR(26) IS NULL OR s.author_profile_id = $2::CHAR(26))
 	//    AND st.locale_code = $3
 	//    LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
@@ -202,7 +202,7 @@ type Querier interface {
 	//
 	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
 	//  FROM "user"
-	//  WHERE ($1::TEXT IS NULL OR kind = $1::TEXT)
+	//  WHERE ($1::TEXT IS NULL OR kind = ANY(string_to_array($1::TEXT, ',')))
 	//    AND deleted_at IS NULL
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]*User, error)
 	//RemoveAllFromCache

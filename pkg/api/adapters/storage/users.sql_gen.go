@@ -209,7 +209,7 @@ func (q *Queries) GetUserById(ctx context.Context, arg GetUserByIdParams) (*User
 const listUsers = `-- name: ListUsers :many
 SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
 FROM "user"
-WHERE ($1::TEXT IS NULL OR kind = $1::TEXT)
+WHERE ($1::TEXT IS NULL OR kind = ANY(string_to_array($1::TEXT, ',')))
   AND deleted_at IS NULL
 `
 
@@ -221,7 +221,7 @@ type ListUsersParams struct {
 //
 //	SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
 //	FROM "user"
-//	WHERE ($1::TEXT IS NULL OR kind = $1::TEXT)
+//	WHERE ($1::TEXT IS NULL OR kind = ANY(string_to_array($1::TEXT, ',')))
 //	  AND deleted_at IS NULL
 func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]*User, error) {
 	rows, err := q.db.QueryContext(ctx, listUsers, arg.FilterKind)
