@@ -190,31 +190,26 @@ type Querier interface {
 	//  FROM "profile" p
 	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 	//    AND pt.locale_code = $1
-	//  WHERE p.deleted_at IS NULL
+	//  WHERE ($2::TEXT IS NULL OR p.kind = $2::TEXT)
+	//    AND p.deleted_at IS NULL
 	ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*ListProfilesRow, error)
 	//ListStories
 	//
 	//  SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
 	//  FROM "story" s
 	//    INNER JOIN "story_tx" st ON st.story_id = s.id
-	//    AND st.locale_code = $1
+	//    AND ($1::TEXT IS NULL OR s.kind = $1::TEXT)
+	//    AND ($2::CHAR(26) IS NULL OR s.author_profile_id = $2::CHAR(26))
+	//    AND st.locale_code = $3
 	//  WHERE s.deleted_at IS NULL
 	ListStories(ctx context.Context, arg ListStoriesParams) ([]*ListStoriesRow, error)
-	//ListStoriesByAuthorProfileId
-	//
-	//  SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content
-	//  FROM "story" s
-	//    INNER JOIN "story_tx" st ON st.story_id = s.id
-	//    AND st.locale_code = $1
-	//  WHERE s.author_profile_id = $2
-	//    AND s.deleted_at IS NULL
-	ListStoriesByAuthorProfileId(ctx context.Context, arg ListStoriesByAuthorProfileIdParams) ([]*ListStoriesByAuthorProfileIdRow, error)
 	//ListUsers
 	//
 	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
 	//  FROM "user"
-	//  WHERE deleted_at IS NULL
-	ListUsers(ctx context.Context) ([]*User, error)
+	//  WHERE ($1::TEXT IS NULL OR kind = $1::TEXT)
+	//    AND deleted_at IS NULL
+	ListUsers(ctx context.Context, arg ListUsersParams) ([]*User, error)
 	//RemoveAllFromCache
 	//
 	//  DELETE FROM "cache"

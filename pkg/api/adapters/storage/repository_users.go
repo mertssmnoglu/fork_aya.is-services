@@ -75,7 +75,12 @@ func (r *Repository) ListUsers(
 ) (cursors.Cursored[[]*users.User], error) {
 	var wrappedResponse cursors.Cursored[[]*users.User]
 
-	rows, err := r.queries.ListUsers(ctx)
+	rows, err := r.queries.ListUsers(
+		ctx,
+		ListUsersParams{
+			FilterKind: vars.MapValueToNullString(cursor.Filters, "kind"),
+		},
+	)
 	if err != nil {
 		return wrappedResponse, err
 	}

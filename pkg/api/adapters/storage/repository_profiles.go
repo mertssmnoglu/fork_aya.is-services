@@ -92,7 +92,13 @@ func (r *Repository) ListProfiles(
 ) (cursors.Cursored[[]*profiles.Profile], error) {
 	var wrappedResponse cursors.Cursored[[]*profiles.Profile]
 
-	rows, err := r.queries.ListProfiles(ctx, ListProfilesParams{LocaleCode: localeCode})
+	rows, err := r.queries.ListProfiles(
+		ctx,
+		ListProfilesParams{
+			LocaleCode: localeCode,
+			FilterKind: vars.MapValueToNullString(cursor.Filters, "kind"),
+		},
+	)
 	if err != nil {
 		return wrappedResponse, err
 	}

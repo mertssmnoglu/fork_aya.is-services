@@ -3,7 +3,6 @@ package storage
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/eser/aya.is-services/pkg/api/business/stories"
 	"github.com/eser/aya.is-services/pkg/lib/cursors"
@@ -102,54 +101,12 @@ func (r *Repository) ListStories(
 ) (cursors.Cursored[[]*stories.Story], error) {
 	var wrappedResponse cursors.Cursored[[]*stories.Story]
 
-	rows, err := r.queries.ListStories(ctx, ListStoriesParams{LocaleCode: localeCode})
-	if err != nil {
-		return wrappedResponse, err
-	}
-
-	result := make([]*stories.Story, len(rows))
-	for i, row := range rows {
-		result[i] = &stories.Story{
-			Id:              row.Story.Id,
-			AuthorProfileId: vars.ToStringPtr(row.Story.AuthorProfileId),
-			Slug:            row.Story.Slug,
-			Kind:            row.Story.Kind,
-			Status:          row.Story.Status,
-			IsFeatured:      row.Story.IsFeatured,
-			StoryPictureUri: vars.ToStringPtr(row.Story.StoryPictureUri),
-			Title:           row.StoryTx.Title,
-			Summary:         row.StoryTx.Summary,
-			Content:         row.StoryTx.Content,
-			Properties:      vars.ToRawMessage(row.Story.Properties),
-			PublishedAt:     vars.ToTimePtr(row.Story.PublishedAt),
-			CreatedAt:       row.Story.CreatedAt,
-			UpdatedAt:       vars.ToTimePtr(row.Story.UpdatedAt),
-			DeletedAt:       vars.ToTimePtr(row.Story.DeletedAt),
-		}
-	}
-
-	wrappedResponse.Data = result
-
-	if len(result) == cursor.Limit {
-		wrappedResponse.CursorPtr = &result[len(result)-1].Id
-	}
-
-	return wrappedResponse, nil
-}
-
-func (r *Repository) ListStoriesByAuthorProfileId(
-	ctx context.Context,
-	localeCode string,
-	authorProfileId string,
-	cursor *cursors.Cursor,
-) (cursors.Cursored[[]*stories.Story], error) {
-	var wrappedResponse cursors.Cursored[[]*stories.Story]
-
-	rows, err := r.queries.ListStoriesByAuthorProfileId(
+	rows, err := r.queries.ListStories(
 		ctx,
-		ListStoriesByAuthorProfileIdParams{
-			LocaleCode:      localeCode,
-			AuthorProfileId: sql.NullString{String: authorProfileId, Valid: true},
+		ListStoriesParams{
+			LocaleCode:            localeCode,
+			FilterKind:            vars.MapValueToNullString(cursor.Filters, "kind"),
+			FilterAuthorProfileId: vars.MapValueToNullString(cursor.Filters, "author_profile_id"),
 		},
 	)
 	if err != nil {

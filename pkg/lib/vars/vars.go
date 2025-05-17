@@ -40,6 +40,17 @@ func ToRawMessage(m pqtype.NullRawMessage) []byte {
 	return nil
 }
 
+func MapValueToNullString(m map[string]string, key string) sql.NullString {
+	if v, ok := m[key]; ok {
+		return sql.NullString{String: v, Valid: true}
+	}
+
+	return sql.NullString{
+		String: "",
+		Valid:  false,
+	}
+}
+
 func SetValue(dest any, src any) error {
 	dv := reflect.ValueOf(dest)
 	if dv.Kind() != reflect.Pointer {

@@ -15,7 +15,8 @@ LIMIT 1;
 -- name: ListUsers :many
 SELECT *
 FROM "user"
-WHERE deleted_at IS NULL;
+WHERE (sqlc.narg(filter_kind)::TEXT IS NULL OR kind = sqlc.narg(filter_kind)::TEXT)
+  AND deleted_at IS NULL;
 
 -- name: CreateUser :one
 INSERT INTO "user" (

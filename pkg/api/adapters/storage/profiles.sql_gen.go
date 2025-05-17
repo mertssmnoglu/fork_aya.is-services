@@ -517,11 +517,13 @@ SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns,
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
   AND pt.locale_code = $1
-WHERE p.deleted_at IS NULL
+WHERE ($2::TEXT IS NULL OR p.kind = $2::TEXT)
+  AND p.deleted_at IS NULL
 `
 
 type ListProfilesParams struct {
-	LocaleCode string `db:"locale_code" json:"locale_code"`
+	LocaleCode string         `db:"locale_code" json:"locale_code"`
+	FilterKind sql.NullString `db:"filter_kind" json:"filter_kind"`
 }
 
 type ListProfilesRow struct {
@@ -535,9 +537,10 @@ type ListProfilesRow struct {
 //	FROM "profile" p
 //	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
 //	  AND pt.locale_code = $1
-//	WHERE p.deleted_at IS NULL
+//	WHERE ($2::TEXT IS NULL OR p.kind = $2::TEXT)
+//	  AND p.deleted_at IS NULL
 func (q *Queries) ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*ListProfilesRow, error) {
-	rows, err := q.db.QueryContext(ctx, listProfiles, arg.LocaleCode)
+	rows, err := q.db.QueryContext(ctx, listProfiles, arg.LocaleCode, arg.FilterKind)
 	if err != nil {
 		return nil, err
 	}

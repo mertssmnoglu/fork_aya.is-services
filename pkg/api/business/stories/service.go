@@ -27,12 +27,6 @@ type Repository interface {
 		localeCode string,
 		cursor *cursors.Cursor,
 	) (cursors.Cursored[[]*Story], error)
-	ListStoriesByAuthorProfileId(
-		ctx context.Context,
-		localeCode string,
-		authorProfileId string,
-		cursor *cursors.Cursor,
-	) (cursors.Cursored[[]*Story], error)
 }
 
 type Service struct {
@@ -122,10 +116,10 @@ func (s *Service) ListByAuthorProfileSlug(
 		)
 	}
 
-	records, err := s.repo.ListStoriesByAuthorProfileId(
+	cursor.Filters["author_profile_id"] = authorProfileId
+	records, err := s.repo.ListStories(
 		ctx,
 		localeCode,
-		authorProfileId,
 		cursor,
 	)
 	if err != nil {
