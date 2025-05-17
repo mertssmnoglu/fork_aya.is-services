@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/eser/ajan/datafx"
 	"github.com/eser/ajan/httpfx"
@@ -24,8 +25,21 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 			cursor := cursors.NewCursorFromRequest(ctx.Request)
 
 			filterKind, filterKindOk := cursor.Filters["kind"]
-			if !filterKindOk || (filterKind != "organization" && filterKind != "product") {
-				return ctx.Results.Error(http.StatusBadRequest, []byte("filter_kind is required"))
+			if !filterKindOk {
+				return ctx.Results.Error(
+					http.StatusBadRequest,
+					[]byte("filter_kind is required"),
+				)
+			}
+
+			kinds := strings.SplitSeq(filterKind, ",")
+			for kind := range kinds {
+				if kind != "individual" && kind != "organization" && kind != "product" {
+					return ctx.Results.Error(
+						http.StatusBadRequest,
+						[]byte("filter_kind is invalid"),
+					)
+				}
 			}
 
 			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
@@ -205,12 +219,22 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 			cursor := cursors.NewCursorFromRequest(ctx.Request)
 
 			filterProfileKind, filterProfileKindOk := cursor.Filters["profile_kind"]
-			if !filterProfileKindOk ||
-				(filterProfileKind != "organization" && filterProfileKind != "product") {
+			if !filterProfileKindOk {
 				return ctx.Results.Error(
 					http.StatusBadRequest,
 					[]byte("filter_profile_kind is required"),
 				)
+			}
+
+			profileKinds := strings.Split(filterProfileKind, ",")
+			for _, profileKind := range profileKinds {
+				if profileKind != "individual" && profileKind != "organization" &&
+					profileKind != "product" {
+					return ctx.Results.Error(
+						http.StatusBadRequest,
+						[]byte("filter_profile_kind is invalid"),
+					)
+				}
 			}
 
 			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
@@ -220,11 +244,11 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 
 			service := profiles.NewService(logger, repository)
 
-			records, err := service.ListProfileMembershipsBySlugAndKind(
+			records, err := service.ListProfileMembershipsBySlugAndKinds(
 				ctx.Request.Context(),
 				localeParam,
 				slugParam,
-				filterProfileKind,
+				profileKinds,
 				cursor,
 			)
 			if err != nil {

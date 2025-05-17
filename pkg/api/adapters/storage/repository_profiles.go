@@ -210,11 +210,11 @@ func (r *Repository) GetProfileLinksByProfileId(
 	return profileLinks, nil
 }
 
-func (r *Repository) ListProfileMembershipsByProfileIdAndKind(
+func (r *Repository) ListProfileMembershipsByProfileIdAndKinds(
 	ctx context.Context,
 	localeCode string,
 	profileId string,
-	kind string,
+	kinds []string,
 	cursor *cursors.Cursor,
 ) (cursors.Cursored[[]*profiles.ProfileMembership], error) {
 	var wrappedResponse cursors.Cursored[[]*profiles.ProfileMembership]
@@ -224,7 +224,7 @@ func (r *Repository) ListProfileMembershipsByProfileIdAndKind(
 		ListProfileMembershipsByProfileIdAndKindParams{
 			LocaleCode: localeCode,
 			ProfileId:  profileId,
-			Kind:       kind,
+			Kind:       kinds[0],
 		},
 	)
 	if err != nil {
