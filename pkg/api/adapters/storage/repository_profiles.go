@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"strings"
 
 	"github.com/eser/aya.is-services/pkg/api/business/profiles"
 	"github.com/eser/aya.is-services/pkg/lib/cursors"
@@ -76,7 +77,7 @@ func (r *Repository) GetProfileById(
 		Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 		Title:             row.ProfileTx.Title,
 		Description:       row.ProfileTx.Description,
-		Properties:        vars.ToRawMessage(row.Profile.Properties),
+		Properties:        vars.ToObject(row.Profile.Properties),
 		CreatedAt:         row.Profile.CreatedAt,
 		UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
 		DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
@@ -114,7 +115,7 @@ func (r *Repository) ListProfiles(
 			Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 			Title:             row.ProfileTx.Title,
 			Description:       row.ProfileTx.Description,
-			Properties:        vars.ToRawMessage(row.Profile.Properties),
+			Properties:        vars.ToObject(row.Profile.Properties),
 			CreatedAt:         row.Profile.CreatedAt,
 			UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
 			DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
@@ -216,7 +217,7 @@ func (r *Repository) GetProfileLinksByProfileId(
 	return profileLinks, nil
 }
 
-func (r *Repository) ListProfileMembershipsByProfileIdAndKinds(
+func (r *Repository) ListProfileContributions(
 	ctx context.Context,
 	localeCode string,
 	profileId string,
@@ -230,7 +231,7 @@ func (r *Repository) ListProfileMembershipsByProfileIdAndKinds(
 		ListProfileMembershipsByProfileIdAndKindParams{
 			LocaleCode: localeCode,
 			ProfileId:  profileId,
-			Kind:       kinds[0],
+			Kind:       strings.Join(kinds, ","),
 		},
 	)
 	if err != nil {
@@ -242,7 +243,7 @@ func (r *Repository) ListProfileMembershipsByProfileIdAndKinds(
 		profileMemberships[i] = &profiles.ProfileMembership{
 			Id:         row.ProfileMembership.Id,
 			Kind:       row.ProfileMembership.Kind,
-			Properties: vars.ToRawMessage(row.ProfileMembership.Properties),
+			Properties: vars.ToObject(row.ProfileMembership.Properties),
 			Profile: &profiles.Profile{
 				Id:                row.Profile.Id,
 				Slug:              row.Profile.Slug,
@@ -252,7 +253,7 @@ func (r *Repository) ListProfileMembershipsByProfileIdAndKinds(
 				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 				Title:             row.ProfileTx.Title,
 				Description:       row.ProfileTx.Description,
-				Properties:        vars.ToRawMessage(row.Profile.Properties),
+				Properties:        vars.ToObject(row.Profile.Properties),
 				CreatedAt:         row.Profile.CreatedAt,
 				UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
 				DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),

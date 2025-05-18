@@ -429,7 +429,7 @@ SELECT
   ppt.profile_id, ppt.locale_code, ppt.title, ppt.description, ppt.properties
 FROM
 	"profile_membership" pm
-  INNER JOIN "profile" pp ON pp.id = pm.profile_id AND pp.kind = $1 AND pp.deleted_at IS NULL
+  INNER JOIN "profile" pp ON pp.id = pm.profile_id AND pp.kind = ANY(string_to_array($1::TEXT, ',')) AND pp.deleted_at IS NULL
   INNER JOIN "profile_tx" ppt ON ppt.profile_id = pp.id
 	  AND ppt.locale_code = $2
   INNER JOIN "user" u ON u.id = pm.user_id AND u.deleted_at IS NULL
@@ -458,7 +458,7 @@ type ListProfileMembershipsByProfileIdAndKindRow struct {
 //	  ppt.profile_id, ppt.locale_code, ppt.title, ppt.description, ppt.properties
 //	FROM
 //		"profile_membership" pm
-//	  INNER JOIN "profile" pp ON pp.id = pm.profile_id AND pp.kind = $1 AND pp.deleted_at IS NULL
+//	  INNER JOIN "profile" pp ON pp.id = pm.profile_id AND pp.kind = ANY(string_to_array($1::TEXT, ',')) AND pp.deleted_at IS NULL
 //	  INNER JOIN "profile_tx" ppt ON ppt.profile_id = pp.id
 //		  AND ppt.locale_code = $2
 //	  INNER JOIN "user" u ON u.id = pm.user_id AND u.deleted_at IS NULL

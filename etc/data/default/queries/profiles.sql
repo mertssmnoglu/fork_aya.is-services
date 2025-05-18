@@ -86,7 +86,7 @@ SELECT
   sqlc.embed(ppt)
 FROM
 	"profile_membership" pm
-  INNER JOIN "profile" pp ON pp.id = pm.profile_id AND pp.kind = sqlc.arg(kind) AND pp.deleted_at IS NULL
+  INNER JOIN "profile" pp ON pp.id = pm.profile_id AND pp.kind = ANY(string_to_array(sqlc.arg(kind)::TEXT, ',')) AND pp.deleted_at IS NULL
   INNER JOIN "profile_tx" ppt ON ppt.profile_id = pp.id
 	  AND ppt.locale_code = sqlc.arg(locale_code)
   INNER JOIN "user" u ON u.id = pm.user_id AND u.deleted_at IS NULL

@@ -49,7 +49,7 @@ type Repository interface {
 		localeCode string,
 		profileId string,
 	) ([]*ProfileLinkBrief, error)
-	ListProfileMembershipsByProfileIdAndKinds(
+	ListProfileContributions(
 		ctx context.Context,
 		localeCode string,
 		profileId string,
@@ -220,11 +220,10 @@ func (s *Service) ListLinksBySlug(
 	return links, nil
 }
 
-func (s *Service) ListProfileMembershipsBySlugAndKinds(
+func (s *Service) ListProfileContributionsBySlug(
 	ctx context.Context,
 	localeCode string,
 	slug string,
-	kinds []string,
 	cursor *cursors.Cursor,
 ) (cursors.Cursored[[]*ProfileMembership], error) {
 	profileId, err := s.repo.GetProfileIdBySlug(ctx, slug)
@@ -237,11 +236,11 @@ func (s *Service) ListProfileMembershipsBySlugAndKinds(
 		)
 	}
 
-	memberships, err := s.repo.ListProfileMembershipsByProfileIdAndKinds(
+	memberships, err := s.repo.ListProfileContributions(
 		ctx,
 		localeCode,
 		profileId,
-		kinds,
+		[]string{"organization", "product"},
 		cursor,
 	)
 	if err != nil {

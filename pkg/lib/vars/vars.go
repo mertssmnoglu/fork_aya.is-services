@@ -2,6 +2,7 @@ package vars
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -35,6 +36,21 @@ func ToTimePtr(t sql.NullTime) *time.Time {
 func ToRawMessage(m pqtype.NullRawMessage) []byte {
 	if m.Valid {
 		return m.RawMessage
+	}
+
+	return nil
+}
+
+func ToObject(m pqtype.NullRawMessage) any {
+	if m.Valid {
+		var obj any
+
+		err := json.Unmarshal(m.RawMessage, &obj)
+		if err != nil {
+			return nil
+		}
+
+		return obj
 	}
 
 	return nil
