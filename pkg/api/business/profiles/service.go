@@ -56,6 +56,13 @@ type Repository interface {
 		kinds []string,
 		cursor *cursors.Cursor,
 	) (cursors.Cursored[[]*ProfileMembership], error)
+	ListProfileMembers(
+		ctx context.Context,
+		localeCode string,
+		profileId string,
+		kinds []string,
+		cursor *cursors.Cursor,
+	) (cursors.Cursored[[]*ProfileMembership], error)
 	// CreateProfile(ctx context.Context, arg CreateProfileParams) (*Profile, error)
 	// UpdateProfile(ctx context.Context, arg UpdateProfileParams) (int64, error)
 	// DeleteProfile(ctx context.Context, id string) (int64, error)
@@ -241,6 +248,40 @@ func (s *Service) ListProfileContributionsBySlug(
 		localeCode,
 		profileId,
 		[]string{"organization", "product"},
+		cursor,
+	)
+	if err != nil {
+		return cursors.Cursored[[]*ProfileMembership]{}, fmt.Errorf(
+			"%w: %w",
+			ErrFailedToListRecords,
+			err,
+		)
+	}
+
+	return memberships, nil
+}
+
+func (s *Service) ListProfileMembersBySlug(
+	ctx context.Context,
+	localeCode string,
+	slug string,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*ProfileMembership], error) {
+	profileId, err := s.repo.GetProfileIdBySlug(ctx, slug)
+	if err != nil {
+		return cursors.Cursored[[]*ProfileMembership]{}, fmt.Errorf(
+			"%w(slug: %s): %w",
+			ErrFailedToGetRecord,
+			slug,
+			err,
+		)
+	}
+
+	memberships, err := s.repo.ListProfileMembers(
+		ctx,
+		localeCode,
+		profileId,
+		[]string{"organization", "individual"},
 		cursor,
 	)
 	if err != nil {

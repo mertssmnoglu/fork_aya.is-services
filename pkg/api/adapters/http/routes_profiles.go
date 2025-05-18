@@ -243,4 +243,37 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 		HasSummary("List profile contributions by profile slug").
 		HasDescription("List profile contributions by profile slug.").
 		HasResponse(http.StatusOK)
+
+	routes.
+		Route(
+			"GET /{locale}/profiles/{slug}/members",
+			func(ctx *httpfx.Context) httpfx.Result {
+				// get variables from path
+				localeParam := ctx.Request.PathValue("locale")
+				slugParam := ctx.Request.PathValue("slug")
+				cursor := cursors.NewCursorFromRequest(ctx.Request)
+
+				repository, err := storage.NewRepositoryFromDefault(dataRegistry)
+				if err != nil {
+					return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
+				}
+
+				service := profiles.NewService(logger, repository)
+
+				records, err := service.ListProfileMembersBySlug(
+					ctx.Request.Context(),
+					localeParam,
+					slugParam,
+					cursor,
+				)
+				if err != nil {
+					return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
+				}
+
+				return ctx.Results.Json(records)
+			},
+		).
+		HasSummary("List profile members by profile slug").
+		HasDescription("List profile members by profile slug.").
+		HasResponse(http.StatusOK)
 }

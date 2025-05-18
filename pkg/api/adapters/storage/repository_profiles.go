@@ -287,3 +287,75 @@ func (r *Repository) ListProfileContributions(
 
 	return wrappedResponse, nil
 }
+
+//nolint:funlen,dupl
+func (r *Repository) ListProfileMembers(
+	ctx context.Context,
+	localeCode string,
+	profileId string,
+	kinds []string,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*profiles.ProfileMembership], error) {
+	var wrappedResponse cursors.Cursored[[]*profiles.ProfileMembership]
+
+	rows, err := r.queries.ListProfileMemberships(
+		ctx,
+		ListProfileMembershipsParams{
+			LocaleCode:              localeCode,
+			FilterProfileId:         sql.NullString{String: profileId, Valid: true},
+			FilterProfileKind:       sql.NullString{String: "", Valid: false},
+			FilterMemberProfileId:   sql.NullString{String: "", Valid: false},
+			FilterMemberProfileKind: sql.NullString{String: strings.Join(kinds, ","), Valid: true},
+		},
+	)
+	if err != nil {
+		return wrappedResponse, err
+	}
+
+	profileMemberships := make([]*profiles.ProfileMembership, len(rows))
+	for i, row := range rows {
+		profileMemberships[i] = &profiles.ProfileMembership{
+			Id:         row.ProfileMembership.Id,
+			Kind:       row.ProfileMembership.Kind,
+			StartedAt:  vars.ToTimePtr(row.ProfileMembership.StartedAt),
+			FinishedAt: vars.ToTimePtr(row.ProfileMembership.FinishedAt),
+			Properties: vars.ToObject(row.ProfileMembership.Properties),
+			Profile: &profiles.Profile{
+				Id:                row.Profile.Id,
+				Slug:              row.Profile.Slug,
+				Kind:              row.Profile.Kind,
+				CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
+				ProfilePictureUri: vars.ToStringPtr(row.Profile.ProfilePictureUri),
+				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
+				Title:             row.ProfileTx.Title,
+				Description:       row.ProfileTx.Description,
+				Properties:        vars.ToObject(row.Profile.Properties),
+				CreatedAt:         row.Profile.CreatedAt,
+				UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
+				DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
+			},
+			MemberProfile: &profiles.Profile{
+				Id:                row.Profile_2.Id,
+				Slug:              row.Profile_2.Slug,
+				Kind:              row.Profile_2.Kind,
+				CustomDomain:      vars.ToStringPtr(row.Profile_2.CustomDomain),
+				ProfilePictureUri: vars.ToStringPtr(row.Profile_2.ProfilePictureUri),
+				Pronouns:          vars.ToStringPtr(row.Profile_2.Pronouns),
+				Title:             row.ProfileTx_2.Title,
+				Description:       row.ProfileTx_2.Description,
+				Properties:        vars.ToObject(row.Profile_2.Properties),
+				CreatedAt:         row.Profile_2.CreatedAt,
+				UpdatedAt:         vars.ToTimePtr(row.Profile_2.UpdatedAt),
+				DeletedAt:         vars.ToTimePtr(row.Profile_2.DeletedAt),
+			},
+		}
+	}
+
+	wrappedResponse.Data = profileMemberships
+
+	if len(profileMemberships) == cursor.Limit {
+		wrappedResponse.CursorPtr = &profileMemberships[len(profileMemberships)-1].Id
+	}
+
+	return wrappedResponse, nil
+}
