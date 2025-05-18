@@ -73,7 +73,7 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 
 			service := profiles.NewService(logger, repository)
 
-			record, err := service.GetBySlug(ctx.Request.Context(), localeParam, slugParam)
+			record, err := service.GetBySlugEx(ctx.Request.Context(), localeParam, slugParam)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
