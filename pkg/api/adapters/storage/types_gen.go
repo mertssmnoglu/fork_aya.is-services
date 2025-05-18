@@ -81,9 +81,9 @@ type ProfileLink struct {
 	PublicId                  sql.NullString        `db:"public_id" json:"public_id"`
 	Uri                       sql.NullString        `db:"uri" json:"uri"`
 	Title                     string                `db:"title" json:"title"`
-	AuthProvider              string                `db:"auth_provider" json:"auth_provider"`
-	AuthAccessTokenScope      string                `db:"auth_access_token_scope" json:"auth_access_token_scope"`
-	AuthAccessToken           string                `db:"auth_access_token" json:"auth_access_token"`
+	AuthProvider              sql.NullString        `db:"auth_provider" json:"auth_provider"`
+	AuthAccessTokenScope      sql.NullString        `db:"auth_access_token_scope" json:"auth_access_token_scope"`
+	AuthAccessToken           sql.NullString        `db:"auth_access_token" json:"auth_access_token"`
 	AuthAccessTokenExpiresAt  sql.NullTime          `db:"auth_access_token_expires_at" json:"auth_access_token_expires_at"`
 	AuthRefreshToken          sql.NullString        `db:"auth_refresh_token" json:"auth_refresh_token"`
 	AuthRefreshTokenExpiresAt sql.NullTime          `db:"auth_refresh_token_expires_at" json:"auth_refresh_token_expires_at"`
