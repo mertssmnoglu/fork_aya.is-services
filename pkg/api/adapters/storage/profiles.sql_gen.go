@@ -422,64 +422,92 @@ func (q *Queries) GetProfilePagesByProfileId(ctx context.Context, arg GetProfile
 	return items, nil
 }
 
-const listProfileMembershipsByProfileIdAndKind = `-- name: ListProfileMembershipsByProfileIdAndKind :many
+const listProfileMemberships = `-- name: ListProfileMemberships :many
 SELECT
-  pm.id, pm.profile_id, pm.user_id, pm.kind, pm.properties, pm.created_at, pm.updated_at, pm.deleted_at,
-  pp.id, pp.slug, pp.kind, pp.custom_domain, pp.profile_picture_uri, pp.pronouns, pp.properties, pp.created_at, pp.updated_at, pp.deleted_at,
-  ppt.profile_id, ppt.locale_code, ppt.title, ppt.description, ppt.properties
+  pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.created_at, pm.updated_at, pm.deleted_at,
+  p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at,
+  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties,
+  p2.id, p2.slug, p2.kind, p2.custom_domain, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at,
+  p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties
 FROM
 	"profile_membership" pm
-  INNER JOIN "profile" pp ON pp.id = pm.profile_id AND pp.kind = ANY(string_to_array($1::TEXT, ',')) AND pp.deleted_at IS NULL
-  INNER JOIN "profile_tx" ppt ON ppt.profile_id = pp.id
-	  AND ppt.locale_code = $2
-  INNER JOIN "user" u ON u.id = pm.user_id AND u.deleted_at IS NULL
-  INNER JOIN "profile" pc ON pc.id = u.individual_profile_id AND pc.deleted_at IS NULL
-WHERE pc.id = $3
-  AND pm.deleted_at IS NULL
+  INNER JOIN "profile" p1 ON p1.id = pm.profile_id
+    AND ($1::TEXT IS NULL OR p1.kind = ANY(string_to_array($1::TEXT, ',')))
+    AND p1.deleted_at IS NULL
+  INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+	  AND p1t.locale_code = $2
+  INNER JOIN "profile" p2 ON p2.id = pm.member_profile_id
+    AND ($3::TEXT IS NULL OR p2.kind = ANY(string_to_array($3::TEXT, ',')))
+    AND p2.deleted_at IS NULL
+  INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+	  AND p2t.locale_code = $2
+WHERE pm.deleted_at IS NULL
+    AND ($4::TEXT IS NULL OR pm.profile_id = $4::TEXT)
+    AND ($5::TEXT IS NULL OR pm.member_profile_id = $5::TEXT)
 `
 
-type ListProfileMembershipsByProfileIdAndKindParams struct {
-	Kind       string `db:"kind" json:"kind"`
-	LocaleCode string `db:"locale_code" json:"locale_code"`
-	ProfileId  string `db:"profile_id" json:"profile_id"`
+type ListProfileMembershipsParams struct {
+	FilterProfileKind       sql.NullString `db:"filter_profile_kind" json:"filter_profile_kind"`
+	LocaleCode              string         `db:"locale_code" json:"locale_code"`
+	FilterMemberProfileKind sql.NullString `db:"filter_member_profile_kind" json:"filter_member_profile_kind"`
+	FilterProfileId         sql.NullString `db:"filter_profile_id" json:"filter_profile_id"`
+	FilterMemberProfileId   sql.NullString `db:"filter_member_profile_id" json:"filter_member_profile_id"`
 }
 
-type ListProfileMembershipsByProfileIdAndKindRow struct {
+type ListProfileMembershipsRow struct {
 	ProfileMembership ProfileMembership `db:"profile_membership" json:"profile_membership"`
 	Profile           Profile           `db:"profile" json:"profile"`
 	ProfileTx         ProfileTx         `db:"profile_tx" json:"profile_tx"`
+	Profile_2         Profile           `db:"profile_2" json:"profile_2"`
+	ProfileTx_2       ProfileTx         `db:"profile_tx_2" json:"profile_tx_2"`
 }
 
-// ListProfileMembershipsByProfileIdAndKind
+// ListProfileMemberships
 //
 //	SELECT
-//	  pm.id, pm.profile_id, pm.user_id, pm.kind, pm.properties, pm.created_at, pm.updated_at, pm.deleted_at,
-//	  pp.id, pp.slug, pp.kind, pp.custom_domain, pp.profile_picture_uri, pp.pronouns, pp.properties, pp.created_at, pp.updated_at, pp.deleted_at,
-//	  ppt.profile_id, ppt.locale_code, ppt.title, ppt.description, ppt.properties
+//	  pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.created_at, pm.updated_at, pm.deleted_at,
+//	  p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at,
+//	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties,
+//	  p2.id, p2.slug, p2.kind, p2.custom_domain, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at,
+//	  p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties
 //	FROM
 //		"profile_membership" pm
-//	  INNER JOIN "profile" pp ON pp.id = pm.profile_id AND pp.kind = ANY(string_to_array($1::TEXT, ',')) AND pp.deleted_at IS NULL
-//	  INNER JOIN "profile_tx" ppt ON ppt.profile_id = pp.id
-//		  AND ppt.locale_code = $2
-//	  INNER JOIN "user" u ON u.id = pm.user_id AND u.deleted_at IS NULL
-//	  INNER JOIN "profile" pc ON pc.id = u.individual_profile_id AND pc.deleted_at IS NULL
-//	WHERE pc.id = $3
-//	  AND pm.deleted_at IS NULL
-func (q *Queries) ListProfileMembershipsByProfileIdAndKind(ctx context.Context, arg ListProfileMembershipsByProfileIdAndKindParams) ([]*ListProfileMembershipsByProfileIdAndKindRow, error) {
-	rows, err := q.db.QueryContext(ctx, listProfileMembershipsByProfileIdAndKind, arg.Kind, arg.LocaleCode, arg.ProfileId)
+//	  INNER JOIN "profile" p1 ON p1.id = pm.profile_id
+//	    AND ($1::TEXT IS NULL OR p1.kind = ANY(string_to_array($1::TEXT, ',')))
+//	    AND p1.deleted_at IS NULL
+//	  INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+//		  AND p1t.locale_code = $2
+//	  INNER JOIN "profile" p2 ON p2.id = pm.member_profile_id
+//	    AND ($3::TEXT IS NULL OR p2.kind = ANY(string_to_array($3::TEXT, ',')))
+//	    AND p2.deleted_at IS NULL
+//	  INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+//		  AND p2t.locale_code = $2
+//	WHERE pm.deleted_at IS NULL
+//	    AND ($4::TEXT IS NULL OR pm.profile_id = $4::TEXT)
+//	    AND ($5::TEXT IS NULL OR pm.member_profile_id = $5::TEXT)
+func (q *Queries) ListProfileMemberships(ctx context.Context, arg ListProfileMembershipsParams) ([]*ListProfileMembershipsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listProfileMemberships,
+		arg.FilterProfileKind,
+		arg.LocaleCode,
+		arg.FilterMemberProfileKind,
+		arg.FilterProfileId,
+		arg.FilterMemberProfileId,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []*ListProfileMembershipsByProfileIdAndKindRow{}
+	items := []*ListProfileMembershipsRow{}
 	for rows.Next() {
-		var i ListProfileMembershipsByProfileIdAndKindRow
+		var i ListProfileMembershipsRow
 		if err := rows.Scan(
 			&i.ProfileMembership.Id,
 			&i.ProfileMembership.ProfileId,
-			&i.ProfileMembership.UserId,
+			&i.ProfileMembership.MemberProfileId,
 			&i.ProfileMembership.Kind,
 			&i.ProfileMembership.Properties,
+			&i.ProfileMembership.StartedAt,
+			&i.ProfileMembership.FinishedAt,
 			&i.ProfileMembership.CreatedAt,
 			&i.ProfileMembership.UpdatedAt,
 			&i.ProfileMembership.DeletedAt,
@@ -498,6 +526,21 @@ func (q *Queries) ListProfileMembershipsByProfileIdAndKind(ctx context.Context, 
 			&i.ProfileTx.Title,
 			&i.ProfileTx.Description,
 			&i.ProfileTx.Properties,
+			&i.Profile_2.Id,
+			&i.Profile_2.Slug,
+			&i.Profile_2.Kind,
+			&i.Profile_2.CustomDomain,
+			&i.Profile_2.ProfilePictureUri,
+			&i.Profile_2.Pronouns,
+			&i.Profile_2.Properties,
+			&i.Profile_2.CreatedAt,
+			&i.Profile_2.UpdatedAt,
+			&i.Profile_2.DeletedAt,
+			&i.ProfileTx_2.ProfileId,
+			&i.ProfileTx_2.LocaleCode,
+			&i.ProfileTx_2.Title,
+			&i.ProfileTx_2.Description,
+			&i.ProfileTx_2.Properties,
 		); err != nil {
 			return nil, err
 		}

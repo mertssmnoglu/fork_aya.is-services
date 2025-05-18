@@ -160,22 +160,30 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetUserById(ctx context.Context, arg GetUserByIdParams) (*User, error)
-	//ListProfileMembershipsByProfileIdAndKind
+	//ListProfileMemberships
 	//
 	//  SELECT
-	//    pm.id, pm.profile_id, pm.user_id, pm.kind, pm.properties, pm.created_at, pm.updated_at, pm.deleted_at,
-	//    pp.id, pp.slug, pp.kind, pp.custom_domain, pp.profile_picture_uri, pp.pronouns, pp.properties, pp.created_at, pp.updated_at, pp.deleted_at,
-	//    ppt.profile_id, ppt.locale_code, ppt.title, ppt.description, ppt.properties
+	//    pm.id, pm.profile_id, pm.member_profile_id, pm.kind, pm.properties, pm.started_at, pm.finished_at, pm.created_at, pm.updated_at, pm.deleted_at,
+	//    p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at,
+	//    p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties,
+	//    p2.id, p2.slug, p2.kind, p2.custom_domain, p2.profile_picture_uri, p2.pronouns, p2.properties, p2.created_at, p2.updated_at, p2.deleted_at,
+	//    p2t.profile_id, p2t.locale_code, p2t.title, p2t.description, p2t.properties
 	//  FROM
 	//  	"profile_membership" pm
-	//    INNER JOIN "profile" pp ON pp.id = pm.profile_id AND pp.kind = ANY(string_to_array($1::TEXT, ',')) AND pp.deleted_at IS NULL
-	//    INNER JOIN "profile_tx" ppt ON ppt.profile_id = pp.id
-	//  	  AND ppt.locale_code = $2
-	//    INNER JOIN "user" u ON u.id = pm.user_id AND u.deleted_at IS NULL
-	//    INNER JOIN "profile" pc ON pc.id = u.individual_profile_id AND pc.deleted_at IS NULL
-	//  WHERE pc.id = $3
-	//    AND pm.deleted_at IS NULL
-	ListProfileMembershipsByProfileIdAndKind(ctx context.Context, arg ListProfileMembershipsByProfileIdAndKindParams) ([]*ListProfileMembershipsByProfileIdAndKindRow, error)
+	//    INNER JOIN "profile" p1 ON p1.id = pm.profile_id
+	//      AND ($1::TEXT IS NULL OR p1.kind = ANY(string_to_array($1::TEXT, ',')))
+	//      AND p1.deleted_at IS NULL
+	//    INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+	//  	  AND p1t.locale_code = $2
+	//    INNER JOIN "profile" p2 ON p2.id = pm.member_profile_id
+	//      AND ($3::TEXT IS NULL OR p2.kind = ANY(string_to_array($3::TEXT, ',')))
+	//      AND p2.deleted_at IS NULL
+	//    INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+	//  	  AND p2t.locale_code = $2
+	//  WHERE pm.deleted_at IS NULL
+	//      AND ($4::TEXT IS NULL OR pm.profile_id = $4::TEXT)
+	//      AND ($5::TEXT IS NULL OR pm.member_profile_id = $5::TEXT)
+	ListProfileMemberships(ctx context.Context, arg ListProfileMembershipsParams) ([]*ListProfileMembershipsRow, error)
 	//ListProfiles
 	//
 	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties

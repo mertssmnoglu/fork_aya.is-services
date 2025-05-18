@@ -104,14 +104,16 @@ type ProfileLinkImport struct {
 }
 
 type ProfileMembership struct {
-	Id         string                `db:"id" json:"id"`
-	ProfileId  string                `db:"profile_id" json:"profile_id"`
-	UserId     string                `db:"user_id" json:"user_id"`
-	Kind       string                `db:"kind" json:"kind"`
-	Properties pqtype.NullRawMessage `db:"properties" json:"properties"`
-	CreatedAt  time.Time             `db:"created_at" json:"created_at"`
-	UpdatedAt  sql.NullTime          `db:"updated_at" json:"updated_at"`
-	DeletedAt  sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+	Id              string                `db:"id" json:"id"`
+	ProfileId       string                `db:"profile_id" json:"profile_id"`
+	MemberProfileId string                `db:"member_profile_id" json:"member_profile_id"`
+	Kind            string                `db:"kind" json:"kind"`
+	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
+	StartedAt       sql.NullTime          `db:"started_at" json:"started_at"`
+	FinishedAt      sql.NullTime          `db:"finished_at" json:"finished_at"`
+	CreatedAt       time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt       sql.NullTime          `db:"updated_at" json:"updated_at"`
+	DeletedAt       sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 }
 
 type ProfilePage struct {

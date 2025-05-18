@@ -79,17 +79,25 @@ WHERE profile_id = sqlc.arg(profile_id)
   AND deleted_at IS NULL
 ORDER BY "order";
 
--- name: ListProfileMembershipsByProfileIdAndKind :many
+-- name: ListProfileMemberships :many
 SELECT
   sqlc.embed(pm),
-  sqlc.embed(pp),
-  sqlc.embed(ppt)
+  sqlc.embed(p1),
+  sqlc.embed(p1t),
+  sqlc.embed(p2),
+  sqlc.embed(p2t)
 FROM
 	"profile_membership" pm
-  INNER JOIN "profile" pp ON pp.id = pm.profile_id AND pp.kind = ANY(string_to_array(sqlc.arg(kind)::TEXT, ',')) AND pp.deleted_at IS NULL
-  INNER JOIN "profile_tx" ppt ON ppt.profile_id = pp.id
-	  AND ppt.locale_code = sqlc.arg(locale_code)
-  INNER JOIN "user" u ON u.id = pm.user_id AND u.deleted_at IS NULL
-  INNER JOIN "profile" pc ON pc.id = u.individual_profile_id AND pc.deleted_at IS NULL
-WHERE pc.id = sqlc.arg(profile_id)
-  AND pm.deleted_at IS NULL;
+  INNER JOIN "profile" p1 ON p1.id = pm.profile_id
+    AND (sqlc.narg(filter_profile_kind)::TEXT IS NULL OR p1.kind = ANY(string_to_array(sqlc.narg(filter_profile_kind)::TEXT, ',')))
+    AND p1.deleted_at IS NULL
+  INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+	  AND p1t.locale_code = sqlc.arg(locale_code)
+  INNER JOIN "profile" p2 ON p2.id = pm.member_profile_id
+    AND (sqlc.narg(filter_member_profile_kind)::TEXT IS NULL OR p2.kind = ANY(string_to_array(sqlc.narg(filter_member_profile_kind)::TEXT, ',')))
+    AND p2.deleted_at IS NULL
+  INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+	  AND p2t.locale_code = sqlc.arg(locale_code)
+WHERE pm.deleted_at IS NULL
+    AND (sqlc.narg(filter_profile_id)::TEXT IS NULL OR pm.profile_id = sqlc.narg(filter_profile_id)::TEXT)
+    AND (sqlc.narg(filter_member_profile_id)::TEXT IS NULL OR pm.member_profile_id = sqlc.narg(filter_member_profile_id)::TEXT);

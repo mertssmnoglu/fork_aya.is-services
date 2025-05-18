@@ -226,12 +226,14 @@ func (r *Repository) ListProfileContributions(
 ) (cursors.Cursored[[]*profiles.ProfileMembership], error) {
 	var wrappedResponse cursors.Cursored[[]*profiles.ProfileMembership]
 
-	rows, err := r.queries.ListProfileMembershipsByProfileIdAndKind(
+	rows, err := r.queries.ListProfileMemberships(
 		ctx,
-		ListProfileMembershipsByProfileIdAndKindParams{
-			LocaleCode: localeCode,
-			ProfileId:  profileId,
-			Kind:       strings.Join(kinds, ","),
+		ListProfileMembershipsParams{
+			LocaleCode:              localeCode,
+			FilterProfileId:         sql.NullString{String: "", Valid: false},
+			FilterProfileKind:       sql.NullString{String: strings.Join(kinds, ","), Valid: true},
+			FilterMemberProfileId:   sql.NullString{String: profileId, Valid: true},
+			FilterMemberProfileKind: sql.NullString{String: "", Valid: false},
 		},
 	)
 	if err != nil {
@@ -243,6 +245,8 @@ func (r *Repository) ListProfileContributions(
 		profileMemberships[i] = &profiles.ProfileMembership{
 			Id:         row.ProfileMembership.Id,
 			Kind:       row.ProfileMembership.Kind,
+			StartedAt:  vars.ToTimePtr(row.ProfileMembership.StartedAt),
+			FinishedAt: vars.ToTimePtr(row.ProfileMembership.FinishedAt),
 			Properties: vars.ToObject(row.ProfileMembership.Properties),
 			Profile: &profiles.Profile{
 				Id:                row.Profile.Id,
@@ -257,6 +261,20 @@ func (r *Repository) ListProfileContributions(
 				CreatedAt:         row.Profile.CreatedAt,
 				UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
 				DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
+			},
+			MemberProfile: &profiles.Profile{
+				Id:                row.Profile_2.Id,
+				Slug:              row.Profile_2.Slug,
+				Kind:              row.Profile_2.Kind,
+				CustomDomain:      vars.ToStringPtr(row.Profile_2.CustomDomain),
+				ProfilePictureUri: vars.ToStringPtr(row.Profile_2.ProfilePictureUri),
+				Pronouns:          vars.ToStringPtr(row.Profile_2.Pronouns),
+				Title:             row.ProfileTx_2.Title,
+				Description:       row.ProfileTx_2.Description,
+				Properties:        vars.ToObject(row.Profile_2.Properties),
+				CreatedAt:         row.Profile_2.CreatedAt,
+				UpdatedAt:         vars.ToTimePtr(row.Profile_2.UpdatedAt),
+				DeletedAt:         vars.ToTimePtr(row.Profile_2.DeletedAt),
 			},
 		}
 	}

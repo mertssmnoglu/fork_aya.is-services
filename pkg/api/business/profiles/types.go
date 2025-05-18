@@ -63,10 +63,13 @@ type ProfileLinkBrief struct {
 }
 
 type ProfileMembership struct {
-	Properties any      `json:"properties"`
-	Profile    *Profile `json:"profile"`
-	Id         string   `json:"id"`
-	Kind       string   `json:"kind"`
+	Properties    any        `json:"properties"`
+	Profile       *Profile   `json:"profile"`
+	MemberProfile *Profile   `json:"member_profile"`
+	StartedAt     *time.Time `json:"started_at"`
+	FinishedAt    *time.Time `json:"finished_at"`
+	Id            string     `json:"id"`
+	Kind          string     `json:"kind"`
 }
 
 type ExternalPost struct {

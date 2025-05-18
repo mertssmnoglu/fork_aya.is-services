@@ -43,13 +43,15 @@ CREATE TABLE IF NOT EXISTS "user" (
 CREATE TABLE IF NOT EXISTS "profile_membership" (
   "id" CHAR(26) NOT NULL PRIMARY KEY,
   "profile_id" CHAR(26) NOT NULL CONSTRAINT "profile_membership_profile_id_fk" REFERENCES "profile",
-  "user_id" CHAR(26) NOT NULL CONSTRAINT "profile_membership_user_id_fk" REFERENCES "user",
+  "member_profile_id" CHAR(26) NOT NULL CONSTRAINT "profile_membership_member_profile_id_fk" REFERENCES "profile",
   "kind" TEXT NOT NULL,
   "properties" JSONB,
+  "started_at" TIMESTAMP WITH TIME ZONE,
+  "finished_at" TIMESTAMP WITH TIME ZONE,
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   "updated_at" TIMESTAMP WITH TIME ZONE,
   "deleted_at" TIMESTAMP WITH TIME ZONE,
-  CONSTRAINT "profile_membership_profile_id_user_id_unique" UNIQUE ("profile_id", "user_id")
+  CONSTRAINT "profile_membership_profile_id_member_profile_id_unique" UNIQUE ("profile_id", "member_profile_id")
 );
 
 CREATE TABLE IF NOT EXISTS "profile_link" (
