@@ -25,6 +25,24 @@ type Repository interface {
 	) (cursors.Cursored[[]*User], error)
 }
 
+// --- Auth & OAuth Ports ---
+
+type OAuthService interface {
+	// InitiateOAuth returns the URL to redirect the user to GitHub for login, and the state to track the request.
+	InitiateOAuth(ctx context.Context, redirectURI string) (authURL string, state OAuthState, err error)
+
+	// HandleOAuthCallback exchanges the code for a token, fetches user info, upserts user, creates session, and returns JWT.
+	HandleOAuthCallback(ctx context.Context, code string, state string) (AuthResult, error)
+}
+
+type SessionService interface {
+	// UpdateLoggedInAt updates the session's logged_in_at timestamp.
+	UpdateLoggedInAt(ctx context.Context, sessionID string) error
+
+	// ValidateJWT parses and validates the JWT, returning claims if valid.
+	ValidateJWT(token string) (JWTClaims, error)
+}
+
 type Service struct {
 	logger      *logfx.Logger
 	repo        Repository

@@ -31,17 +31,21 @@ func Run(
 	routes.Use(middlewares.CorrelationIdMiddleware())
 	routes.Use(middlewares.CorsMiddleware())
 	routes.Use(middlewares.MetricsMiddleware(httpService.InnerMetrics))
+	routes.Use(AuthMiddleware(dataRegistry))
 
 	// http modules
 	healthcheck.RegisterHttpRoutes(routes, config)
 	openapi.RegisterHttpRoutes(routes, config)
 	profiling.RegisterHttpRoutes(routes, config)
 
+	// --- OAuth Service wiring ---
+	githubOAuthService := NewGitHubOAuthService()
+
 	// http routes
-	// RegisterHttpRoutesForUsers(routes, logger, dataRegistry)    //nolint:contextcheck
-	RegisterHttpRoutesForSite(routes, logger, dataRegistry)     //nolint:contextcheck
-	RegisterHttpRoutesForProfiles(routes, logger, dataRegistry) //nolint:contextcheck
-	RegisterHttpRoutesForStories(routes, logger, dataRegistry)  //nolint:contextcheck
+	RegisterHttpRoutesForUsers(routes, logger, dataRegistry, githubOAuthService) //nolint:contextcheck
+	RegisterHttpRoutesForSite(routes, logger, dataRegistry)                      //nolint:contextcheck
+	RegisterHttpRoutesForProfiles(routes, logger, dataRegistry)                  //nolint:contextcheck
+	RegisterHttpRoutesForStories(routes, logger, dataRegistry)                   //nolint:contextcheck
 
 	// run
 	cleanup, err := httpService.Start(ctx)

@@ -31,3 +31,36 @@ type User struct {
 	Kind                string     `json:"kind"`
 	Name                string     `json:"name"`
 }
+
+// --- OAuth & Auth types ---
+
+type OAuthProvider string
+
+const (
+	OAuthProviderGitHub OAuthProvider = "github"
+)
+
+type OAuthState struct {
+	State       string
+	RedirectURI string
+}
+
+type GitHubUserInfo struct {
+	ID     string
+	Login  string
+	Name   string
+	Email  string
+	Avatar string
+}
+
+type AuthResult struct {
+	User      *User
+	SessionID string
+	JWT       string
+}
+
+type JWTClaims struct {
+	UserID    string
+	SessionID string
+	ExpiresAt int64
+}
