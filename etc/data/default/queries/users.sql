@@ -18,7 +18,7 @@ FROM "user"
 WHERE (sqlc.narg(filter_kind)::TEXT IS NULL OR kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
   AND deleted_at IS NULL;
 
--- name: CreateUser :one
+-- name: CreateUser :exec
 INSERT INTO "user" (
     id,
     kind,
@@ -31,7 +31,10 @@ INSERT INTO "user" (
     bsky_remote_id,
     x_handle,
     x_remote_id,
-    individual_profile_id
+    individual_profile_id,
+    created_at,
+    updated_at,
+    deleted_at
   )
 VALUES (
     sqlc.arg(id),
@@ -45,8 +48,11 @@ VALUES (
     sqlc.arg(bsky_remote_id),
     sqlc.arg(x_handle),
     sqlc.arg(x_remote_id),
-    sqlc.arg(individual_profile_id)
-  ) RETURNING *;
+    sqlc.arg(individual_profile_id),
+    sqlc.arg(created_at),
+    sqlc.arg(updated_at),
+    sqlc.arg(deleted_at)
+  );
 
 -- name: UpdateUser :execrows
 UPDATE "user"

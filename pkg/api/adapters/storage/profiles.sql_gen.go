@@ -11,9 +11,9 @@ import (
 	"time"
 )
 
-const createProfile = `-- name: CreateProfile :one
+const createProfile = `-- name: CreateProfile :exec
 INSERT INTO "profile" (id, slug)
-VALUES ($1, $2) RETURNING id, slug, kind, custom_domain, profile_picture_uri, pronouns, properties, created_at, updated_at, deleted_at
+VALUES ($1, $2)
 `
 
 type CreateProfileParams struct {
@@ -24,23 +24,10 @@ type CreateProfileParams struct {
 // CreateProfile
 //
 //	INSERT INTO "profile" (id, slug)
-//	VALUES ($1, $2) RETURNING id, slug, kind, custom_domain, profile_picture_uri, pronouns, properties, created_at, updated_at, deleted_at
-func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) (*Profile, error) {
-	row := q.db.QueryRowContext(ctx, createProfile, arg.Id, arg.Slug)
-	var i Profile
-	err := row.Scan(
-		&i.Id,
-		&i.Slug,
-		&i.Kind,
-		&i.CustomDomain,
-		&i.ProfilePictureUri,
-		&i.Pronouns,
-		&i.Properties,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.DeletedAt,
-	)
-	return &i, err
+//	VALUES ($1, $2)
+func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) error {
+	_, err := q.db.ExecContext(ctx, createProfile, arg.Id, arg.Slug)
+	return err
 }
 
 const getProfileById = `-- name: GetProfileById :one

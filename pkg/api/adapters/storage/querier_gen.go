@@ -12,8 +12,37 @@ type Querier interface {
 	//CreateProfile
 	//
 	//  INSERT INTO "profile" (id, slug)
-	//  VALUES ($1, $2) RETURNING id, slug, kind, custom_domain, profile_picture_uri, pronouns, properties, created_at, updated_at, deleted_at
-	CreateProfile(ctx context.Context, arg CreateProfileParams) (*Profile, error)
+	//  VALUES ($1, $2)
+	CreateProfile(ctx context.Context, arg CreateProfileParams) error
+	//CreateSession
+	//
+	//  INSERT INTO
+	//    session (
+	//      id,
+	//      status,
+	//      oauth_request_state,
+	//      oauth_request_code_verifier,
+	//      oauth_redirect_uri,
+	//      logged_in_user_id,
+	//      logged_in_at,
+	//      expires_at,
+	//      created_at,
+	//      updated_at
+	//    )
+	//  VALUES
+	//    (
+	//      $1,
+	//      $2,
+	//      $3,
+	//      $4,
+	//      $5,
+	//      $6,
+	//      $7,
+	//      $8,
+	//      $9,
+	//      $10
+	//    )
+	CreateSession(ctx context.Context, arg CreateSessionParams) error
 	//CreateUser
 	//
 	//  INSERT INTO "user" (
@@ -28,7 +57,10 @@ type Querier interface {
 	//      bsky_remote_id,
 	//      x_handle,
 	//      x_remote_id,
-	//      individual_profile_id
+	//      individual_profile_id,
+	//      created_at,
+	//      updated_at,
+	//      deleted_at
 	//    )
 	//  VALUES (
 	//      $1,
@@ -42,9 +74,12 @@ type Querier interface {
 	//      $9,
 	//      $10,
 	//      $11,
-	//      $12
-	//    ) RETURNING id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
-	CreateUser(ctx context.Context, arg CreateUserParams) (*User, error)
+	//      $12,
+	//      $13,
+	//      $14,
+	//      $15
+	//    )
+	CreateUser(ctx context.Context, arg CreateUserParams) error
 	//GetFromCache
 	//
 	//  SELECT value, updated_at
@@ -124,6 +159,24 @@ type Querier interface {
 	//    AND pp.deleted_at IS NULL
 	//  ORDER BY pp."order"
 	GetProfilePagesByProfileId(ctx context.Context, arg GetProfilePagesByProfileIdParams) ([]*GetProfilePagesByProfileIdRow, error)
+	//GetSessionById
+	//
+	//  SELECT
+	//    id,
+	//    status,
+	//    oauth_request_state,
+	//    oauth_request_code_verifier,
+	//    oauth_redirect_uri,
+	//    logged_in_user_id,
+	//    logged_in_at,
+	//    expires_at,
+	//    created_at,
+	//    updated_at
+	//  FROM
+	//    session
+	//  WHERE
+	//    id = $1
+	GetSessionById(ctx context.Context, arg GetSessionByIdParams) (*Session, error)
 	//GetStoryById
 	//
 	//  SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content, p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
@@ -254,6 +307,16 @@ type Querier interface {
 	//  WHERE id = $2
 	//    AND deleted_at IS NULL
 	UpdateProfile(ctx context.Context, arg UpdateProfileParams) (int64, error)
+	//UpdateSessionLoggedInAt
+	//
+	//  UPDATE
+	//    session
+	//  SET
+	//    logged_in_at = $1,
+	//    updated_at = NOW()
+	//  WHERE
+	//    id = $2
+	UpdateSessionLoggedInAt(ctx context.Context, arg UpdateSessionLoggedInAtParams) error
 	//UpdateUser
 	//
 	//  UPDATE "user"

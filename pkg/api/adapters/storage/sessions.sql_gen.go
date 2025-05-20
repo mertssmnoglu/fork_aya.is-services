@@ -8,10 +8,12 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
-const createSession = `-- name: CreateSession :one
-INSERT INTO session (
+const createSession = `-- name: CreateSession :exec
+INSERT INTO
+  session (
     id,
     status,
     oauth_request_state,
@@ -19,10 +21,23 @@ INSERT INTO session (
     oauth_redirect_uri,
     logged_in_user_id,
     logged_in_at,
-    expires_at
-) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8
-) RETURNING id, status, oauth_request_state, oauth_request_code_verifier, oauth_redirect_uri, logged_in_user_id, logged_in_at, expires_at, created_at, updated_at
+    expires_at,
+    created_at,
+    updated_at
+  )
+VALUES
+  (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    $6,
+    $7,
+    $8,
+    $9,
+    $10
+  )
 `
 
 type CreateSessionParams struct {
@@ -34,11 +49,14 @@ type CreateSessionParams struct {
 	LoggedInUserId           sql.NullString `db:"logged_in_user_id" json:"logged_in_user_id"`
 	LoggedInAt               sql.NullTime   `db:"logged_in_at" json:"logged_in_at"`
 	ExpiresAt                sql.NullTime   `db:"expires_at" json:"expires_at"`
+	CreatedAt                time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt                sql.NullTime   `db:"updated_at" json:"updated_at"`
 }
 
 // CreateSession
 //
-//	INSERT INTO session (
+//	INSERT INTO
+//	  session (
 //	    id,
 //	    status,
 //	    oauth_request_state,
@@ -46,12 +64,25 @@ type CreateSessionParams struct {
 //	    oauth_redirect_uri,
 //	    logged_in_user_id,
 //	    logged_in_at,
-//	    expires_at
-//	) VALUES (
-//	    $1, $2, $3, $4, $5, $6, $7, $8
-//	) RETURNING id, status, oauth_request_state, oauth_request_code_verifier, oauth_redirect_uri, logged_in_user_id, logged_in_at, expires_at, created_at, updated_at
-func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (*Session, error) {
-	row := q.db.QueryRowContext(ctx, createSession,
+//	    expires_at,
+//	    created_at,
+//	    updated_at
+//	  )
+//	VALUES
+//	  (
+//	    $1,
+//	    $2,
+//	    $3,
+//	    $4,
+//	    $5,
+//	    $6,
+//	    $7,
+//	    $8,
+//	    $9,
+//	    $10
+//	  )
+func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) error {
+	_, err := q.db.ExecContext(ctx, createSession,
 		arg.Id,
 		arg.Status,
 		arg.OauthRequestState,
@@ -60,38 +91,53 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (*
 		arg.LoggedInUserId,
 		arg.LoggedInAt,
 		arg.ExpiresAt,
+		arg.CreatedAt,
+		arg.UpdatedAt,
 	)
-	var i Session
-	err := row.Scan(
-		&i.Id,
-		&i.Status,
-		&i.OauthRequestState,
-		&i.OauthRequestCodeVerifier,
-		&i.OauthRedirectUri,
-		&i.LoggedInUserId,
-		&i.LoggedInAt,
-		&i.ExpiresAt,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return &i, err
+	return err
 }
 
-const getSessionByID = `-- name: GetSessionByID :one
-SELECT id, status, oauth_request_state, oauth_request_code_verifier, oauth_redirect_uri, logged_in_user_id, logged_in_at, expires_at, created_at, updated_at
-FROM session WHERE id = $1
+const getSessionById = `-- name: GetSessionById :one
+SELECT
+  id,
+  status,
+  oauth_request_state,
+  oauth_request_code_verifier,
+  oauth_redirect_uri,
+  logged_in_user_id,
+  logged_in_at,
+  expires_at,
+  created_at,
+  updated_at
+FROM
+  session
+WHERE
+  id = $1
 `
 
-type GetSessionByIDParams struct {
+type GetSessionByIdParams struct {
 	Id string `db:"id" json:"id"`
 }
 
-// GetSessionByID
+// GetSessionById
 //
-//	SELECT id, status, oauth_request_state, oauth_request_code_verifier, oauth_redirect_uri, logged_in_user_id, logged_in_at, expires_at, created_at, updated_at
-//	FROM session WHERE id = $1
-func (q *Queries) GetSessionByID(ctx context.Context, arg GetSessionByIDParams) (*Session, error) {
-	row := q.db.QueryRowContext(ctx, getSessionByID, arg.Id)
+//	SELECT
+//	  id,
+//	  status,
+//	  oauth_request_state,
+//	  oauth_request_code_verifier,
+//	  oauth_redirect_uri,
+//	  logged_in_user_id,
+//	  logged_in_at,
+//	  expires_at,
+//	  created_at,
+//	  updated_at
+//	FROM
+//	  session
+//	WHERE
+//	  id = $1
+func (q *Queries) GetSessionById(ctx context.Context, arg GetSessionByIdParams) (*Session, error) {
+	row := q.db.QueryRowContext(ctx, getSessionById, arg.Id)
 	var i Session
 	err := row.Scan(
 		&i.Id,
@@ -109,18 +155,30 @@ func (q *Queries) GetSessionByID(ctx context.Context, arg GetSessionByIDParams) 
 }
 
 const updateSessionLoggedInAt = `-- name: UpdateSessionLoggedInAt :exec
-UPDATE session SET logged_in_at = $2, updated_at = NOW() WHERE id = $1
+UPDATE
+  session
+SET
+  logged_in_at = $1,
+  updated_at = NOW()
+WHERE
+  id = $2
 `
 
 type UpdateSessionLoggedInAtParams struct {
-	Id         string       `db:"id" json:"id"`
 	LoggedInAt sql.NullTime `db:"logged_in_at" json:"logged_in_at"`
+	Id         string       `db:"id" json:"id"`
 }
 
 // UpdateSessionLoggedInAt
 //
-//	UPDATE session SET logged_in_at = $2, updated_at = NOW() WHERE id = $1
+//	UPDATE
+//	  session
+//	SET
+//	  logged_in_at = $1,
+//	  updated_at = NOW()
+//	WHERE
+//	  id = $2
 func (q *Queries) UpdateSessionLoggedInAt(ctx context.Context, arg UpdateSessionLoggedInAtParams) error {
-	_, err := q.db.ExecContext(ctx, updateSessionLoggedInAt, arg.Id, arg.LoggedInAt)
+	_, err := q.db.ExecContext(ctx, updateSessionLoggedInAt, arg.LoggedInAt, arg.Id)
 	return err
 }

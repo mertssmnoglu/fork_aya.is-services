@@ -29,9 +29,9 @@ FROM "profile" p
 WHERE (sqlc.narg(filter_kind)::TEXT IS NULL OR p.kind = ANY(string_to_array(sqlc.narg(filter_kind)::TEXT, ',')))
   AND p.deleted_at IS NULL;
 
--- name: CreateProfile :one
+-- name: CreateProfile :exec
 INSERT INTO "profile" (id, slug)
-VALUES (sqlc.arg(id), sqlc.arg(slug)) RETURNING *;
+VALUES (sqlc.arg(id), sqlc.arg(slug));
 
 -- name: UpdateProfile :execrows
 UPDATE "profile"

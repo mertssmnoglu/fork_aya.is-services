@@ -8,9 +8,10 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
-const createUser = `-- name: CreateUser :one
+const createUser = `-- name: CreateUser :exec
 INSERT INTO "user" (
     id,
     kind,
@@ -23,7 +24,10 @@ INSERT INTO "user" (
     bsky_remote_id,
     x_handle,
     x_remote_id,
-    individual_profile_id
+    individual_profile_id,
+    created_at,
+    updated_at,
+    deleted_at
   )
 VALUES (
     $1,
@@ -37,8 +41,11 @@ VALUES (
     $9,
     $10,
     $11,
-    $12
-  ) RETURNING id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
+    $12,
+    $13,
+    $14,
+    $15
+  )
 `
 
 type CreateUserParams struct {
@@ -54,6 +61,9 @@ type CreateUserParams struct {
 	XHandle             sql.NullString `db:"x_handle" json:"x_handle"`
 	XRemoteId           sql.NullString `db:"x_remote_id" json:"x_remote_id"`
 	IndividualProfileId sql.NullString `db:"individual_profile_id" json:"individual_profile_id"`
+	CreatedAt           time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt           sql.NullTime   `db:"updated_at" json:"updated_at"`
+	DeletedAt           sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 }
 
 // CreateUser
@@ -70,7 +80,10 @@ type CreateUserParams struct {
 //	    bsky_remote_id,
 //	    x_handle,
 //	    x_remote_id,
-//	    individual_profile_id
+//	    individual_profile_id,
+//	    created_at,
+//	    updated_at,
+//	    deleted_at
 //	  )
 //	VALUES (
 //	    $1,
@@ -84,10 +97,13 @@ type CreateUserParams struct {
 //	    $9,
 //	    $10,
 //	    $11,
-//	    $12
-//	  ) RETURNING id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (*User, error) {
-	row := q.db.QueryRowContext(ctx, createUser,
+//	    $12,
+//	    $13,
+//	    $14,
+//	    $15
+//	  )
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
+	_, err := q.db.ExecContext(ctx, createUser,
 		arg.Id,
 		arg.Kind,
 		arg.Name,
@@ -100,26 +116,11 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (*User, 
 		arg.XHandle,
 		arg.XRemoteId,
 		arg.IndividualProfileId,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+		arg.DeletedAt,
 	)
-	var i User
-	err := row.Scan(
-		&i.Id,
-		&i.Kind,
-		&i.Name,
-		&i.Email,
-		&i.Phone,
-		&i.GithubHandle,
-		&i.GithubRemoteId,
-		&i.BskyHandle,
-		&i.BskyRemoteId,
-		&i.XHandle,
-		&i.XRemoteId,
-		&i.IndividualProfileId,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.DeletedAt,
-	)
-	return &i, err
+	return err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one

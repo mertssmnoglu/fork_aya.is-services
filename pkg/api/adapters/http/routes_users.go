@@ -21,7 +21,6 @@ func RegisterHttpRoutesForUsers(
 	routes.
 		Route("GET /{locale}/users", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
-			localeParam := ctx.Request.PathValue("locale")
 			cursor := cursors.NewCursorFromRequest(ctx.Request)
 
 			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
@@ -31,7 +30,7 @@ func RegisterHttpRoutesForUsers(
 
 			service := users.NewService(logger, repository)
 
-			records, err := service.List(ctx.Request.Context(), localeParam, cursor)
+			records, err := service.List(ctx.Request.Context(), cursor)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
@@ -45,7 +44,6 @@ func RegisterHttpRoutesForUsers(
 	routes.
 		Route("GET /{locale}/users/{id}", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
-			localeParam := ctx.Request.PathValue("locale")
 			idParam := ctx.Request.PathValue("id")
 
 			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
@@ -55,7 +53,7 @@ func RegisterHttpRoutesForUsers(
 
 			service := users.NewService(logger, repository)
 
-			record, err := service.GetById(ctx.Request.Context(), localeParam, idParam)
+			record, err := service.GetById(ctx.Request.Context(), idParam)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
@@ -88,7 +86,7 @@ func RegisterHttpRoutesForUsers(
 			return ctx.Results.Error(http.StatusUnauthorized, []byte("OAuth callback failed"))
 		}
 		// Set JWT as cookie or return in response
-		return ctx.Results.Json(map[string]interface{}{
+		return ctx.Results.Json(map[string]any{
 			"token": result.JWT,
 			"user":  result.User,
 		})

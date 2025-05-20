@@ -1,7 +1,6 @@
 package http
 
 import (
-	"database/sql"
 	"net/http"
 	"os"
 	"strings"
@@ -26,7 +25,7 @@ func AuthMiddleware(dataRegistry *datafx.Registry) httpfx.Handler {
 
 		tokenStr := strings.TrimPrefix(auth, "Bearer ")
 		secret := os.Getenv("JWT_SECRET")
-		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
 			return []byte(secret), nil
 		})
 
@@ -39,8 +38,8 @@ func AuthMiddleware(dataRegistry *datafx.Registry) httpfx.Handler {
 			return ctx.Results.Error(http.StatusUnauthorized, []byte("Invalid claims"))
 		}
 
-		sessionID, _ := claims["session_id"].(string)
-		if sessionID == "" {
+		sessionId, _ := claims["session_id"].(string)
+		if sessionId == "" {
 			return ctx.Results.Error(http.StatusUnauthorized, []byte("No session"))
 		}
 
@@ -50,16 +49,13 @@ func AuthMiddleware(dataRegistry *datafx.Registry) httpfx.Handler {
 		}
 
 		// Load session from DB
-		session, err := repository.GetSessionByID(ctx.Request.Context(), storage.GetSessionByIDParams{Id: sessionID})
+		session, err := repository.GetSessionById(ctx.Request.Context(), sessionId)
 		if err != nil || session.Status != "active" {
 			return ctx.Results.Error(http.StatusUnauthorized, []byte("Session invalid"))
 		}
 
 		// Update logged_in_at
-		_ = repository.UpdateSessionLoggedInAt(ctx.Request.Context(), storage.UpdateSessionLoggedInAtParams{
-			Id:         sessionID,
-			LoggedInAt: sql.NullTime{Time: time.Now(), Valid: true},
-		})
+		_ = repository.UpdateSessionLoggedInAt(ctx.Request.Context(), sessionId, time.Now())
 
 		result := ctx.Next()
 

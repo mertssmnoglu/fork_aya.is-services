@@ -25,12 +25,34 @@ func ToStringPtr(s sql.NullString) *string {
 	return nil
 }
 
+func ToSqlNullString(s *string) sql.NullString {
+	if s != nil {
+		return sql.NullString{String: *s, Valid: true}
+	}
+
+	return sql.NullString{
+		String: "",
+		Valid:  false,
+	}
+}
+
 func ToTimePtr(t sql.NullTime) *time.Time {
 	if t.Valid {
 		return &t.Time
 	}
 
 	return nil
+}
+
+func ToSqlNullTime(t *time.Time) sql.NullTime {
+	if t != nil {
+		return sql.NullTime{Time: *t, Valid: true}
+	}
+
+	return sql.NullTime{
+		Time:  time.Time{},
+		Valid: false,
+	}
 }
 
 func ToRawMessage(m pqtype.NullRawMessage) []byte {

@@ -2,13 +2,13 @@ package http
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/eser/ajan/datafx"
@@ -20,10 +20,10 @@ import (
 // Adapter for users.OAuthService for GitHub
 
 type GitHubOAuthService struct {
+	DataRegistry *datafx.Registry
 	ClientID     string
 	ClientSecret string
 	RedirectBase string
-	DataRegistry *datafx.Registry
 }
 
 func NewGitHubOAuthService(dataRegistry *datafx.Registry) *GitHubOAuthService {
@@ -35,7 +35,10 @@ func NewGitHubOAuthService(dataRegistry *datafx.Registry) *GitHubOAuthService {
 	}
 }
 
-func (g *GitHubOAuthService) InitiateOAuth(ctx context.Context, redirectURI string) (string, users.OAuthState, error) {
+func (g *GitHubOAuthService) InitiateOAuth(
+	ctx context.Context,
+	redirectURI string,
+) (string, users.OAuthState, error) {
 	state := fmt.Sprintf("%d", time.Now().UnixNano()) // TODO: use secure random
 	u := url.URL{
 		Scheme: "https",
@@ -51,7 +54,11 @@ func (g *GitHubOAuthService) InitiateOAuth(ctx context.Context, redirectURI stri
 	return u.String(), users.OAuthState{State: state, RedirectURI: redirectURI}, nil
 }
 
-func (g *GitHubOAuthService) HandleOAuthCallback(ctx context.Context, code string, state string) (users.AuthResult, error) {
+func (g *GitHubOAuthService) HandleOAuthCallback( //nolint:funlen
+	ctx context.Context,
+	code string,
+	state string,
+) (users.AuthResult, error) {
 	// 1. Exchange code for access token
 	tokenResp, err := http.PostForm("https://github.com/login/oauth/access_token", url.Values{
 		"client_id":     {g.ClientID},
@@ -61,9 +68,12 @@ func (g *GitHubOAuthService) HandleOAuthCallback(ctx context.Context, code strin
 	if err != nil {
 		return users.AuthResult{}, err
 	}
+
 	defer tokenResp.Body.Close()
+
 	body, _ := io.ReadAll(tokenResp.Body)
 	vals, _ := url.ParseQuery(string(body))
+
 	accessToken := vals.Get("access_token")
 	if accessToken == "" {
 		return users.AuthResult{}, fmt.Errorf("failed to get access token")
@@ -72,17 +82,20 @@ func (g *GitHubOAuthService) HandleOAuthCallback(ctx context.Context, code strin
 	// 2. Fetch user info from GitHub
 	req, _ := http.NewRequestWithContext(ctx, "GET", "https://api.github.com/user", nil)
 	req.Header.Set("Authorization", "Bearer "+accessToken)
+
 	userResp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return users.AuthResult{}, err
 	}
+
 	defer userResp.Body.Close()
+
 	var ghUser struct {
-		ID     int64  `json:"id"`
 		Login  string `json:"login"`
 		Name   string `json:"name"`
 		Email  string `json:"email"`
 		Avatar string `json:"avatar_url"`
+		ID     int64  `json:"id"`
 	}
 	if err := json.NewDecoder(userResp.Body).Decode(&ghUser); err != nil {
 		return users.AuthResult{}, err
@@ -93,57 +106,59 @@ func (g *GitHubOAuthService) HandleOAuthCallback(ctx context.Context, code strin
 	if err != nil {
 		return users.AuthResult{}, err
 	}
-	queries := repo.GetQueries()
-	userID := fmt.Sprintf("github-%d", ghUser.ID)
-	userParams := storage.CreateUserParams{
-		Id:             userID,
-		Kind:           "individual",
-		Name:           ghUser.Name,
-		Email:          sql.NullString{String: ghUser.Email, Valid: ghUser.Email != ""},
-		GithubHandle:   sql.NullString{String: ghUser.Login, Valid: ghUser.Login != ""},
-		GithubRemoteId: sql.NullString{String: fmt.Sprintf("%d", ghUser.ID), Valid: true},
+
+	userId := fmt.Sprintf("github-%d", ghUser.ID)
+	ghRemoteId := strconv.FormatInt(ghUser.ID, 10)
+	now := time.Now()
+	expiresAt := time.Now().Add(24 * time.Hour) //nolint:mnd
+
+	user := users.User{
+		Id:                  userId,
+		Kind:                "regular",
+		Name:                ghUser.Name,
+		Email:               &ghUser.Email,
+		Phone:               nil,
+		GithubHandle:        &ghUser.Login,
+		GithubRemoteId:      &ghRemoteId,
+		BskyHandle:          nil,
+		XHandle:             nil,
+		IndividualProfileId: nil,
+		CreatedAt:           now,
+		UpdatedAt:           nil,
+		DeletedAt:           nil,
 	}
-	_, _ = queries.CreateUser(ctx, userParams) // ignore error if already exists
-	userRow, err := queries.GetUserById(ctx, storage.GetUserByIdParams{Id: userID})
+	err = repo.CreateUser(ctx, &user) // ignore error if already exists
 	if err != nil {
 		return users.AuthResult{}, err
 	}
-	user := &users.User{
-		Id:           userRow.Id,
-		Kind:         userRow.Kind,
-		Name:         userRow.Name,
-		Email:        &userRow.Email.String,
-		GithubHandle: &userRow.GithubHandle.String,
-		CreatedAt:    userRow.CreatedAt,
-		UpdatedAt:    nil, // can map if needed
-	}
 
 	// 4. Create session in DB
-	sessionID := fmt.Sprintf("sess-%s-%d", user.Id, time.Now().UnixNano())
-	sessionParams := storage.CreateSessionParams{
-		Id:                       sessionID,
+	session := users.Session{
+		Id:                       fmt.Sprintf("sess-%s-%d", user.Id, time.Now().UnixNano()),
 		Status:                   "active",
 		OauthRequestState:        state,
 		OauthRequestCodeVerifier: "", // PKCE not used here
-		OauthRedirectUri:         sql.NullString{Valid: false},
-		LoggedInUserId:           sql.NullString{String: user.Id, Valid: true},
-		LoggedInAt:               sql.NullTime{Time: time.Now(), Valid: true},
-		ExpiresAt:                sql.NullTime{Time: time.Now().Add(24 * time.Hour), Valid: true},
+		OauthRedirectUri:         nil,
+		LoggedInUserId:           &user.Id,
+		LoggedInAt:               &now,
+		ExpiresAt:                &expiresAt,
+		CreatedAt:                now,
+		UpdatedAt:                nil,
 	}
-	_, err = queries.CreateSession(ctx, sessionParams)
+	err = repo.CreateSession(ctx, &session)
 	if err != nil {
 		return users.AuthResult{}, err
 	}
 
 	// 5. Issue JWT
 	claims := users.JWTClaims{
-		UserID:    user.Id,
-		SessionID: sessionID,
+		UserId:    user.Id,
+		SessionId: session.Id,
 		ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
 	}
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id":    claims.UserID,
-		"session_id": claims.SessionID,
+		"user_id":    claims.UserId,
+		"session_id": claims.SessionId,
 		"exp":        claims.ExpiresAt,
 	})
 	secret := os.Getenv("JWT_SECRET")
@@ -153,8 +168,8 @@ func (g *GitHubOAuthService) HandleOAuthCallback(ctx context.Context, code strin
 	}
 
 	return users.AuthResult{
-		User:      user,
-		SessionID: sessionID,
+		User:      &user,
+		SessionId: session.Id,
 		JWT:       tokenString,
 	}, nil
 }

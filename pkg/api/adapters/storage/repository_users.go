@@ -11,7 +11,6 @@ import (
 
 func (r *Repository) GetUserById(
 	ctx context.Context,
-	localeCode string,
 	id string,
 ) (*users.User, error) {
 	row, err := r.queries.GetUserById(ctx, GetUserByIdParams{Id: id})
@@ -26,6 +25,7 @@ func (r *Repository) GetUserById(
 		Email:               vars.ToStringPtr(row.Email),
 		Phone:               vars.ToStringPtr(row.Phone),
 		GithubHandle:        vars.ToStringPtr(row.GithubHandle),
+		GithubRemoteId:      vars.ToStringPtr(row.GithubRemoteId),
 		BskyHandle:          vars.ToStringPtr(row.BskyHandle),
 		XHandle:             vars.ToStringPtr(row.XHandle),
 		IndividualProfileId: vars.ToStringPtr(row.IndividualProfileId),
@@ -39,7 +39,6 @@ func (r *Repository) GetUserById(
 
 func (r *Repository) GetUserByEmail(
 	ctx context.Context,
-	localeCode string,
 	email string,
 ) (*users.User, error) {
 	row, err := r.queries.GetUserByEmail(
@@ -57,6 +56,7 @@ func (r *Repository) GetUserByEmail(
 		Email:               vars.ToStringPtr(row.Email),
 		Phone:               vars.ToStringPtr(row.Phone),
 		GithubHandle:        vars.ToStringPtr(row.GithubHandle),
+		GithubRemoteId:      vars.ToStringPtr(row.GithubRemoteId),
 		BskyHandle:          vars.ToStringPtr(row.BskyHandle),
 		XHandle:             vars.ToStringPtr(row.XHandle),
 		IndividualProfileId: vars.ToStringPtr(row.IndividualProfileId),
@@ -70,7 +70,6 @@ func (r *Repository) GetUserByEmail(
 
 func (r *Repository) ListUsers(
 	ctx context.Context,
-	localeCode string,
 	cursor *cursors.Cursor,
 ) (cursors.Cursored[[]*users.User], error) {
 	var wrappedResponse cursors.Cursored[[]*users.User]
@@ -94,6 +93,7 @@ func (r *Repository) ListUsers(
 			Email:               vars.ToStringPtr(row.Email),
 			Phone:               vars.ToStringPtr(row.Phone),
 			GithubHandle:        vars.ToStringPtr(row.GithubHandle),
+			GithubRemoteId:      vars.ToStringPtr(row.GithubRemoteId),
 			BskyHandle:          vars.ToStringPtr(row.BskyHandle),
 			XHandle:             vars.ToStringPtr(row.XHandle),
 			IndividualProfileId: vars.ToStringPtr(row.IndividualProfileId),
@@ -110,4 +110,32 @@ func (r *Repository) ListUsers(
 	}
 
 	return wrappedResponse, nil
+}
+
+func (r *Repository) CreateUser(
+	ctx context.Context,
+	user *users.User,
+) error {
+	err := r.queries.CreateUser(ctx, CreateUserParams{
+		Id:                  user.Id,
+		Kind:                user.Kind,
+		Name:                user.Name,
+		Email:               vars.ToSqlNullString(user.Email),
+		Phone:               vars.ToSqlNullString(user.Phone),
+		GithubHandle:        vars.ToSqlNullString(user.GithubHandle),
+		GithubRemoteId:      vars.ToSqlNullString(user.GithubRemoteId),
+		BskyHandle:          vars.ToSqlNullString(user.BskyHandle),
+		BskyRemoteId:        sql.NullString{String: "", Valid: false},
+		XHandle:             vars.ToSqlNullString(user.XHandle),
+		XRemoteId:           sql.NullString{String: "", Valid: false},
+		IndividualProfileId: vars.ToSqlNullString(user.IndividualProfileId),
+		CreatedAt:           user.CreatedAt,
+		UpdatedAt:           vars.ToSqlNullTime(user.UpdatedAt),
+		DeletedAt:           vars.ToSqlNullTime(user.DeletedAt),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

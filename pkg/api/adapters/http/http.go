@@ -31,7 +31,7 @@ func Run(
 	routes.Use(middlewares.CorrelationIdMiddleware())
 	routes.Use(middlewares.CorsMiddleware())
 	routes.Use(middlewares.MetricsMiddleware(httpService.InnerMetrics))
-	routes.Use(AuthMiddleware(dataRegistry))
+	// routes.Use(AuthMiddleware(dataRegistry))
 
 	// http modules
 	healthcheck.RegisterHttpRoutes(routes, config)
@@ -39,7 +39,7 @@ func Run(
 	profiling.RegisterHttpRoutes(routes, config)
 
 	// --- OAuth Service wiring ---
-	githubOAuthService := NewGitHubOAuthService()
+	githubOAuthService := NewGitHubOAuthService(dataRegistry)
 
 	// http routes
 	RegisterHttpRoutesForUsers(routes, logger, dataRegistry, githubOAuthService) //nolint:contextcheck
