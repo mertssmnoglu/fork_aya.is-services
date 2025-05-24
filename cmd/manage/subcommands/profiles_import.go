@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/eser/aya.is-services/pkg/api/adapters/appcontext"
-	"github.com/eser/aya.is-services/pkg/api/adapters/storage"
-	"github.com/eser/aya.is-services/pkg/api/business/profiles"
 	"github.com/spf13/cobra"
 )
 
@@ -30,14 +28,7 @@ func execProfilesImport(ctx context.Context) error {
 		return err //nolint:wrapcheck
 	}
 
-	repository, err := storage.NewRepositoryFromDefault(appContext.Data)
-	if err != nil {
-		panic(err)
-	}
-
-	service := profiles.NewService(appContext.Logger, repository)
-
-	err = service.Import(ctx, appContext.Arcade)
+	err = appContext.ProfilesService.Import(ctx, appContext.Arcade)
 	if err != nil {
 		panic(err)
 	}

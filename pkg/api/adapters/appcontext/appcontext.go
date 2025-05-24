@@ -13,12 +13,17 @@ import (
 	"github.com/eser/ajan/metricsfx"
 	"github.com/eser/ajan/queuefx"
 	"github.com/eser/aya.is-services/pkg/api/adapters/arcade"
+	"github.com/eser/aya.is-services/pkg/api/adapters/storage"
+	"github.com/eser/aya.is-services/pkg/api/business/profiles"
+	"github.com/eser/aya.is-services/pkg/api/business/stories"
+	"github.com/eser/aya.is-services/pkg/api/business/users"
 	_ "github.com/lib/pq"
 )
 
 var ErrInitFailed = errors.New("failed to initialize app context")
 
 type AppContext struct {
+	// Adapters
 	Config  *AppConfig
 	Logger  *logfx.Logger
 	Metrics *metricsfx.MetricsProvider
@@ -27,6 +32,14 @@ type AppContext struct {
 	Queue *queuefx.Registry
 
 	Arcade *arcade.Arcade
+
+	Repository *storage.Repository
+
+	// Business
+	ProfilesService   *profiles.Service
+	UsersService      *users.Service
+	UsersOAuthService *users.GitHubOAuthService
+	StoriesService    *stories.Service
 }
 
 func New() *AppContext {
@@ -35,7 +48,7 @@ func New() *AppContext {
 
 func (a *AppContext) Init(ctx context.Context) error {
 	// ----------------------------------------------------
-	// Config
+	// Adapter: Config
 	// ----------------------------------------------------
 	cl := configfx.NewConfigManager()
 
@@ -47,7 +60,7 @@ func (a *AppContext) Init(ctx context.Context) error {
 	}
 
 	// ----------------------------------------------------
-	// Logger
+	// Adapter: Logger
 	// ----------------------------------------------------
 	a.Logger, err = logfx.NewLoggerAsDefault(os.Stdout, &a.Config.Log)
 	if err != nil {
@@ -64,7 +77,7 @@ func (a *AppContext) Init(ctx context.Context) error {
 	)
 
 	// ----------------------------------------------------
-	// Metrics
+	// Adapter: Metrics
 	// ----------------------------------------------------
 	a.Metrics = metricsfx.NewMetricsProvider()
 
@@ -74,7 +87,7 @@ func (a *AppContext) Init(ctx context.Context) error {
 	}
 
 	// ----------------------------------------------------
-	// Data
+	// Adapter: Data
 	// ----------------------------------------------------
 	a.Data = datafx.NewRegistry(a.Logger)
 
@@ -84,7 +97,7 @@ func (a *AppContext) Init(ctx context.Context) error {
 	}
 
 	// ----------------------------------------------------
-	// Queue
+	// Adapter: Queue
 	// ----------------------------------------------------
 	a.Queue = queuefx.NewRegistry(a.Logger)
 
@@ -94,9 +107,25 @@ func (a *AppContext) Init(ctx context.Context) error {
 	}
 
 	// ----------------------------------------------------
-	// Arcade
+	// Adapter: Arcade
 	// ----------------------------------------------------
 	a.Arcade = arcade.New(a.Config.Externals.Arcade)
+
+	// ----------------------------------------------------
+	// Adapter: Repository
+	// ----------------------------------------------------
+	a.Repository, err = storage.NewRepositoryFromDefault(a.Data)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrInitFailed, err)
+	}
+
+	// ----------------------------------------------------
+	// Business Services
+	// ----------------------------------------------------
+	a.ProfilesService = profiles.NewService(a.Logger, a.Repository)
+	a.UsersService = users.NewService(a.Logger, a.Repository)
+	a.UsersOAuthService = users.NewGitHubOAuthService(a.Logger, a.Repository)
+	a.StoriesService = stories.NewService(a.Logger, a.Repository)
 
 	return nil
 }

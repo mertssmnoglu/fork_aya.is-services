@@ -3,10 +3,8 @@ package http
 import (
 	"net/http"
 
-	"github.com/eser/ajan/datafx"
 	"github.com/eser/ajan/httpfx"
 	"github.com/eser/ajan/logfx"
-	"github.com/eser/aya.is-services/pkg/api/adapters/storage"
 	"github.com/eser/aya.is-services/pkg/api/business/profiles"
 	"github.com/eser/aya.is-services/pkg/lib/cursors"
 )
@@ -14,7 +12,7 @@ import (
 func RegisterHttpRoutesForSite( //nolint:funlen
 	routes *httpfx.Router,
 	logger *logfx.Logger,
-	dataRegistry *datafx.Registry,
+	profilesService *profiles.Service,
 ) {
 	routes.
 		Route(
@@ -24,14 +22,7 @@ func RegisterHttpRoutesForSite( //nolint:funlen
 				localeParam := ctx.Request.PathValue("locale")
 				domainParam := ctx.Request.PathValue("domain")
 
-				repository, err := storage.NewRepositoryFromDefault(dataRegistry)
-				if err != nil {
-					return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
-				}
-
-				service := profiles.NewService(logger, repository)
-
-				records, err := service.GetByCustomDomain(
+				records, err := profilesService.GetByCustomDomain(
 					ctx.Request.Context(),
 					localeParam,
 					domainParam,
@@ -54,14 +45,7 @@ func RegisterHttpRoutesForSite( //nolint:funlen
 			// get variables from path
 			localeParam := ctx.Request.PathValue("locale")
 
-			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
-			if err != nil {
-				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
-			}
-
-			service := profiles.NewService(logger, repository)
-
-			records, err := service.List(
+			records, err := profilesService.List(
 				ctx.Request.Context(),
 				localeParam,
 				cursors.NewCursor(0, nil),

@@ -4,10 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/eser/ajan/datafx"
 	"github.com/eser/ajan/httpfx"
 	"github.com/eser/ajan/logfx"
-	"github.com/eser/aya.is-services/pkg/api/adapters/storage"
 	"github.com/eser/aya.is-services/pkg/api/business/profiles"
 	"github.com/eser/aya.is-services/pkg/api/business/stories"
 	"github.com/eser/aya.is-services/pkg/lib/cursors"
@@ -16,7 +14,8 @@ import (
 func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 	routes *httpfx.Router,
 	logger *logfx.Logger,
-	dataRegistry *datafx.Registry,
+	profilesService *profiles.Service,
+	storiesService *stories.Service,
 ) {
 	routes.
 		Route("GET /{locale}/profiles", func(ctx *httpfx.Context) httpfx.Result {
@@ -42,14 +41,7 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 				}
 			}
 
-			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
-			if err != nil {
-				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
-			}
-
-			service := profiles.NewService(logger, repository)
-
-			records, err := service.List(ctx.Request.Context(), localeParam, cursor)
+			records, err := profilesService.List(ctx.Request.Context(), localeParam, cursor)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
@@ -66,14 +58,11 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 			localeParam := ctx.Request.PathValue("locale")
 			slugParam := ctx.Request.PathValue("slug")
 
-			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
-			if err != nil {
-				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
-			}
-
-			service := profiles.NewService(logger, repository)
-
-			record, err := service.GetBySlugEx(ctx.Request.Context(), localeParam, slugParam)
+			record, err := profilesService.GetBySlugEx(
+				ctx.Request.Context(),
+				localeParam,
+				slugParam,
+			)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
@@ -92,14 +81,7 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 			localeParam := ctx.Request.PathValue("locale")
 			slugParam := ctx.Request.PathValue("slug")
 
-			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
-			if err != nil {
-				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
-			}
-
-			service := profiles.NewService(logger, repository)
-
-			record, err := service.ListPagesBySlug(
+			record, err := profilesService.ListPagesBySlug(
 				ctx.Request.Context(),
 				localeParam,
 				slugParam,
@@ -125,14 +107,7 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 				slugParam := ctx.Request.PathValue("slug")
 				pageSlugParam := ctx.Request.PathValue("pageSlug")
 
-				repository, err := storage.NewRepositoryFromDefault(dataRegistry)
-				if err != nil {
-					return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
-				}
-
-				service := profiles.NewService(logger, repository)
-
-				record, err := service.GetPageBySlug(
+				record, err := profilesService.GetPageBySlug(
 					ctx.Request.Context(),
 					localeParam,
 					slugParam,
@@ -157,14 +132,7 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 			localeParam := ctx.Request.PathValue("locale")
 			slugParam := ctx.Request.PathValue("slug")
 
-			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
-			if err != nil {
-				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
-			}
-
-			service := profiles.NewService(logger, repository)
-
-			record, err := service.ListLinksBySlug(
+			record, err := profilesService.ListLinksBySlug(
 				ctx.Request.Context(),
 				localeParam,
 				slugParam,
@@ -188,14 +156,7 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 			slugParam := ctx.Request.PathValue("slug")
 			cursor := cursors.NewCursorFromRequest(ctx.Request)
 
-			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
-			if err != nil {
-				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
-			}
-
-			service := stories.NewService(logger, repository)
-
-			records, err := service.ListByAuthorProfileSlug(
+			records, err := storiesService.ListByAuthorProfileSlug(
 				ctx.Request.Context(),
 				localeParam,
 				slugParam,
@@ -220,14 +181,7 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 				slugParam := ctx.Request.PathValue("slug")
 				cursor := cursors.NewCursorFromRequest(ctx.Request)
 
-				repository, err := storage.NewRepositoryFromDefault(dataRegistry)
-				if err != nil {
-					return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
-				}
-
-				service := profiles.NewService(logger, repository)
-
-				records, err := service.ListProfileContributionsBySlug(
+				records, err := profilesService.ListProfileContributionsBySlug(
 					ctx.Request.Context(),
 					localeParam,
 					slugParam,
@@ -253,14 +207,7 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 				slugParam := ctx.Request.PathValue("slug")
 				cursor := cursors.NewCursorFromRequest(ctx.Request)
 
-				repository, err := storage.NewRepositoryFromDefault(dataRegistry)
-				if err != nil {
-					return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
-				}
-
-				service := profiles.NewService(logger, repository)
-
-				records, err := service.ListProfileMembersBySlug(
+				records, err := profilesService.ListProfileMembersBySlug(
 					ctx.Request.Context(),
 					localeParam,
 					slugParam,

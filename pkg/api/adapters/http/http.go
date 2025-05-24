@@ -3,7 +3,6 @@ package http
 import (
 	"context"
 
-	"github.com/eser/ajan/datafx"
 	"github.com/eser/ajan/httpfx"
 	"github.com/eser/ajan/httpfx/middlewares"
 	"github.com/eser/ajan/httpfx/modules/healthcheck"
@@ -11,6 +10,9 @@ import (
 	"github.com/eser/ajan/httpfx/modules/profiling"
 	"github.com/eser/ajan/logfx"
 	"github.com/eser/ajan/metricsfx"
+	"github.com/eser/aya.is-services/pkg/api/business/profiles"
+	"github.com/eser/aya.is-services/pkg/api/business/stories"
+	"github.com/eser/aya.is-services/pkg/api/business/users"
 )
 
 func Run(
@@ -18,7 +20,10 @@ func Run(
 	config *httpfx.Config,
 	metricsProvider *metricsfx.MetricsProvider,
 	logger *logfx.Logger,
-	dataRegistry *datafx.Registry,
+	profilesService *profiles.Service,
+	storiesService *stories.Service,
+	usersService *users.Service,
+	usersOAuthService *users.GitHubOAuthService,
 ) (func(), error) {
 	routes := httpfx.NewRouter("/")
 	httpService := httpfx.NewHttpService(config, routes, metricsProvider, logger)
@@ -30,21 +35,36 @@ func Run(
 	routes.Use(middlewares.CorrelationIdMiddleware())
 	routes.Use(middlewares.CorsMiddleware())
 	routes.Use(middlewares.MetricsMiddleware(httpService.InnerMetrics))
-	// routes.Use(AuthMiddleware(dataRegistry))
+	// routes.Use(AuthMiddleware(usersService))
 
 	// http modules
 	healthcheck.RegisterHttpRoutes(routes, config)
 	openapi.RegisterHttpRoutes(routes, config)
 	profiling.RegisterHttpRoutes(routes, config)
 
-	// --- OAuth Service wiring ---
-	githubOAuthService := NewGitHubOAuthService(dataRegistry)
-
 	// http routes
-	RegisterHttpRoutesForUsers(routes, logger, dataRegistry, githubOAuthService) //nolint:contextcheck
-	RegisterHttpRoutesForSite(routes, logger, dataRegistry)                      //nolint:contextcheck
-	RegisterHttpRoutesForProfiles(routes, logger, dataRegistry)                  //nolint:contextcheck
-	RegisterHttpRoutesForStories(routes, logger, dataRegistry)                   //nolint:contextcheck
+	RegisterHttpRoutesForUsers( //nolint:contextcheck
+		routes,
+		logger,
+		usersService,
+		usersOAuthService,
+	)
+	RegisterHttpRoutesForSite( //nolint:contextcheck
+		routes,
+		logger,
+		profilesService,
+	)
+	RegisterHttpRoutesForProfiles( //nolint:contextcheck
+		routes,
+		logger,
+		profilesService,
+		storiesService,
+	)
+	RegisterHttpRoutesForStories( //nolint:contextcheck
+		routes,
+		logger,
+		storiesService,
+	)
 
 	// run
 	return httpService.Start(ctx) //nolint:wrapcheck

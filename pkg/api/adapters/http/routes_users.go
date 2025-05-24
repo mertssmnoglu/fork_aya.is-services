@@ -4,10 +4,8 @@ package http
 import (
 	"net/http"
 
-	"github.com/eser/ajan/datafx"
 	"github.com/eser/ajan/httpfx"
 	"github.com/eser/ajan/logfx"
-	"github.com/eser/aya.is-services/pkg/api/adapters/storage"
 	"github.com/eser/aya.is-services/pkg/api/business/users"
 	"github.com/eser/aya.is-services/pkg/lib/cursors"
 )
@@ -15,22 +13,15 @@ import (
 func RegisterHttpRoutesForUsers(
 	routes *httpfx.Router,
 	logger *logfx.Logger,
-	dataRegistry *datafx.Registry,
-	oauthService users.OAuthService, // Injected dependency
+	usersService *users.Service,
+	usersOAuthService *users.GitHubOAuthService,
 ) {
 	routes.
 		Route("GET /{locale}/users", func(ctx *httpfx.Context) httpfx.Result {
 			// get variables from path
 			cursor := cursors.NewCursorFromRequest(ctx.Request)
 
-			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
-			if err != nil {
-				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
-			}
-
-			service := users.NewService(logger, repository)
-
-			records, err := service.List(ctx.Request.Context(), cursor)
+			records, err := usersService.List(ctx.Request.Context(), cursor)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
@@ -46,14 +37,7 @@ func RegisterHttpRoutesForUsers(
 			// get variables from path
 			idParam := ctx.Request.PathValue("id")
 
-			repository, err := storage.NewRepositoryFromDefault(dataRegistry)
-			if err != nil {
-				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
-			}
-
-			service := users.NewService(logger, repository)
-
-			record, err := service.GetById(ctx.Request.Context(), idParam)
+			record, err := usersService.GetById(ctx.Request.Context(), idParam)
 			if err != nil {
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
@@ -70,7 +54,7 @@ func RegisterHttpRoutesForUsers(
 	routes.Route("GET /auth/github/login", func(ctx *httpfx.Context) httpfx.Result {
 		// Initiate OAuth flow
 		redirectURI := ctx.Request.URL.Query().Get("redirect_uri")
-		authURL, _, err := oauthService.InitiateOAuth(ctx.Request.Context(), redirectURI)
+		authURL, _, err := usersOAuthService.InitiateOAuth(ctx.Request.Context(), redirectURI)
 		if err != nil {
 			return ctx.Results.Error(http.StatusInternalServerError, []byte("OAuth initiation failed"))
 		}
@@ -81,7 +65,7 @@ func RegisterHttpRoutesForUsers(
 	routes.Route("GET /auth/github/callback", func(ctx *httpfx.Context) httpfx.Result {
 		code := ctx.Request.URL.Query().Get("code")
 		state := ctx.Request.URL.Query().Get("state")
-		result, err := oauthService.HandleOAuthCallback(ctx.Request.Context(), code, state)
+		result, err := usersOAuthService.HandleOAuthCallback(ctx.Request.Context(), code, state)
 		if err != nil {
 			return ctx.Results.Error(http.StatusUnauthorized, []byte("OAuth callback failed"))
 		}

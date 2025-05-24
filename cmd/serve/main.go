@@ -27,7 +27,10 @@ func main() {
 			&appContext.Config.Http,
 			appContext.Metrics,
 			appContext.Logger,
-			appContext.Data,
+			appContext.ProfilesService,
+			appContext.StoriesService,
+			appContext.UsersService,
+			appContext.UsersOAuthService,
 		)
 		if err != nil {
 			appContext.Logger.ErrorContext(
