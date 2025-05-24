@@ -13,6 +13,7 @@ import (
 	"github.com/eser/ajan/metricsfx"
 	"github.com/eser/ajan/queuefx"
 	"github.com/eser/aya.is-services/pkg/api/adapters/arcade"
+	"github.com/eser/aya.is-services/pkg/api/adapters/auth_providers"
 	"github.com/eser/aya.is-services/pkg/api/adapters/storage"
 	"github.com/eser/aya.is-services/pkg/api/business/profiles"
 	"github.com/eser/aya.is-services/pkg/api/business/stories"
@@ -36,10 +37,9 @@ type AppContext struct {
 	Repository *storage.Repository
 
 	// Business
-	ProfilesService   *profiles.Service
-	UsersService      *users.Service
-	UsersOAuthService *users.GitHubOAuthService
-	StoriesService    *stories.Service
+	ProfilesService *profiles.Service
+	UsersService    *users.Service
+	StoriesService  *stories.Service
 }
 
 func New() *AppContext {
@@ -122,9 +122,12 @@ func (a *AppContext) Init(ctx context.Context) error {
 	// ----------------------------------------------------
 	// Business Services
 	// ----------------------------------------------------
+	authProviders := map[string]users.AuthProvider{
+		"github": auth_providers.NewGitHubAuthProvider(a.Logger, a.Repository),
+	}
+
 	a.ProfilesService = profiles.NewService(a.Logger, a.Repository)
-	a.UsersService = users.NewService(a.Logger, a.Repository)
-	a.UsersOAuthService = users.NewGitHubOAuthService(a.Logger, a.Repository)
+	a.UsersService = users.NewService(a.Logger, a.Repository, authProviders)
 	a.StoriesService = stories.NewService(a.Logger, a.Repository)
 
 	return nil

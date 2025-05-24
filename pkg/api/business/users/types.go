@@ -47,23 +47,9 @@ type Session struct {
 
 // --- OAuth & Auth types ---
 
-type OAuthProvider string
-
-const (
-	OAuthProviderGitHub OAuthProvider = "github"
-)
-
 type OAuthState struct {
 	State       string
 	RedirectURI string
-}
-
-type GitHubUserInfo struct {
-	ID     string
-	Login  string
-	Name   string
-	Email  string
-	Avatar string
 }
 
 type AuthResult struct {

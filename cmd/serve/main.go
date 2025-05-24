@@ -30,7 +30,6 @@ func main() {
 			appContext.ProfilesService,
 			appContext.StoriesService,
 			appContext.UsersService,
-			appContext.UsersOAuthService,
 		)
 		if err != nil {
 			appContext.Logger.ErrorContext(

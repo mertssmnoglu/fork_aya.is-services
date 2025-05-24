@@ -23,7 +23,6 @@ func Run(
 	profilesService *profiles.Service,
 	storiesService *stories.Service,
 	usersService *users.Service,
-	usersOAuthService *users.GitHubOAuthService,
 ) (func(), error) {
 	routes := httpfx.NewRouter("/")
 	httpService := httpfx.NewHttpService(config, routes, metricsProvider, logger)
@@ -47,7 +46,6 @@ func Run(
 		routes,
 		logger,
 		usersService,
-		usersOAuthService,
 	)
 	RegisterHttpRoutesForSite( //nolint:contextcheck
 		routes,

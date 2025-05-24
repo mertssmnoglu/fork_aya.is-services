@@ -31,9 +31,7 @@ type Repository interface {
 	UpdateSessionLoggedInAt(ctx context.Context, id string, loggedInAt time.Time) error
 }
 
-// --- Auth & OAuth Ports ---
-
-type OAuthService interface {
+type AuthProvider interface {
 	// InitiateOAuth returns the URL to redirect the user to GitHub for login, and the state to track the request.
 	InitiateOAuth(
 		ctx context.Context,
@@ -48,10 +46,21 @@ type Service struct {
 	logger      *logfx.Logger
 	repo        Repository
 	idGenerator RecordIDGenerator
+
+	authProviders map[string]AuthProvider
 }
 
-func NewService(logger *logfx.Logger, repo Repository) *Service {
-	return &Service{logger: logger, repo: repo, idGenerator: DefaultIDGenerator}
+func NewService(
+	logger *logfx.Logger,
+	repo Repository,
+	authProviders map[string]AuthProvider,
+) *Service {
+	return &Service{
+		logger:        logger,
+		repo:          repo,
+		idGenerator:   DefaultIDGenerator,
+		authProviders: authProviders,
+	}
 }
 
 func (s *Service) GetById(ctx context.Context, id string) (*User, error) {
@@ -113,4 +122,13 @@ func (s *Service) UpdateSessionLoggedInAt(
 	}
 
 	return nil
+}
+
+func (s *Service) AuthProvider(provider string) AuthProvider { //nolint:ireturn
+	service, serviceOk := s.authProviders[provider]
+	if !serviceOk {
+		return nil
+	}
+
+	return service
 }
