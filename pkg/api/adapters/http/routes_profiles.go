@@ -156,7 +156,7 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 			slugParam := ctx.Request.PathValue("slug")
 			cursor := cursors.NewCursorFromRequest(ctx.Request)
 
-			records, err := storiesService.ListByAuthorProfileSlug(
+			records, err := storiesService.ListByPublicationProfileSlug(
 				ctx.Request.Context(),
 				localeParam,
 				slugParam,
@@ -168,8 +168,8 @@ func RegisterHttpRoutesForProfiles( //nolint:funlen,cyclop,gocognit,maintidx
 
 			return ctx.Results.Json(records)
 		}).
-		HasSummary("List stories authored by profile slug").
-		HasDescription("List stories authored by profile slug.").
+		HasSummary("List stories published to profile slug").
+		HasDescription("List stories published to profile slug.").
 		HasResponse(http.StatusOK)
 
 	routes.

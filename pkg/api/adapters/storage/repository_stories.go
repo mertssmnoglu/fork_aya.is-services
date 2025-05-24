@@ -87,9 +87,16 @@ func (r *Repository) ListStories(
 	rows, err := r.queries.ListStories(
 		ctx,
 		ListStoriesParams{
-			LocaleCode:            localeCode,
-			FilterKind:            vars.MapValueToNullString(cursor.Filters, "kind"),
-			FilterAuthorProfileId: vars.MapValueToNullString(cursor.Filters, "author_profile_id"),
+			LocaleCode: localeCode,
+			FilterKind: vars.MapValueToNullString(cursor.Filters, "kind"),
+			FilterAuthorProfileId: vars.MapValueToNullString(
+				cursor.Filters,
+				"author_profile_id",
+			),
+			FilterPublicationProfileId: vars.MapValueToNullString(
+				cursor.Filters,
+				"publication_profile_id",
+			),
 		},
 	)
 	if err != nil {

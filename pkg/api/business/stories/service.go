@@ -118,3 +118,37 @@ func (s *Service) ListByAuthorProfileSlug(
 
 	return records, nil
 }
+
+func (s *Service) ListByPublicationProfileSlug(
+	ctx context.Context,
+	localeCode string,
+	publicationProfileSlug string,
+	cursor *cursors.Cursor,
+) (cursors.Cursored[[]*StoryWithChildren], error) {
+	publicationProfileId, err := s.repo.GetProfileIdBySlug(ctx, publicationProfileSlug)
+	if err != nil {
+		return cursors.Cursored[[]*StoryWithChildren]{}, fmt.Errorf(
+			"%w(slug: %s): %w",
+			ErrFailedToGetRecord,
+			publicationProfileSlug,
+			err,
+		)
+	}
+
+	cursor.Filters["publication_profile_id"] = publicationProfileId
+
+	records, err := s.repo.ListStories(
+		ctx,
+		localeCode,
+		cursor,
+	)
+	if err != nil {
+		return cursors.Cursored[[]*StoryWithChildren]{}, fmt.Errorf(
+			"%w: %w",
+			ErrFailedToListRecords,
+			err,
+		)
+	}
+
+	return records, nil
+}

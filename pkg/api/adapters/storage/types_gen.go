@@ -199,6 +199,17 @@ type Story struct {
 	DeletedAt       sql.NullTime          `db:"deleted_at" json:"deleted_at"`
 }
 
+type StoryPublication struct {
+	Id         string                `db:"id" json:"id"`
+	StoryId    string                `db:"story_id" json:"story_id"`
+	ProfileId  string                `db:"profile_id" json:"profile_id"`
+	Kind       string                `db:"kind" json:"kind"`
+	Properties pqtype.NullRawMessage `db:"properties" json:"properties"`
+	CreatedAt  time.Time             `db:"created_at" json:"created_at"`
+	UpdatedAt  sql.NullTime          `db:"updated_at" json:"updated_at"`
+	DeletedAt  sql.NullTime          `db:"deleted_at" json:"deleted_at"`
+}
+
 type StoryTx struct {
 	StoryId    string `db:"story_id" json:"story_id"`
 	LocaleCode string `db:"locale_code" json:"locale_code"`

@@ -220,6 +220,18 @@ CREATE TABLE IF NOT EXISTS "story_tx" (
   PRIMARY KEY ("story_id", "locale_code")
 );
 
+CREATE TABLE IF NOT EXISTS "story_publication" (
+  "id" CHAR(26) NOT NULL PRIMARY KEY,
+  "story_id" CHAR(26) NOT NULL CONSTRAINT "story_publication_story_id_fk" REFERENCES "story",
+  "profile_id" CHAR(26) NOT NULL CONSTRAINT "story_publication_profile_id_fk" REFERENCES "profile",
+  "kind" TEXT NOT NULL,
+  "properties" JSONB,
+  "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  "updated_at" TIMESTAMP WITH TIME ZONE,
+  "deleted_at" TIMESTAMP WITH TIME ZONE,
+  CONSTRAINT "story_publication_story_id_profile_id_kind_unique" UNIQUE ("story_id", "profile_id", "kind")
+);
+
 CREATE UNLOGGED TABLE IF NOT EXISTS "cache" (
   "key" CHAR(200) NOT NULL,
   "value" JSONB,
@@ -233,6 +245,8 @@ CREATE INDEX IF NOT EXISTS "cache_key_index" ON "cache" ("key");
 DROP INDEX IF EXISTS "cache_key_index";
 
 DROP TABLE IF EXISTS "cache";
+
+DROP TABLE IF EXISTS "story_publication";
 
 DROP TABLE IF EXISTS "story_tx";
 
