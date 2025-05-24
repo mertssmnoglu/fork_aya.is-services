@@ -51,7 +51,7 @@ func RegisterHttpRoutesForUsers(
 
 	// --- Auth endpoints ---
 	routes.
-		Route("GET /auth/{authProvider}/login", func(ctx *httpfx.Context) httpfx.Result {
+		Route("GET /{locale}/auth/{authProvider}/login", func(ctx *httpfx.Context) httpfx.Result {
 			// get auth provider from path
 			authProviderName := ctx.Request.PathValue("authProvider")
 			authProvider := usersService.AuthProvider(authProviderName)
@@ -78,7 +78,7 @@ func RegisterHttpRoutesForUsers(
 		HasResponse(http.StatusFound)
 
 	routes.
-		Route("GET /auth/{authProider}/callback", func(ctx *httpfx.Context) httpfx.Result {
+		Route("GET /{locale}/auth/{authProider}/callback", func(ctx *httpfx.Context) httpfx.Result {
 			// get auth provider from path
 			authProviderName := ctx.Request.PathValue("authProvider")
 			authProvider := usersService.AuthProvider(authProviderName)
@@ -108,7 +108,7 @@ func RegisterHttpRoutesForUsers(
 		HasResponse(http.StatusOK)
 
 	routes.
-		Route("POST /auth/logout", func(ctx *httpfx.Context) httpfx.Result {
+		Route("POST /{locale}/auth/logout", func(ctx *httpfx.Context) httpfx.Result {
 			// Invalidate session logic (optional, e.g., remove session from DB)
 			return ctx.Results.Json(map[string]string{"status": "logged out"})
 		}).
