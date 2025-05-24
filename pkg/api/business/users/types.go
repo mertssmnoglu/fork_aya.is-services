@@ -3,7 +3,7 @@ package users
 import (
 	"time"
 
-	"github.com/oklog/ulid/v2"
+	"github.com/eser/ajan/lib"
 )
 
 type RecordID string
@@ -11,7 +11,7 @@ type RecordID string
 type RecordIDGenerator func() RecordID
 
 func DefaultIDGenerator() RecordID {
-	return RecordID(ulid.Make().String())
+	return RecordID(lib.IdsGenerateUnique())
 }
 
 type User struct {

@@ -21,7 +21,9 @@ func CmdReady() *cobra.Command {
 }
 
 func execReady(ctx context.Context) error {
-	appContext, err := appcontext.NewAppContext(ctx)
+	appContext := appcontext.New()
+
+	err := appContext.Init(ctx)
 	if err != nil {
 		return err //nolint:wrapcheck
 	}

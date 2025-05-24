@@ -4,34 +4,46 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/eser/ajan/processfx"
 	"github.com/eser/aya.is-services/pkg/api/adapters/appcontext"
 	"github.com/eser/aya.is-services/pkg/api/adapters/http"
 )
 
 func main() {
-	ctx := context.Background()
+	baseCtx := context.Background()
 
-	appContext, err := appcontext.NewAppContext(ctx)
+	appContext := appcontext.New()
+
+	err := appContext.Init(baseCtx)
 	if err != nil {
 		panic(err)
 	}
 
-	appContext.Logger.InfoContext(
-		ctx,
-		"Starting service",
-		slog.String("name", appContext.Config.AppName),
-		slog.String("environment", appContext.Config.AppEnv),
-		slog.Any("features", appContext.Config.Features),
-	)
+	process := processfx.New(baseCtx, appContext.Logger)
 
-	err = http.Run(
-		ctx,
-		&appContext.Config.Http,
-		appContext.Metrics,
-		appContext.Logger,
-		appContext.Data,
-	)
-	if err != nil {
-		panic(err)
-	}
+	process.StartGoroutine("http-server", func(ctx context.Context) error {
+		cleanup, err := http.Run(
+			ctx,
+			&appContext.Config.Http,
+			appContext.Metrics,
+			appContext.Logger,
+			appContext.Data,
+		)
+		if err != nil {
+			appContext.Logger.ErrorContext(
+				ctx,
+				"[Main] HTTP server run failed",
+				slog.String("module", "main"),
+				slog.Any("error", err))
+		}
+
+		defer cleanup()
+
+		<-ctx.Done()
+
+		return nil
+	})
+
+	process.Wait()
+	process.Shutdown()
 }

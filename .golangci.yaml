@@ -32,16 +32,11 @@ linters:
               desc: The io/ioutil package has been deprecated, see https://go.dev/doc/go1.16#ioutil
           allow:
             - $gostd
-            - golang.org/x/net/http/httpguts
             - github.com/eser/ajan
             - github.com/eser/aya.is-services
-            - github.com/oklog/ulid/v2
-            - github.com/go-playground/validator/v10
             - github.com/stretchr/testify
             - github.com/go-faker/faker/v4
-            - github.com/getkin/kin-openapi/openapi3
             - github.com/golang-jwt/jwt/v5
-            - github.com/prometheus/client_golang/prometheus
             - github.com/pressly/goose/v3
             - github.com/lib/pq
             - github.com/sqlc-dev/pqtype

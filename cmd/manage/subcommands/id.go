@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/oklog/ulid/v2"
+	"github.com/eser/ajan/lib"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ func CmdId() *cobra.Command {
 
 func execId(_ context.Context, count int) error {
 	for range count {
-		id := ulid.Make().String()
+		id := lib.IdsGenerateUnique()
 
 		fmt.Println(id) //nolint:forbidigo
 	}

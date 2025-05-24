@@ -23,7 +23,9 @@ func CmdProfilesImport() *cobra.Command {
 }
 
 func execProfilesImport(ctx context.Context) error {
-	appContext, err := appcontext.NewAppContext(ctx)
+	appContext := appcontext.New()
+
+	err := appContext.Init(ctx)
 	if err != nil {
 		return err //nolint:wrapcheck
 	}

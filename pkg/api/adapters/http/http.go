@@ -9,7 +9,6 @@ import (
 	"github.com/eser/ajan/httpfx/modules/healthcheck"
 	"github.com/eser/ajan/httpfx/modules/openapi"
 	"github.com/eser/ajan/httpfx/modules/profiling"
-	"github.com/eser/ajan/lib"
 	"github.com/eser/ajan/logfx"
 	"github.com/eser/ajan/metricsfx"
 )
@@ -20,7 +19,7 @@ func Run(
 	metricsProvider *metricsfx.MetricsProvider,
 	logger *logfx.Logger,
 	dataRegistry *datafx.Registry,
-) error {
+) (func(), error) {
 	routes := httpfx.NewRouter("/")
 	httpService := httpfx.NewHttpService(config, routes, metricsProvider, logger)
 
@@ -48,14 +47,5 @@ func Run(
 	RegisterHttpRoutesForStories(routes, logger, dataRegistry)                   //nolint:contextcheck
 
 	// run
-	cleanup, err := httpService.Start(ctx)
-	if err != nil {
-		return err //nolint:wrapcheck
-	}
-
-	defer cleanup()
-
-	lib.WaitForSignal()
-
-	return nil
+	return httpService.Start(ctx) //nolint:wrapcheck
 }

@@ -33,7 +33,9 @@ func run(ctx context.Context, args []string) error {
 	command := args[1]
 	rest := args[2:]
 
-	appContext, err := appcontext.NewAppContext(ctx)
+	appContext := appcontext.New()
+
+	err := appContext.Init(ctx)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrAppContextNotInitialized, err)
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/eser/ajan/configfx"
@@ -21,56 +22,81 @@ type AppContext struct {
 	Config  *AppConfig
 	Logger  *logfx.Logger
 	Metrics *metricsfx.MetricsProvider
-	Data    *datafx.Registry
-	Queue   *queuefx.Registry
+
+	Data  *datafx.Registry
+	Queue *queuefx.Registry
 
 	Arcade *arcade.Arcade
 }
 
-func NewAppContext(ctx context.Context) (*AppContext, error) {
-	appContext := &AppContext{} //nolint:exhaustruct
+func New() *AppContext {
+	return &AppContext{} //nolint:exhaustruct
+}
 
-	// config
+func (a *AppContext) Init(ctx context.Context) error {
+	// ----------------------------------------------------
+	// Config
+	// ----------------------------------------------------
 	cl := configfx.NewConfigManager()
 
-	appContext.Config = &AppConfig{} //nolint:exhaustruct
+	a.Config = &AppConfig{} //nolint:exhaustruct
 
-	err := cl.LoadDefaults(appContext.Config)
+	err := cl.LoadDefaults(a.Config)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInitFailed, err)
+		return fmt.Errorf("%w: %w", ErrInitFailed, err)
 	}
 
-	// logger
-	appContext.Logger, err = logfx.NewLoggerAsDefault(os.Stdout, &appContext.Config.Log)
+	// ----------------------------------------------------
+	// Logger
+	// ----------------------------------------------------
+	a.Logger, err = logfx.NewLoggerAsDefault(os.Stdout, &a.Config.Log)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInitFailed, err)
+		return fmt.Errorf("%w: %w", ErrInitFailed, err)
 	}
 
-	// metrics
-	appContext.Metrics = metricsfx.NewMetricsProvider()
+	a.Logger.InfoContext(
+		ctx,
+		"[AppContext] Initialization in progress",
+		slog.String("module", "appcontext"),
+		slog.String("name", a.Config.AppName),
+		slog.String("environment", a.Config.AppEnv),
+		slog.Any("features", a.Config.Features),
+	)
 
-	err = appContext.Metrics.RegisterNativeCollectors()
+	// ----------------------------------------------------
+	// Metrics
+	// ----------------------------------------------------
+	a.Metrics = metricsfx.NewMetricsProvider()
+
+	err = a.Metrics.RegisterNativeCollectors()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInitFailed, err)
+		return fmt.Errorf("%w: %w", ErrInitFailed, err)
 	}
 
-	// data
-	appContext.Data = datafx.NewRegistry(appContext.Logger)
+	// ----------------------------------------------------
+	// Data
+	// ----------------------------------------------------
+	a.Data = datafx.NewRegistry(a.Logger)
 
-	err = appContext.Data.LoadFromConfig(ctx, &appContext.Config.Data)
+	err = a.Data.LoadFromConfig(ctx, &a.Config.Data)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInitFailed, err)
+		return fmt.Errorf("%w: %w", ErrInitFailed, err)
 	}
 
-	// queue
-	appContext.Queue = queuefx.NewRegistry(appContext.Logger)
+	// ----------------------------------------------------
+	// Queue
+	// ----------------------------------------------------
+	a.Queue = queuefx.NewRegistry(a.Logger)
 
-	err = appContext.Queue.LoadFromConfig(ctx, &appContext.Config.Queue)
+	err = a.Queue.LoadFromConfig(ctx, &a.Config.Queue)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInitFailed, err)
+		return fmt.Errorf("%w: %w", ErrInitFailed, err)
 	}
 
-	appContext.Arcade = arcade.New(appContext.Config.Externals.Arcade)
+	// ----------------------------------------------------
+	// Arcade
+	// ----------------------------------------------------
+	a.Arcade = arcade.New(a.Config.Externals.Arcade)
 
-	return appContext, nil
+	return nil
 }
