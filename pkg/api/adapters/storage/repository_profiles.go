@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"strings"
 
 	"github.com/eser/aya.is-services/pkg/api/business/profiles"
@@ -20,6 +21,10 @@ func (r *Repository) GetProfileIdBySlug(ctx context.Context, slug string) (strin
 		func(ctx context.Context) (any, error) {
 			row, err := r.queries.GetProfileIdBySlug(ctx, GetProfileIdBySlugParams{Slug: slug})
 			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return nil, nil //nolint:nilnil
+				}
+
 				return nil, err
 			}
 
@@ -33,8 +38,8 @@ func (r *Repository) GetProfileIdBySlug(ctx context.Context, slug string) (strin
 func (r *Repository) GetProfileIdByCustomDomain(
 	ctx context.Context,
 	domain string,
-) (string, error) {
-	var result string
+) (*string, error) {
+	var result *string
 
 	err := r.cache.Execute(
 		ctx,
@@ -48,10 +53,14 @@ func (r *Repository) GetProfileIdByCustomDomain(
 				},
 			)
 			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return nil, nil //nolint:nilnil
+				}
+
 				return nil, err
 			}
 
-			return row, nil
+			return &row, nil
 		},
 	)
 
@@ -65,6 +74,10 @@ func (r *Repository) GetProfileById(
 ) (*profiles.Profile, error) {
 	row, err := r.queries.GetProfileById(ctx, GetProfileByIdParams{LocaleCode: localeCode, Id: id})
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
 		return nil, err
 	}
 
@@ -131,14 +144,14 @@ func (r *Repository) ListProfiles(
 	return wrappedResponse, nil
 }
 
-func (r *Repository) GetProfilePagesByProfileId(
+func (r *Repository) ListProfilePagesByProfileId(
 	ctx context.Context,
 	localeCode string,
 	profileId string,
 ) ([]*profiles.ProfilePageBrief, error) {
-	rows, err := r.queries.GetProfilePagesByProfileId(
+	rows, err := r.queries.ListProfilePagesByProfileId(
 		ctx,
-		GetProfilePagesByProfileIdParams{LocaleCode: localeCode, ProfileId: profileId},
+		ListProfilePagesByProfileIdParams{LocaleCode: localeCode, ProfileId: profileId},
 	)
 	if err != nil {
 		return nil, err
@@ -173,6 +186,10 @@ func (r *Repository) GetProfilePageByProfileIdAndSlug(
 		},
 	)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
 		return nil, err
 	}
 
@@ -189,14 +206,14 @@ func (r *Repository) GetProfilePageByProfileIdAndSlug(
 	return result, nil
 }
 
-func (r *Repository) GetProfileLinksByProfileId(
+func (r *Repository) ListProfileLinksByProfileId(
 	ctx context.Context,
 	_localeCode string,
 	profileId string,
 ) ([]*profiles.ProfileLinkBrief, error) {
-	rows, err := r.queries.GetProfileLinksByProfileId(
+	rows, err := r.queries.ListProfileLinksByProfileId(
 		ctx,
-		GetProfileLinksByProfileIdParams{ProfileId: profileId},
+		ListProfileLinksByProfileIdParams{ProfileId: profileId},
 	)
 	if err != nil {
 		return nil, err

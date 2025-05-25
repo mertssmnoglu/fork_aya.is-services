@@ -97,13 +97,20 @@ func SetValue(dest any, src any) error {
 
 	ev := dv.Elem() //nolint:varnamelen
 
-	sv := reflect.ValueOf(src) //nolint:varnamelen
-	if !sv.Type().AssignableTo(ev.Type()) {
-		return fmt.Errorf("%w: %s to %s", ErrCannotAssign, sv.Type(), ev.Type())
-	}
-
 	if !ev.CanSet() {
 		return fmt.Errorf("%w: %s", ErrCannotSetValue, ev.Type())
+	}
+
+	if src == nil {
+		ev.Set(reflect.Zero(ev.Type()))
+
+		return nil
+	}
+
+	sv := reflect.ValueOf(src) //nolint:varnamelen
+
+	if !sv.Type().AssignableTo(ev.Type()) {
+		return fmt.Errorf("%w: %s to %s", ErrCannotAssign, sv.Type(), ev.Type())
 	}
 
 	ev.Set(sv)

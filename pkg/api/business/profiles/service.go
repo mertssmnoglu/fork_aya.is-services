@@ -25,15 +25,15 @@ type RecentPostsFetcher interface {
 
 type Repository interface {
 	GetProfileIdBySlug(ctx context.Context, slug string) (string, error)
-	GetProfileIdByCustomDomain(ctx context.Context, domain string) (string, error)
+	GetProfileIdByCustomDomain(ctx context.Context, domain string) (*string, error)
 	GetProfileById(ctx context.Context, localeCode string, id string) (*Profile, error)
 	ListProfiles(
 		ctx context.Context,
 		localeCode string,
 		cursor *cursors.Cursor,
 	) (cursors.Cursored[[]*Profile], error)
-	// GetProfileLinksForKind(ctx context.Context, kind string) ([]*ProfileLink, error)
-	GetProfilePagesByProfileId(
+	// ListProfileLinksForKind(ctx context.Context, kind string) ([]*ProfileLink, error)
+	ListProfilePagesByProfileId(
 		ctx context.Context,
 		localeCode string,
 		profileId string,
@@ -44,7 +44,7 @@ type Repository interface {
 		profileId string,
 		pageSlug string,
 	) (*ProfilePage, error)
-	GetProfileLinksByProfileId(
+	ListProfileLinksByProfileId(
 		ctx context.Context,
 		localeCode string,
 		profileId string,
@@ -116,12 +116,12 @@ func (s *Service) GetBySlugEx(
 		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileId, err)
 	}
 
-	pages, err := s.repo.GetProfilePagesByProfileId(ctx, localeCode, record.Id)
+	pages, err := s.repo.ListProfilePagesByProfileId(ctx, localeCode, record.Id)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileId, err)
 	}
 
-	links, err := s.repo.GetProfileLinksByProfileId(ctx, localeCode, record.Id)
+	links, err := s.repo.ListProfileLinksByProfileId(ctx, localeCode, record.Id)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileId, err)
 	}
@@ -145,9 +145,13 @@ func (s *Service) GetByCustomDomain(
 		return nil, fmt.Errorf("%w(custom_domain: %s): %w", ErrFailedToGetRecord, domain, err)
 	}
 
-	record, err := s.repo.GetProfileById(ctx, localeCode, profileId)
+	if profileId == nil {
+		return nil, nil //nolint:nilnil
+	}
+
+	record, err := s.repo.GetProfileById(ctx, localeCode, *profileId)
 	if err != nil {
-		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileId, err)
+		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, *profileId, err)
 	}
 
 	return record, nil
@@ -176,7 +180,7 @@ func (s *Service) ListPagesBySlug(
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
 	}
 
-	pages, err := s.repo.GetProfilePagesByProfileId(ctx, localeCode, profileId)
+	pages, err := s.repo.ListProfilePagesByProfileId(ctx, localeCode, profileId)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileId, err)
 	}
@@ -219,7 +223,7 @@ func (s *Service) ListLinksBySlug(
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
 	}
 
-	links, err := s.repo.GetProfileLinksByProfileId(ctx, localeCode, profileId)
+	links, err := s.repo.ListProfileLinksByProfileId(ctx, localeCode, profileId)
 	if err != nil {
 		return nil, fmt.Errorf("%w(profile_id: %s): %w", ErrFailedToGetRecord, profileId, err)
 	}
@@ -296,7 +300,7 @@ func (s *Service) ListProfileMembersBySlug(
 }
 
 func (s *Service) Import(ctx context.Context, fetcher RecentPostsFetcher) error {
-	// 	links, err := s.repo.GetProfileLinksForKind(ctx, "x")
+	// 	links, err := s.repo.ListProfileLinksForKind(ctx, "x")
 	// 	if err != nil {
 	// 		return fmt.Errorf("%w: %w", ErrFailedToListRecords, err)
 	// 	}

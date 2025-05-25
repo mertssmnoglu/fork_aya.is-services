@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/eser/aya.is-services/pkg/api/business/users"
@@ -15,6 +16,10 @@ func (r *Repository) GetSessionById(
 ) (*users.Session, error) {
 	row, err := r.queries.GetSessionById(ctx, GetSessionByIdParams{Id: id})
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
 		return nil, err
 	}
 

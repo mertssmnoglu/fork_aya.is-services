@@ -121,25 +121,6 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetProfileIdBySlug(ctx context.Context, arg GetProfileIdBySlugParams) (string, error)
-	//GetProfileLinksByProfileId
-	//
-	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
-	//  FROM "profile_link"
-	//  WHERE profile_id = $1
-	//    AND is_hidden = FALSE
-	//    AND deleted_at IS NULL
-	//  ORDER BY "order"
-	GetProfileLinksByProfileId(ctx context.Context, arg GetProfileLinksByProfileIdParams) ([]*ProfileLink, error)
-	//GetProfileLinksForKind
-	//
-	//  SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
-	//  FROM "profile_link" pl
-	//    INNER JOIN "profile" p ON p.id = pl.profile_id
-	//    AND p.deleted_at IS NULL
-	//  WHERE pl.kind = $1
-	//    AND pl.deleted_at IS NULL
-	//  ORDER BY pl."order"
-	GetProfileLinksForKind(ctx context.Context, arg GetProfileLinksForKindParams) ([]*ProfileLink, error)
 	//GetProfilePageByProfileIdAndSlug
 	//
 	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
@@ -149,16 +130,6 @@ type Querier interface {
 	//  WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL
 	//  ORDER BY pp."order"
 	GetProfilePageByProfileIdAndSlug(ctx context.Context, arg GetProfilePageByProfileIdAndSlugParams) (*GetProfilePageByProfileIdAndSlugRow, error)
-	//GetProfilePagesByProfileId
-	//
-	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
-	//  FROM "profile_page" pp
-	//    INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
-	//    AND ppt.locale_code = $1
-	//  WHERE pp.profile_id = $2
-	//    AND pp.deleted_at IS NULL
-	//  ORDER BY pp."order"
-	GetProfilePagesByProfileId(ctx context.Context, arg GetProfilePagesByProfileIdParams) ([]*GetProfilePagesByProfileIdRow, error)
 	//GetSessionById
 	//
 	//  SELECT
@@ -213,6 +184,25 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetUserById(ctx context.Context, arg GetUserByIdParams) (*User, error)
+	//ListProfileLinksByProfileId
+	//
+	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
+	//  FROM "profile_link"
+	//  WHERE profile_id = $1
+	//    AND is_hidden = FALSE
+	//    AND deleted_at IS NULL
+	//  ORDER BY "order"
+	ListProfileLinksByProfileId(ctx context.Context, arg ListProfileLinksByProfileIdParams) ([]*ProfileLink, error)
+	//ListProfileLinksForKind
+	//
+	//  SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
+	//  FROM "profile_link" pl
+	//    INNER JOIN "profile" p ON p.id = pl.profile_id
+	//    AND p.deleted_at IS NULL
+	//  WHERE pl.kind = $1
+	//    AND pl.deleted_at IS NULL
+	//  ORDER BY pl."order"
+	ListProfileLinksForKind(ctx context.Context, arg ListProfileLinksForKindParams) ([]*ProfileLink, error)
 	//ListProfileMemberships
 	//
 	//  SELECT
@@ -237,6 +227,16 @@ type Querier interface {
 	//      AND ($4::TEXT IS NULL OR pm.profile_id = $4::TEXT)
 	//      AND ($5::TEXT IS NULL OR pm.member_profile_id = $5::TEXT)
 	ListProfileMemberships(ctx context.Context, arg ListProfileMembershipsParams) ([]*ListProfileMembershipsRow, error)
+	//ListProfilePagesByProfileId
+	//
+	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
+	//  FROM "profile_page" pp
+	//    INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
+	//    AND ppt.locale_code = $1
+	//  WHERE pp.profile_id = $2
+	//    AND pp.deleted_at IS NULL
+	//  ORDER BY pp."order"
+	ListProfilePagesByProfileId(ctx context.Context, arg ListProfilePagesByProfileIdParams) ([]*ListProfilePagesByProfileIdRow, error)
 	//ListProfiles
 	//
 	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties

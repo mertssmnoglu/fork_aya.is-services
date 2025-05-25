@@ -3,6 +3,8 @@ package storage
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/eser/aya.is-services/pkg/api/business/profiles"
 	"github.com/eser/aya.is-services/pkg/api/business/stories"
@@ -20,6 +22,10 @@ func (r *Repository) GetStoryIdBySlug(ctx context.Context, slug string) (string,
 		func(ctx context.Context) (any, error) {
 			row, err := r.queries.GetStoryIdBySlug(ctx, GetStoryIdBySlugParams{Slug: slug})
 			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return nil, nil //nolint:nilnil
+				}
+
 				return nil, err
 			}
 
@@ -37,6 +43,10 @@ func (r *Repository) GetStoryById(
 ) (*stories.StoryWithChildren, error) {
 	row, err := r.queries.GetStoryById(ctx, GetStoryByIdParams{LocaleCode: localeCode, Id: id})
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
 		return nil, err
 	}
 

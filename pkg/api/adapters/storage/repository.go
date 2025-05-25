@@ -52,28 +52,26 @@ func NewRepositoryFromDataSource(datasource datafx.Datasource) *Repository {
 	}
 
 	repository.cache = caching.NewCache(
-		func(ctx context.Context, key string) (any, error) {
+		func(ctx context.Context, key string, target any) (bool, error) {
 			cachedMessage, err := repository.CacheGetSince(
 				ctx,
 				key,
 				time.Now().Add(-1*repository.cacheTTL),
 			)
 			if err != nil {
-				return nil, err
+				return false, err
 			}
 
 			if cachedMessage == nil {
-				return nil, nil //nolint:nilnil
+				return false, nil
 			}
 
-			var value any
-
-			unmarshallErr := json.Unmarshal(*cachedMessage, &value)
+			unmarshallErr := json.Unmarshal(*cachedMessage, target)
 			if unmarshallErr != nil {
-				return nil, unmarshallErr //nolint:wrapcheck
+				return false, unmarshallErr //nolint:wrapcheck
 			}
 
-			return value, nil
+			return true, nil
 		},
 		func(ctx context.Context, key string, value any) error {
 			message, marshallErr := json.Marshal(value)

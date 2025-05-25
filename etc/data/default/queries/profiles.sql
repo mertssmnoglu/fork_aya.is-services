@@ -45,7 +45,7 @@ SET deleted_at = NOW()
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
--- name: GetProfileLinksForKind :many
+-- name: ListProfileLinksForKind :many
 SELECT pl.*
 FROM "profile_link" pl
   INNER JOIN "profile" p ON p.id = pl.profile_id
@@ -54,7 +54,7 @@ WHERE pl.kind = sqlc.arg(kind)
   AND pl.deleted_at IS NULL
 ORDER BY pl."order";
 
--- name: GetProfilePagesByProfileId :many
+-- name: ListProfilePagesByProfileId :many
 SELECT pp.*, ppt.*
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
@@ -71,7 +71,7 @@ FROM "profile_page" pp
 WHERE pp.profile_id = sqlc.arg(profile_id) AND pp.slug = sqlc.arg(page_slug) AND pp.deleted_at IS NULL
 ORDER BY pp."order";
 
--- name: GetProfileLinksByProfileId :many
+-- name: ListProfileLinksByProfileId :many
 SELECT *
 FROM "profile_link"
 WHERE profile_id = sqlc.arg(profile_id)

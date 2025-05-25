@@ -15,12 +15,12 @@ var (
 )
 
 type Cache struct {
-	getter func(ctx context.Context, key string) (any, error)
+	getter func(ctx context.Context, key string, target any) (bool, error)
 	setter func(ctx context.Context, key string, value any) error
 }
 
 func NewCache(
-	getter func(ctx context.Context, key string) (any, error),
+	getter func(ctx context.Context, key string, target any) (bool, error),
 	setter func(ctx context.Context, key string, value any) error,
 ) *Cache {
 	return &Cache{
@@ -30,22 +30,15 @@ func NewCache(
 }
 
 func (c *Cache) Get(ctx context.Context, target any, key string) (bool, error) {
-	value, err := c.getter(ctx, key)
+	isSet, err := c.getter(ctx, key, target)
 	if err != nil {
 		return false, fmt.Errorf("%w: %w", ErrCannotGetFromCache, err)
 	}
 
-	if value == nil {
+	if !isSet {
 		// fmt.Println("cache miss ", key) //nolint:forbidigo
 		return false, nil
 	}
-
-	err = vars.SetValue(target, value)
-	if err != nil {
-		return false, fmt.Errorf("%w: %w", ErrCannotGetFromCache, err)
-	}
-
-	// fmt.Println("cache hit ", key) //nolint:forbidigo
 
 	return true, nil
 }

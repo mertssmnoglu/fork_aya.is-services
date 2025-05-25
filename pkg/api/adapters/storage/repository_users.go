@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/eser/aya.is-services/pkg/api/business/users"
 	"github.com/eser/aya.is-services/pkg/lib/cursors"
@@ -15,6 +16,10 @@ func (r *Repository) GetUserById(
 ) (*users.User, error) {
 	row, err := r.queries.GetUserById(ctx, GetUserByIdParams{Id: id})
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
 		return nil, err
 	}
 
@@ -46,6 +51,10 @@ func (r *Repository) GetUserByEmail(
 		GetUserByEmailParams{Email: sql.NullString{String: email, Valid: true}},
 	)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil //nolint:nilnil
+		}
+
 		return nil, err
 	}
 

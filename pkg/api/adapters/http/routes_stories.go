@@ -43,6 +43,10 @@ func RegisterHttpRoutesForStories(
 				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
 			}
 
+			// if record == nil {
+			// 	return ctx.Results.Error(http.StatusNotFound, []byte("story not found"))
+			// }
+
 			wrappedResponse := cursors.WrapResponseWithCursor(record, nil)
 
 			return ctx.Results.Json(wrappedResponse)
