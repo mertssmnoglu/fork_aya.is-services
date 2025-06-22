@@ -24,7 +24,7 @@ ENV GH_PATH=$GH_PATH
 
 # Setup for private Go Modules where available
 RUN echo "machine github.com login ${GH_LOGIN} password ${GH_ACCESS_TOKEN}" > ~/.netrc
-ENV GOPRIVATE "${GH_PATH}/*"
+ENV GOPRIVATE="${GH_PATH}/*"
 RUN go env -w GOPRIVATE="${GH_PATH}/*"
 ENV GO111MODULE=on
 ENV CGO_ENABLED=0
