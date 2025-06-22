@@ -69,9 +69,11 @@ RUN apt-get update && \
   useradd -r -g nonroot nonroot
 
 # Copy the binary from the builder-production container
-COPY --from=builder-production --chown=nonroot:nonroot /app/serve /
 # COPY --from=builder-production /bin/sh /bin/sh
 # COPY --from=builder-production /bin/cat /bin/cat
+COPY --from=builder-production --chown=nonroot:nonroot /app/serve /
+COPY --from=builder-production --chown=nonroot:nonroot /app/.env /
+COPY --from=builder-production --chown=nonroot:nonroot /app/config.json /
 
 # Run as a non-root user
 USER nonroot
