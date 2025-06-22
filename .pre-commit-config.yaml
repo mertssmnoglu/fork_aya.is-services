@@ -68,11 +68,19 @@ repos:
         exclude: |
           (?x)^(
             .github/.*|
-            ops/docker/resources/fluentd/Dockerfile|
+            ops/docker/resources/otel-collector/otel-collector.yaml|
             ops/docker/Dockerfile|
+            pkg/ajan/configfx/README.md|
+            pkg/ajan/connfx/README.md|
+            pkg/ajan/httpclient/README.md|
+            pkg/ajan/httpfx/README.md|
+            pkg/ajan/lib/README.md|
+            pkg/ajan/logfx/README.md|
+            pkg/ajan/processfx/README.md|
+            pkg/ajan/results/README.md|
+            pkg/ajan/types/README.md|
             .adr-dir|
             .pre-commit-config.yaml|
-            .tool-versions|
             LICENSE|
             Makefile|
             README.md

@@ -3,13 +3,13 @@ package http
 import (
 	"net/http"
 
-	"github.com/eser/ajan/httpfx"
-	"github.com/eser/ajan/logfx"
+	"github.com/eser/aya.is-services/pkg/ajan/httpfx"
+	"github.com/eser/aya.is-services/pkg/ajan/logfx"
 	"github.com/eser/aya.is-services/pkg/api/business/profiles"
 	"github.com/eser/aya.is-services/pkg/lib/cursors"
 )
 
-func RegisterHttpRoutesForSite( //nolint:funlen
+func RegisterHTTPRoutesForSite(
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	profilesService *profiles.Service,
@@ -28,12 +28,15 @@ func RegisterHttpRoutesForSite( //nolint:funlen
 					domainParam,
 				)
 				if err != nil {
-					return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithPlainText(err.Error()),
+					)
 				}
 
 				wrappedResponse := cursors.WrapResponseWithCursor(records, nil)
 
-				return ctx.Results.Json(wrappedResponse)
+				return ctx.Results.JSON(wrappedResponse)
 			},
 		).
 		HasSummary("Get profile by a custom domain").
@@ -51,10 +54,13 @@ func RegisterHttpRoutesForSite( //nolint:funlen
 				cursors.NewCursor(0, nil),
 			)
 			if err != nil {
-				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText(err.Error()),
+				)
 			}
 
-			return ctx.Results.Json(records)
+			return ctx.Results.JSON(records)
 		}).
 		HasSummary("Gets spotlight metadata").
 		HasDescription("Gets spotlight metadata.").

@@ -10,11 +10,11 @@ import (
 	"github.com/eser/aya.is-services/pkg/lib/vars"
 )
 
-func (r *Repository) GetSessionById(
+func (r *Repository) GetSessionByID(
 	ctx context.Context,
 	id string,
 ) (*users.Session, error) {
-	row, err := r.queries.GetSessionById(ctx, GetSessionByIdParams{Id: id})
+	row, err := r.queries.GetSessionByID(ctx, GetSessionByIDParams{ID: id})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil //nolint:nilnil
@@ -24,12 +24,12 @@ func (r *Repository) GetSessionById(
 	}
 
 	result := &users.Session{
-		Id:                       row.Id,
+		ID:                       row.ID,
 		Status:                   row.Status,
 		OauthRequestState:        row.OauthRequestState,
 		OauthRequestCodeVerifier: row.OauthRequestCodeVerifier,
-		OauthRedirectUri:         vars.ToStringPtr(row.OauthRedirectUri),
-		LoggedInUserId:           vars.ToStringPtr(row.LoggedInUserId),
+		OauthRedirectURI:         vars.ToStringPtr(row.OauthRedirectURI),
+		LoggedInUserID:           vars.ToStringPtr(row.LoggedInUserID),
 		LoggedInAt:               vars.ToTimePtr(row.LoggedInAt),
 		ExpiresAt:                vars.ToTimePtr(row.ExpiresAt),
 		CreatedAt:                row.CreatedAt,
@@ -44,16 +44,16 @@ func (r *Repository) CreateSession(
 	session *users.Session,
 ) error {
 	err := r.queries.CreateSession(ctx, CreateSessionParams{
-		Id:                       session.Id,
+		ID:                       session.ID,
 		Status:                   session.Status,
 		OauthRequestState:        session.OauthRequestState,
 		OauthRequestCodeVerifier: session.OauthRequestCodeVerifier,
-		OauthRedirectUri:         vars.ToSqlNullString(session.OauthRedirectUri),
-		LoggedInUserId:           vars.ToSqlNullString(session.LoggedInUserId),
-		LoggedInAt:               vars.ToSqlNullTime(session.LoggedInAt),
-		ExpiresAt:                vars.ToSqlNullTime(session.ExpiresAt),
+		OauthRedirectURI:         vars.ToSQLNullString(session.OauthRedirectURI),
+		LoggedInUserID:           vars.ToSQLNullString(session.LoggedInUserID),
+		LoggedInAt:               vars.ToSQLNullTime(session.LoggedInAt),
+		ExpiresAt:                vars.ToSQLNullTime(session.ExpiresAt),
 		CreatedAt:                session.CreatedAt,
-		UpdatedAt:                vars.ToSqlNullTime(session.UpdatedAt),
+		UpdatedAt:                vars.ToSQLNullTime(session.UpdatedAt),
 	})
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func (r *Repository) UpdateSessionLoggedInAt(
 	loggedInAt time.Time,
 ) error {
 	err := r.queries.UpdateSessionLoggedInAt(ctx, UpdateSessionLoggedInAtParams{
-		Id:         id,
+		ID:         id,
 		LoggedInAt: sql.NullTime{Time: loggedInAt, Valid: true},
 	})
 	if err != nil {

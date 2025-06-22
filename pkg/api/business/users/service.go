@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/eser/ajan/logfx"
+	"github.com/eser/aya.is-services/pkg/ajan/logfx"
 	"github.com/eser/aya.is-services/pkg/lib/cursors"
 )
 
@@ -18,7 +18,7 @@ var (
 )
 
 type Repository interface {
-	GetUserById(ctx context.Context, id string) (*User, error)
+	GetUserByID(ctx context.Context, id string) (*User, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	ListUsers(
 		ctx context.Context,
@@ -27,7 +27,7 @@ type Repository interface {
 	CreateUser(ctx context.Context, user *User) error
 
 	CreateSession(ctx context.Context, session *Session) error
-	GetSessionById(ctx context.Context, id string) (*Session, error)
+	GetSessionByID(ctx context.Context, id string) (*Session, error)
 	UpdateSessionLoggedInAt(ctx context.Context, id string, loggedInAt time.Time) error
 }
 
@@ -38,7 +38,8 @@ type AuthProvider interface {
 		redirectURI string,
 	) (authURL string, state OAuthState, err error)
 
-	// HandleOAuthCallback exchanges the code for a token, fetches user info, upserts user, creates session, and returns JWT.
+	// HandleOAuthCallback exchanges the code for a token, fetches user info, upserts user,
+	// creates session, and returns JWT.
 	HandleOAuthCallback(ctx context.Context, code string, state string) (AuthResult, error)
 }
 
@@ -63,8 +64,8 @@ func NewService(
 	}
 }
 
-func (s *Service) GetById(ctx context.Context, id string) (*User, error) {
-	record, err := s.repo.GetUserById(ctx, id)
+func (s *Service) GetByID(ctx context.Context, id string) (*User, error) {
+	record, err := s.repo.GetUserByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("%w(id: %s): %w", ErrFailedToGetRecord, id, err)
 	}
@@ -102,8 +103,8 @@ func (s *Service) Create(ctx context.Context, user *User) error {
 	return nil
 }
 
-func (s *Service) GetSessionById(ctx context.Context, id string) (*Session, error) {
-	session, err := s.repo.GetSessionById(ctx, id)
+func (s *Service) GetSessionByID(ctx context.Context, id string) (*Session, error) {
+	session, err := s.repo.GetSessionByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("%w(id: %s): %w", ErrFailedToGetRecord, id, err)
 	}
@@ -124,7 +125,7 @@ func (s *Service) UpdateSessionLoggedInAt(
 	return nil
 }
 
-func (s *Service) AuthProvider(provider string) AuthProvider { //nolint:ireturn
+func (s *Service) GetAuthProvider(provider string) AuthProvider {
 	service, serviceOk := s.authProviders[provider]
 	if !serviceOk {
 		return nil

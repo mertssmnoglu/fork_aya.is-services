@@ -2,17 +2,17 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
-	"github.com/eser/ajan/datafx"
+	"github.com/eser/aya.is-services/pkg/ajan/connfx"
 	"github.com/eser/aya.is-services/pkg/lib/caching"
 )
 
 const (
-	DEFAULT_CACHE_TTL = 1 * time.Hour
+	DefaultCacheTTL = 1 * time.Hour
 )
 
 var ErrDatasourceNotFound = errors.New("datasource not found")
@@ -23,32 +23,19 @@ type Repository struct {
 	cacheTTL time.Duration
 }
 
-func NewRepositoryFromDefault(dataRegistry *datafx.Registry) (*Repository, error) {
-	datasource := dataRegistry.GetDefault()
-
-	if datasource == nil {
-		return nil, fmt.Errorf("%w: default", ErrDatasourceNotFound)
-	}
-
-	return NewRepositoryFromDataSource(datasource), nil
+func NewRepositoryFromDefault(dataRegistry *connfx.Registry) (*Repository, error) {
+	return NewRepositoryFromNamed(dataRegistry, connfx.DefaultConnection)
 }
 
-func NewRepositoryFromNamed(dataRegistry *datafx.Registry, name string) (*Repository, error) {
-	datasource := dataRegistry.GetNamed(name)
-
-	if datasource == nil {
-		return nil, fmt.Errorf("%w: %s", ErrDatasourceNotFound, name)
+func NewRepositoryFromNamed(dataRegistry *connfx.Registry, name string) (*Repository, error) {
+	sqlDB, err := connfx.GetTypedConnection[*sql.DB](dataRegistry, name)
+	if err != nil {
+		return nil, err
 	}
-
-	return NewRepositoryFromDataSource(datasource), nil
-}
-
-func NewRepositoryFromDataSource(datasource datafx.Datasource) *Repository {
-	db := datasource.GetConnection()
 
 	repository := &Repository{ //nolint:exhaustruct
-		queries:  &Queries{db: db},
-		cacheTTL: DEFAULT_CACHE_TTL,
+		queries:  &Queries{db: sqlDB},
+		cacheTTL: DefaultCacheTTL,
 	}
 
 	repository.cache = caching.NewCache(
@@ -88,5 +75,5 @@ func NewRepositoryFromDataSource(datasource datafx.Datasource) *Repository {
 		},
 	)
 
-	return repository
+	return repository, nil
 }

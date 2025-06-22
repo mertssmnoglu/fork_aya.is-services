@@ -41,12 +41,12 @@ VALUES
 `
 
 type CreateSessionParams struct {
-	Id                       string         `db:"id" json:"id"`
+	ID                       string         `db:"id" json:"id"`
 	Status                   string         `db:"status" json:"status"`
 	OauthRequestState        string         `db:"oauth_request_state" json:"oauth_request_state"`
 	OauthRequestCodeVerifier string         `db:"oauth_request_code_verifier" json:"oauth_request_code_verifier"`
-	OauthRedirectUri         sql.NullString `db:"oauth_redirect_uri" json:"oauth_redirect_uri"`
-	LoggedInUserId           sql.NullString `db:"logged_in_user_id" json:"logged_in_user_id"`
+	OauthRedirectURI         sql.NullString `db:"oauth_redirect_uri" json:"oauth_redirect_uri"`
+	LoggedInUserID           sql.NullString `db:"logged_in_user_id" json:"logged_in_user_id"`
 	LoggedInAt               sql.NullTime   `db:"logged_in_at" json:"logged_in_at"`
 	ExpiresAt                sql.NullTime   `db:"expires_at" json:"expires_at"`
 	CreatedAt                time.Time      `db:"created_at" json:"created_at"`
@@ -83,12 +83,12 @@ type CreateSessionParams struct {
 //	  )
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) error {
 	_, err := q.db.ExecContext(ctx, createSession,
-		arg.Id,
+		arg.ID,
 		arg.Status,
 		arg.OauthRequestState,
 		arg.OauthRequestCodeVerifier,
-		arg.OauthRedirectUri,
-		arg.LoggedInUserId,
+		arg.OauthRedirectURI,
+		arg.LoggedInUserID,
 		arg.LoggedInAt,
 		arg.ExpiresAt,
 		arg.CreatedAt,
@@ -97,7 +97,7 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) er
 	return err
 }
 
-const getSessionById = `-- name: GetSessionById :one
+const getSessionByID = `-- name: GetSessionByID :one
 SELECT
   id,
   status,
@@ -115,11 +115,11 @@ WHERE
   id = $1
 `
 
-type GetSessionByIdParams struct {
-	Id string `db:"id" json:"id"`
+type GetSessionByIDParams struct {
+	ID string `db:"id" json:"id"`
 }
 
-// GetSessionById
+// GetSessionByID
 //
 //	SELECT
 //	  id,
@@ -136,16 +136,16 @@ type GetSessionByIdParams struct {
 //	  session
 //	WHERE
 //	  id = $1
-func (q *Queries) GetSessionById(ctx context.Context, arg GetSessionByIdParams) (*Session, error) {
-	row := q.db.QueryRowContext(ctx, getSessionById, arg.Id)
+func (q *Queries) GetSessionByID(ctx context.Context, arg GetSessionByIDParams) (*Session, error) {
+	row := q.db.QueryRowContext(ctx, getSessionByID, arg.ID)
 	var i Session
 	err := row.Scan(
-		&i.Id,
+		&i.ID,
 		&i.Status,
 		&i.OauthRequestState,
 		&i.OauthRequestCodeVerifier,
-		&i.OauthRedirectUri,
-		&i.LoggedInUserId,
+		&i.OauthRedirectURI,
+		&i.LoggedInUserID,
 		&i.LoggedInAt,
 		&i.ExpiresAt,
 		&i.CreatedAt,
@@ -166,7 +166,7 @@ WHERE
 
 type UpdateSessionLoggedInAtParams struct {
 	LoggedInAt sql.NullTime `db:"logged_in_at" json:"logged_in_at"`
-	Id         string       `db:"id" json:"id"`
+	ID         string       `db:"id" json:"id"`
 }
 
 // UpdateSessionLoggedInAt
@@ -179,6 +179,6 @@ type UpdateSessionLoggedInAtParams struct {
 //	WHERE
 //	  id = $2
 func (q *Queries) UpdateSessionLoggedInAt(ctx context.Context, arg UpdateSessionLoggedInAtParams) error {
-	_, err := q.db.ExecContext(ctx, updateSessionLoggedInAt, arg.LoggedInAt, arg.Id)
+	_, err := q.db.ExecContext(ctx, updateSessionLoggedInAt, arg.LoggedInAt, arg.ID)
 	return err
 }

@@ -5,13 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"os"
 
-	"github.com/eser/ajan/configfx"
-	"github.com/eser/ajan/datafx"
-	"github.com/eser/ajan/logfx"
-	"github.com/eser/ajan/metricsfx"
-	"github.com/eser/ajan/queuefx"
+	"github.com/eser/aya.is-services/pkg/ajan/configfx"
+	"github.com/eser/aya.is-services/pkg/ajan/connfx"
+	"github.com/eser/aya.is-services/pkg/ajan/httpclient"
+	"github.com/eser/aya.is-services/pkg/ajan/logfx"
 	"github.com/eser/aya.is-services/pkg/api/adapters/arcade"
 	"github.com/eser/aya.is-services/pkg/api/adapters/auth_providers"
 	"github.com/eser/aya.is-services/pkg/api/adapters/storage"
@@ -25,12 +23,12 @@ var ErrInitFailed = errors.New("failed to initialize app context")
 
 type AppContext struct {
 	// Adapters
-	Config  *AppConfig
-	Logger  *logfx.Logger
-	Metrics *metricsfx.MetricsProvider
+	Config *AppConfig
+	Logger *logfx.Logger
 
-	Data  *datafx.Registry
-	Queue *queuefx.Registry
+	HTTPClient *httpclient.Client
+
+	Connections *connfx.Registry
 
 	Arcade *arcade.Arcade
 
@@ -62,10 +60,9 @@ func (a *AppContext) Init(ctx context.Context) error {
 	// ----------------------------------------------------
 	// Adapter: Logger
 	// ----------------------------------------------------
-	a.Logger, err = logfx.NewLoggerAsDefault(os.Stdout, &a.Config.Log)
-	if err != nil {
-		return fmt.Errorf("%w: %w", ErrInitFailed, err)
-	}
+	a.Logger = logfx.NewLogger(
+		logfx.WithConfig(&a.Config.Log),
+	)
 
 	a.Logger.InfoContext(
 		ctx,
@@ -77,44 +74,50 @@ func (a *AppContext) Init(ctx context.Context) error {
 	)
 
 	// ----------------------------------------------------
-	// Adapter: Metrics
+	// Adapter: HTTPClient
 	// ----------------------------------------------------
-	a.Metrics = metricsfx.NewMetricsProvider()
+	a.HTTPClient = httpclient.NewClient(
+		httpclient.WithConfig(&a.Config.HTTPClient),
+	)
 
-	err = a.Metrics.RegisterNativeCollectors()
+	// ----------------------------------------------------
+	// Adapter: Connections
+	// ----------------------------------------------------
+	a.Connections = connfx.NewRegistry(
+		connfx.WithLogger(a.Logger),
+		connfx.WithDefaultFactories(),
+	)
+
+	err = a.Connections.LoadFromConfig(ctx, &a.Config.Conn)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrInitFailed, err)
 	}
 
-	// ----------------------------------------------------
-	// Adapter: Data
-	// ----------------------------------------------------
-	a.Data = datafx.NewRegistry(a.Logger)
+	// // ----------------------------------------------------
+	// // Adapter: Metrics
+	// // ----------------------------------------------------
+	// a.Metrics = metricsfx.NewMetricsProvider(
+	// 	&a.Config.Metrics,
+	// 	a.Connections,
+	// )
 
-	err = a.Data.LoadFromConfig(ctx, &a.Config.Data)
-	if err != nil {
-		return fmt.Errorf("%w: %w", ErrInitFailed, err)
-	}
-
-	// ----------------------------------------------------
-	// Adapter: Queue
-	// ----------------------------------------------------
-	a.Queue = queuefx.NewRegistry(a.Logger)
-
-	err = a.Queue.LoadFromConfig(ctx, &a.Config.Queue)
-	if err != nil {
-		return fmt.Errorf("%w: %w", ErrInitFailed, err)
-	}
+	// err = a.Metrics.Init()
+	// if err != nil {
+	// 	return fmt.Errorf("%w: %w", ErrInitFailed, err)
+	// }
 
 	// ----------------------------------------------------
 	// Adapter: Arcade
 	// ----------------------------------------------------
-	a.Arcade = arcade.New(a.Config.Externals.Arcade)
+	a.Arcade = arcade.New(
+		a.Config.Externals.Arcade,
+		a.HTTPClient,
+	)
 
 	// ----------------------------------------------------
 	// Adapter: Repository
 	// ----------------------------------------------------
-	a.Repository, err = storage.NewRepositoryFromDefault(a.Data)
+	a.Repository, err = storage.NewRepositoryFromDefault(a.Connections)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrInitFailed, err)
 	}
@@ -123,7 +126,7 @@ func (a *AppContext) Init(ctx context.Context) error {
 	// Business Services
 	// ----------------------------------------------------
 	authProviders := map[string]users.AuthProvider{
-		"github": auth_providers.NewGitHubAuthProvider(a.Logger, a.Repository),
+		"github": auth_providers.NewGitHubAuthProvider(a.Logger, a.HTTPClient, a.Repository),
 	}
 
 	a.ProfilesService = profiles.NewService(a.Logger, a.Repository)

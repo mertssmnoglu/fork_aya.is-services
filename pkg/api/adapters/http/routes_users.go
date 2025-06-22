@@ -1,16 +1,15 @@
-//nolint:dupl
 package http
 
 import (
 	"net/http"
 
-	"github.com/eser/ajan/httpfx"
-	"github.com/eser/ajan/logfx"
+	"github.com/eser/aya.is-services/pkg/ajan/httpfx"
+	"github.com/eser/aya.is-services/pkg/ajan/logfx"
 	"github.com/eser/aya.is-services/pkg/api/business/users"
 	"github.com/eser/aya.is-services/pkg/lib/cursors"
 )
 
-func RegisterHttpRoutesForUsers(
+func RegisterHTTPRoutesForUsers( //nolint:funlen
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	usersService *users.Service,
@@ -22,10 +21,13 @@ func RegisterHttpRoutesForUsers(
 
 			records, err := usersService.List(ctx.Request.Context(), cursor)
 			if err != nil {
-				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText(err.Error()),
+				)
 			}
 
-			return ctx.Results.Json(records)
+			return ctx.Results.JSON(records)
 		}).
 		HasSummary("List users").
 		HasDescription("List users.").
@@ -36,14 +38,17 @@ func RegisterHttpRoutesForUsers(
 			// get variables from path
 			idParam := ctx.Request.PathValue("id")
 
-			record, err := usersService.GetById(ctx.Request.Context(), idParam)
+			record, err := usersService.GetByID(ctx.Request.Context(), idParam)
 			if err != nil {
-				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText(err.Error()),
+				)
 			}
 
 			wrappedResponse := cursors.WrapResponseWithCursor(record, nil)
 
-			return ctx.Results.Json(wrappedResponse)
+			return ctx.Results.JSON(wrappedResponse)
 		}).
 		HasSummary("Get user by ID").
 		HasDescription("Get user by ID.").
@@ -54,10 +59,10 @@ func RegisterHttpRoutesForUsers(
 		Route("GET /{locale}/auth/{authProvider}/login", func(ctx *httpfx.Context) httpfx.Result {
 			// get auth provider from path
 			authProviderName := ctx.Request.PathValue("authProvider")
-			authProvider := usersService.AuthProvider(authProviderName)
+			authProvider := usersService.GetAuthProvider(authProviderName)
 
 			if authProvider == nil {
-				return ctx.Results.Error(http.StatusNotFound, []byte("OAuth service not found"))
+				return ctx.Results.NotFound(httpfx.WithPlainText("OAuth service not found"))
 			}
 
 			// Initiate OAuth flow
@@ -66,7 +71,7 @@ func RegisterHttpRoutesForUsers(
 			if err != nil {
 				return ctx.Results.Error(
 					http.StatusInternalServerError,
-					[]byte("OAuth initiation failed"),
+					httpfx.WithPlainText("OAuth initiation failed"),
 				)
 			}
 
@@ -81,10 +86,10 @@ func RegisterHttpRoutesForUsers(
 		Route("GET /{locale}/auth/{authProider}/callback", func(ctx *httpfx.Context) httpfx.Result {
 			// get auth provider from path
 			authProviderName := ctx.Request.PathValue("authProvider")
-			authProvider := usersService.AuthProvider(authProviderName)
+			authProvider := usersService.GetAuthProvider(authProviderName)
 
 			if authProvider == nil {
-				return ctx.Results.Error(http.StatusNotFound, []byte("OAuth service not found"))
+				return ctx.Results.NotFound(httpfx.WithPlainText("OAuth service not found"))
 			}
 
 			url := ctx.Request.URL
@@ -94,11 +99,11 @@ func RegisterHttpRoutesForUsers(
 
 			result, err := authProvider.HandleOAuthCallback(ctx.Request.Context(), code, state)
 			if err != nil {
-				return ctx.Results.Error(http.StatusUnauthorized, []byte("OAuth callback failed"))
+				return ctx.Results.Unauthorized(httpfx.WithPlainText("OAuth callback failed"))
 			}
 
 			// Set JWT as cookie or return in response
-			return ctx.Results.Json(map[string]any{
+			return ctx.Results.JSON(map[string]any{
 				"token": result.JWT,
 				"user":  result.User,
 			})
@@ -110,7 +115,7 @@ func RegisterHttpRoutesForUsers(
 	routes.
 		Route("POST /{locale}/auth/logout", func(ctx *httpfx.Context) httpfx.Result {
 			// Invalidate session logic (optional, e.g., remove session from DB)
-			return ctx.Results.Json(map[string]string{"status": "logged out"})
+			return ctx.Results.JSON(map[string]string{"status": "logged out"})
 		}).
 		HasSummary("Logout").
 		HasDescription("Logs out the user.").

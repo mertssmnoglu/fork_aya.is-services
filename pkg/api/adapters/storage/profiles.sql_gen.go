@@ -17,7 +17,7 @@ VALUES ($1, $2)
 `
 
 type CreateProfileParams struct {
-	Id   string `db:"id" json:"id"`
+	ID   string `db:"id" json:"id"`
 	Slug string `db:"slug" json:"slug"`
 }
 
@@ -26,11 +26,11 @@ type CreateProfileParams struct {
 //	INSERT INTO "profile" (id, slug)
 //	VALUES ($1, $2)
 func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) error {
-	_, err := q.db.ExecContext(ctx, createProfile, arg.Id, arg.Slug)
+	_, err := q.db.ExecContext(ctx, createProfile, arg.ID, arg.Slug)
 	return err
 }
 
-const getProfileById = `-- name: GetProfileById :one
+const getProfileByID = `-- name: GetProfileByID :one
 SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
@@ -40,17 +40,17 @@ WHERE p.id = $2
 LIMIT 1
 `
 
-type GetProfileByIdParams struct {
+type GetProfileByIDParams struct {
 	LocaleCode string `db:"locale_code" json:"locale_code"`
-	Id         string `db:"id" json:"id"`
+	ID         string `db:"id" json:"id"`
 }
 
-type GetProfileByIdRow struct {
+type GetProfileByIDRow struct {
 	Profile   Profile   `db:"profile" json:"profile"`
 	ProfileTx ProfileTx `db:"profile_tx" json:"profile_tx"`
 }
 
-// GetProfileById
+// GetProfileByID
 //
 //	SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 //	FROM "profile" p
@@ -59,21 +59,21 @@ type GetProfileByIdRow struct {
 //	WHERE p.id = $2
 //	  AND p.deleted_at IS NULL
 //	LIMIT 1
-func (q *Queries) GetProfileById(ctx context.Context, arg GetProfileByIdParams) (*GetProfileByIdRow, error) {
-	row := q.db.QueryRowContext(ctx, getProfileById, arg.LocaleCode, arg.Id)
-	var i GetProfileByIdRow
+func (q *Queries) GetProfileByID(ctx context.Context, arg GetProfileByIDParams) (*GetProfileByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getProfileByID, arg.LocaleCode, arg.ID)
+	var i GetProfileByIDRow
 	err := row.Scan(
-		&i.Profile.Id,
+		&i.Profile.ID,
 		&i.Profile.Slug,
 		&i.Profile.Kind,
 		&i.Profile.CustomDomain,
-		&i.Profile.ProfilePictureUri,
+		&i.Profile.ProfilePictureURI,
 		&i.Profile.Pronouns,
 		&i.Profile.Properties,
 		&i.Profile.CreatedAt,
 		&i.Profile.UpdatedAt,
 		&i.Profile.DeletedAt,
-		&i.ProfileTx.ProfileId,
+		&i.ProfileTx.ProfileID,
 		&i.ProfileTx.LocaleCode,
 		&i.ProfileTx.Title,
 		&i.ProfileTx.Description,
@@ -82,7 +82,7 @@ func (q *Queries) GetProfileById(ctx context.Context, arg GetProfileByIdParams) 
 	return &i, err
 }
 
-const getProfileIdByCustomDomain = `-- name: GetProfileIdByCustomDomain :one
+const getProfileIDByCustomDomain = `-- name: GetProfileIDByCustomDomain :one
 SELECT id
 FROM "profile"
 WHERE custom_domain = $1
@@ -90,25 +90,25 @@ WHERE custom_domain = $1
 LIMIT 1
 `
 
-type GetProfileIdByCustomDomainParams struct {
+type GetProfileIDByCustomDomainParams struct {
 	CustomDomain sql.NullString `db:"custom_domain" json:"custom_domain"`
 }
 
-// GetProfileIdByCustomDomain
+// GetProfileIDByCustomDomain
 //
 //	SELECT id
 //	FROM "profile"
 //	WHERE custom_domain = $1
 //	  AND deleted_at IS NULL
 //	LIMIT 1
-func (q *Queries) GetProfileIdByCustomDomain(ctx context.Context, arg GetProfileIdByCustomDomainParams) (string, error) {
-	row := q.db.QueryRowContext(ctx, getProfileIdByCustomDomain, arg.CustomDomain)
+func (q *Queries) GetProfileIDByCustomDomain(ctx context.Context, arg GetProfileIDByCustomDomainParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getProfileIDByCustomDomain, arg.CustomDomain)
 	var id string
 	err := row.Scan(&id)
 	return id, err
 }
 
-const getProfileIdBySlug = `-- name: GetProfileIdBySlug :one
+const getProfileIDBySlug = `-- name: GetProfileIDBySlug :one
 SELECT id
 FROM "profile"
 WHERE slug = $1
@@ -116,25 +116,25 @@ WHERE slug = $1
 LIMIT 1
 `
 
-type GetProfileIdBySlugParams struct {
+type GetProfileIDBySlugParams struct {
 	Slug string `db:"slug" json:"slug"`
 }
 
-// GetProfileIdBySlug
+// GetProfileIDBySlug
 //
 //	SELECT id
 //	FROM "profile"
 //	WHERE slug = $1
 //	  AND deleted_at IS NULL
 //	LIMIT 1
-func (q *Queries) GetProfileIdBySlug(ctx context.Context, arg GetProfileIdBySlugParams) (string, error) {
-	row := q.db.QueryRowContext(ctx, getProfileIdBySlug, arg.Slug)
+func (q *Queries) GetProfileIDBySlug(ctx context.Context, arg GetProfileIDBySlugParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getProfileIDBySlug, arg.Slug)
 	var id string
 	err := row.Scan(&id)
 	return id, err
 }
 
-const getProfilePageByProfileIdAndSlug = `-- name: GetProfilePageByProfileIdAndSlug :one
+const getProfilePageByProfileIDAndSlug = `-- name: GetProfilePageByProfileIDAndSlug :one
 SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
@@ -143,30 +143,30 @@ WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL
 ORDER BY pp."order"
 `
 
-type GetProfilePageByProfileIdAndSlugParams struct {
+type GetProfilePageByProfileIDAndSlugParams struct {
 	LocaleCode string `db:"locale_code" json:"locale_code"`
-	ProfileId  string `db:"profile_id" json:"profile_id"`
+	ProfileID  string `db:"profile_id" json:"profile_id"`
 	PageSlug   string `db:"page_slug" json:"page_slug"`
 }
 
-type GetProfilePageByProfileIdAndSlugRow struct {
-	Id              string         `db:"id" json:"id"`
-	ProfileId       string         `db:"profile_id" json:"profile_id"`
+type GetProfilePageByProfileIDAndSlugRow struct {
+	ID              string         `db:"id" json:"id"`
+	ProfileID       string         `db:"profile_id" json:"profile_id"`
 	Slug            string         `db:"slug" json:"slug"`
 	Order           int32          `db:"order" json:"order"`
-	CoverPictureUri sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
+	CoverPictureURI sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
 	PublishedAt     sql.NullTime   `db:"published_at" json:"published_at"`
 	CreatedAt       time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt       sql.NullTime   `db:"updated_at" json:"updated_at"`
 	DeletedAt       sql.NullTime   `db:"deleted_at" json:"deleted_at"`
-	ProfilePageId   string         `db:"profile_page_id" json:"profile_page_id"`
+	ProfilePageID   string         `db:"profile_page_id" json:"profile_page_id"`
 	LocaleCode      string         `db:"locale_code" json:"locale_code"`
 	Title           string         `db:"title" json:"title"`
 	Summary         string         `db:"summary" json:"summary"`
 	Content         string         `db:"content" json:"content"`
 }
 
-// GetProfilePageByProfileIdAndSlug
+// GetProfilePageByProfileIDAndSlug
 //
 //	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 //	FROM "profile_page" pp
@@ -174,20 +174,20 @@ type GetProfilePageByProfileIdAndSlugRow struct {
 //	  AND ppt.locale_code = $1
 //	WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL
 //	ORDER BY pp."order"
-func (q *Queries) GetProfilePageByProfileIdAndSlug(ctx context.Context, arg GetProfilePageByProfileIdAndSlugParams) (*GetProfilePageByProfileIdAndSlugRow, error) {
-	row := q.db.QueryRowContext(ctx, getProfilePageByProfileIdAndSlug, arg.LocaleCode, arg.ProfileId, arg.PageSlug)
-	var i GetProfilePageByProfileIdAndSlugRow
+func (q *Queries) GetProfilePageByProfileIDAndSlug(ctx context.Context, arg GetProfilePageByProfileIDAndSlugParams) (*GetProfilePageByProfileIDAndSlugRow, error) {
+	row := q.db.QueryRowContext(ctx, getProfilePageByProfileIDAndSlug, arg.LocaleCode, arg.ProfileID, arg.PageSlug)
+	var i GetProfilePageByProfileIDAndSlugRow
 	err := row.Scan(
-		&i.Id,
-		&i.ProfileId,
+		&i.ID,
+		&i.ProfileID,
 		&i.Slug,
 		&i.Order,
-		&i.CoverPictureUri,
+		&i.CoverPictureURI,
 		&i.PublishedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
-		&i.ProfilePageId,
+		&i.ProfilePageID,
 		&i.LocaleCode,
 		&i.Title,
 		&i.Summary,
@@ -196,7 +196,7 @@ func (q *Queries) GetProfilePageByProfileIdAndSlug(ctx context.Context, arg GetP
 	return &i, err
 }
 
-const listProfileLinksByProfileId = `-- name: ListProfileLinksByProfileId :many
+const listProfileLinksByProfileID = `-- name: ListProfileLinksByProfileID :many
 SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
 FROM "profile_link"
 WHERE profile_id = $1
@@ -205,11 +205,11 @@ WHERE profile_id = $1
 ORDER BY "order"
 `
 
-type ListProfileLinksByProfileIdParams struct {
-	ProfileId string `db:"profile_id" json:"profile_id"`
+type ListProfileLinksByProfileIDParams struct {
+	ProfileID string `db:"profile_id" json:"profile_id"`
 }
 
-// ListProfileLinksByProfileId
+// ListProfileLinksByProfileID
 //
 //	SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
 //	FROM "profile_link"
@@ -217,8 +217,8 @@ type ListProfileLinksByProfileIdParams struct {
 //	  AND is_hidden = FALSE
 //	  AND deleted_at IS NULL
 //	ORDER BY "order"
-func (q *Queries) ListProfileLinksByProfileId(ctx context.Context, arg ListProfileLinksByProfileIdParams) ([]*ProfileLink, error) {
-	rows, err := q.db.QueryContext(ctx, listProfileLinksByProfileId, arg.ProfileId)
+func (q *Queries) ListProfileLinksByProfileID(ctx context.Context, arg ListProfileLinksByProfileIDParams) ([]*ProfileLink, error) {
+	rows, err := q.db.QueryContext(ctx, listProfileLinksByProfileID, arg.ProfileID)
 	if err != nil {
 		return nil, err
 	}
@@ -227,16 +227,16 @@ func (q *Queries) ListProfileLinksByProfileId(ctx context.Context, arg ListProfi
 	for rows.Next() {
 		var i ProfileLink
 		if err := rows.Scan(
-			&i.Id,
-			&i.ProfileId,
+			&i.ID,
+			&i.ProfileID,
 			&i.Kind,
 			&i.Order,
 			&i.IsManaged,
 			&i.IsVerified,
 			&i.IsHidden,
-			&i.RemoteId,
-			&i.PublicId,
-			&i.Uri,
+			&i.RemoteID,
+			&i.PublicID,
+			&i.URI,
 			&i.Title,
 			&i.AuthProvider,
 			&i.AuthAccessTokenScope,
@@ -295,16 +295,16 @@ func (q *Queries) ListProfileLinksForKind(ctx context.Context, arg ListProfileLi
 	for rows.Next() {
 		var i ProfileLink
 		if err := rows.Scan(
-			&i.Id,
-			&i.ProfileId,
+			&i.ID,
+			&i.ProfileID,
 			&i.Kind,
 			&i.Order,
 			&i.IsManaged,
 			&i.IsVerified,
 			&i.IsHidden,
-			&i.RemoteId,
-			&i.PublicId,
-			&i.Uri,
+			&i.RemoteID,
+			&i.PublicID,
+			&i.URI,
 			&i.Title,
 			&i.AuthProvider,
 			&i.AuthAccessTokenScope,
@@ -358,8 +358,8 @@ type ListProfileMembershipsParams struct {
 	FilterProfileKind       sql.NullString `db:"filter_profile_kind" json:"filter_profile_kind"`
 	LocaleCode              string         `db:"locale_code" json:"locale_code"`
 	FilterMemberProfileKind sql.NullString `db:"filter_member_profile_kind" json:"filter_member_profile_kind"`
-	FilterProfileId         sql.NullString `db:"filter_profile_id" json:"filter_profile_id"`
-	FilterMemberProfileId   sql.NullString `db:"filter_member_profile_id" json:"filter_member_profile_id"`
+	FilterProfileID         sql.NullString `db:"filter_profile_id" json:"filter_profile_id"`
+	FilterMemberProfileID   sql.NullString `db:"filter_member_profile_id" json:"filter_member_profile_id"`
 }
 
 type ListProfileMembershipsRow struct {
@@ -398,8 +398,8 @@ func (q *Queries) ListProfileMemberships(ctx context.Context, arg ListProfileMem
 		arg.FilterProfileKind,
 		arg.LocaleCode,
 		arg.FilterMemberProfileKind,
-		arg.FilterProfileId,
-		arg.FilterMemberProfileId,
+		arg.FilterProfileID,
+		arg.FilterMemberProfileID,
 	)
 	if err != nil {
 		return nil, err
@@ -409,9 +409,9 @@ func (q *Queries) ListProfileMemberships(ctx context.Context, arg ListProfileMem
 	for rows.Next() {
 		var i ListProfileMembershipsRow
 		if err := rows.Scan(
-			&i.ProfileMembership.Id,
-			&i.ProfileMembership.ProfileId,
-			&i.ProfileMembership.MemberProfileId,
+			&i.ProfileMembership.ID,
+			&i.ProfileMembership.ProfileID,
+			&i.ProfileMembership.MemberProfileID,
 			&i.ProfileMembership.Kind,
 			&i.ProfileMembership.Properties,
 			&i.ProfileMembership.StartedAt,
@@ -419,32 +419,32 @@ func (q *Queries) ListProfileMemberships(ctx context.Context, arg ListProfileMem
 			&i.ProfileMembership.CreatedAt,
 			&i.ProfileMembership.UpdatedAt,
 			&i.ProfileMembership.DeletedAt,
-			&i.Profile.Id,
+			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
 			&i.Profile.CustomDomain,
-			&i.Profile.ProfilePictureUri,
+			&i.Profile.ProfilePictureURI,
 			&i.Profile.Pronouns,
 			&i.Profile.Properties,
 			&i.Profile.CreatedAt,
 			&i.Profile.UpdatedAt,
 			&i.Profile.DeletedAt,
-			&i.ProfileTx.ProfileId,
+			&i.ProfileTx.ProfileID,
 			&i.ProfileTx.LocaleCode,
 			&i.ProfileTx.Title,
 			&i.ProfileTx.Description,
 			&i.ProfileTx.Properties,
-			&i.Profile_2.Id,
+			&i.Profile_2.ID,
 			&i.Profile_2.Slug,
 			&i.Profile_2.Kind,
 			&i.Profile_2.CustomDomain,
-			&i.Profile_2.ProfilePictureUri,
+			&i.Profile_2.ProfilePictureURI,
 			&i.Profile_2.Pronouns,
 			&i.Profile_2.Properties,
 			&i.Profile_2.CreatedAt,
 			&i.Profile_2.UpdatedAt,
 			&i.Profile_2.DeletedAt,
-			&i.ProfileTx_2.ProfileId,
+			&i.ProfileTx_2.ProfileID,
 			&i.ProfileTx_2.LocaleCode,
 			&i.ProfileTx_2.Title,
 			&i.ProfileTx_2.Description,
@@ -463,7 +463,7 @@ func (q *Queries) ListProfileMemberships(ctx context.Context, arg ListProfileMem
 	return items, nil
 }
 
-const listProfilePagesByProfileId = `-- name: ListProfilePagesByProfileId :many
+const listProfilePagesByProfileID = `-- name: ListProfilePagesByProfileID :many
 SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
@@ -473,29 +473,29 @@ WHERE pp.profile_id = $2
 ORDER BY pp."order"
 `
 
-type ListProfilePagesByProfileIdParams struct {
+type ListProfilePagesByProfileIDParams struct {
 	LocaleCode string `db:"locale_code" json:"locale_code"`
-	ProfileId  string `db:"profile_id" json:"profile_id"`
+	ProfileID  string `db:"profile_id" json:"profile_id"`
 }
 
-type ListProfilePagesByProfileIdRow struct {
-	Id              string         `db:"id" json:"id"`
-	ProfileId       string         `db:"profile_id" json:"profile_id"`
+type ListProfilePagesByProfileIDRow struct {
+	ID              string         `db:"id" json:"id"`
+	ProfileID       string         `db:"profile_id" json:"profile_id"`
 	Slug            string         `db:"slug" json:"slug"`
 	Order           int32          `db:"order" json:"order"`
-	CoverPictureUri sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
+	CoverPictureURI sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
 	PublishedAt     sql.NullTime   `db:"published_at" json:"published_at"`
 	CreatedAt       time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt       sql.NullTime   `db:"updated_at" json:"updated_at"`
 	DeletedAt       sql.NullTime   `db:"deleted_at" json:"deleted_at"`
-	ProfilePageId   string         `db:"profile_page_id" json:"profile_page_id"`
+	ProfilePageID   string         `db:"profile_page_id" json:"profile_page_id"`
 	LocaleCode      string         `db:"locale_code" json:"locale_code"`
 	Title           string         `db:"title" json:"title"`
 	Summary         string         `db:"summary" json:"summary"`
 	Content         string         `db:"content" json:"content"`
 }
 
-// ListProfilePagesByProfileId
+// ListProfilePagesByProfileID
 //
 //	SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 //	FROM "profile_page" pp
@@ -504,26 +504,26 @@ type ListProfilePagesByProfileIdRow struct {
 //	WHERE pp.profile_id = $2
 //	  AND pp.deleted_at IS NULL
 //	ORDER BY pp."order"
-func (q *Queries) ListProfilePagesByProfileId(ctx context.Context, arg ListProfilePagesByProfileIdParams) ([]*ListProfilePagesByProfileIdRow, error) {
-	rows, err := q.db.QueryContext(ctx, listProfilePagesByProfileId, arg.LocaleCode, arg.ProfileId)
+func (q *Queries) ListProfilePagesByProfileID(ctx context.Context, arg ListProfilePagesByProfileIDParams) ([]*ListProfilePagesByProfileIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, listProfilePagesByProfileID, arg.LocaleCode, arg.ProfileID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []*ListProfilePagesByProfileIdRow{}
+	items := []*ListProfilePagesByProfileIDRow{}
 	for rows.Next() {
-		var i ListProfilePagesByProfileIdRow
+		var i ListProfilePagesByProfileIDRow
 		if err := rows.Scan(
-			&i.Id,
-			&i.ProfileId,
+			&i.ID,
+			&i.ProfileID,
 			&i.Slug,
 			&i.Order,
-			&i.CoverPictureUri,
+			&i.CoverPictureURI,
 			&i.PublishedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
-			&i.ProfilePageId,
+			&i.ProfilePageID,
 			&i.LocaleCode,
 			&i.Title,
 			&i.Summary,
@@ -579,17 +579,17 @@ func (q *Queries) ListProfiles(ctx context.Context, arg ListProfilesParams) ([]*
 	for rows.Next() {
 		var i ListProfilesRow
 		if err := rows.Scan(
-			&i.Profile.Id,
+			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
 			&i.Profile.CustomDomain,
-			&i.Profile.ProfilePictureUri,
+			&i.Profile.ProfilePictureURI,
 			&i.Profile.Pronouns,
 			&i.Profile.Properties,
 			&i.Profile.CreatedAt,
 			&i.Profile.UpdatedAt,
 			&i.Profile.DeletedAt,
-			&i.ProfileTx.ProfileId,
+			&i.ProfileTx.ProfileID,
 			&i.ProfileTx.LocaleCode,
 			&i.ProfileTx.Title,
 			&i.ProfileTx.Description,
@@ -616,7 +616,7 @@ WHERE id = $1
 `
 
 type RemoveProfileParams struct {
-	Id string `db:"id" json:"id"`
+	ID string `db:"id" json:"id"`
 }
 
 // RemoveProfile
@@ -626,7 +626,7 @@ type RemoveProfileParams struct {
 //	WHERE id = $1
 //	  AND deleted_at IS NULL
 func (q *Queries) RemoveProfile(ctx context.Context, arg RemoveProfileParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, removeProfile, arg.Id)
+	result, err := q.db.ExecContext(ctx, removeProfile, arg.ID)
 	if err != nil {
 		return 0, err
 	}
@@ -642,7 +642,7 @@ WHERE id = $2
 
 type UpdateProfileParams struct {
 	Slug string `db:"slug" json:"slug"`
-	Id   string `db:"id" json:"id"`
+	ID   string `db:"id" json:"id"`
 }
 
 // UpdateProfile
@@ -652,7 +652,7 @@ type UpdateProfileParams struct {
 //	WHERE id = $2
 //	  AND deleted_at IS NULL
 func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, updateProfile, arg.Slug, arg.Id)
+	result, err := q.db.ExecContext(ctx, updateProfile, arg.Slug, arg.ID)
 	if err != nil {
 		return 0, err
 	}

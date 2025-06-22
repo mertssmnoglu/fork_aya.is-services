@@ -3,7 +3,7 @@ package users
 import (
 	"time"
 
-	"github.com/eser/ajan/lib"
+	"github.com/eser/aya.is-services/pkg/ajan/lib"
 )
 
 type RecordID string
@@ -11,7 +11,7 @@ type RecordID string
 type RecordIDGenerator func() RecordID
 
 func DefaultIDGenerator() RecordID {
-	return RecordID(lib.IdsGenerateUnique())
+	return RecordID(lib.IDsGenerateUnique())
 }
 
 type User struct {
@@ -19,27 +19,27 @@ type User struct {
 	Email          *string   `json:"email"`
 	Phone          *string   `json:"phone"`
 	GithubHandle   *string   `json:"github_handle"`
-	GithubRemoteId *string   `json:"github_remote_id"`
+	GithubRemoteID *string   `json:"github_remote_id"`
 	BskyHandle     *string   `json:"bsky_handle"`
-	// BskyRemoteId        *string    `json:"bsky_remote_id"`
+	// BskyRemoteID        *string    `json:"bsky_remote_id"`
 	XHandle *string `json:"x_handle"`
-	// XRemoteId           *string    `json:"x_remote_id"`
-	IndividualProfileId *string    `json:"individual_profile_id"`
+	// XRemoteID           *string    `json:"x_remote_id"`
+	IndividualProfileID *string    `json:"individual_profile_id"`
 	UpdatedAt           *time.Time `json:"updated_at"`
 	DeletedAt           *time.Time `json:"deleted_at"`
-	Id                  string     `json:"id"`
+	ID                  string     `json:"id"`
 	Kind                string     `json:"kind"`
 	Name                string     `json:"name"`
 }
 
 type Session struct {
 	CreatedAt                time.Time  `json:"created_at"`
-	OauthRedirectUri         *string    `json:"oauth_redirect_uri"`
-	LoggedInUserId           *string    `json:"logged_in_user_id"`
+	OauthRedirectURI         *string    `json:"oauth_redirect_uri"`
+	LoggedInUserID           *string    `json:"logged_in_user_id"`
 	LoggedInAt               *time.Time `json:"logged_in_at"`
 	ExpiresAt                *time.Time `json:"expires_at"`
 	UpdatedAt                *time.Time `json:"updated_at"`
-	Id                       string     `json:"id"`
+	ID                       string     `json:"id"`
 	Status                   string     `json:"status"`
 	OauthRequestState        string     `json:"oauth_request_state"`
 	OauthRequestCodeVerifier string     `json:"oauth_request_code_verifier"`
@@ -54,12 +54,12 @@ type OAuthState struct {
 
 type AuthResult struct {
 	User      *User
-	SessionId string
+	SessionID string
 	JWT       string
 }
 
 type JWTClaims struct {
-	UserId    string
-	SessionId string
+	UserID    string
+	SessionID string
 	ExpiresAt int64
 }

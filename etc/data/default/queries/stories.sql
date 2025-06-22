@@ -1,11 +1,11 @@
--- name: GetStoryIdBySlug :one
+-- name: GetStoryIDBySlug :one
 SELECT id
 FROM "story"
 WHERE slug = sqlc.arg(slug)
   AND deleted_at IS NULL
 LIMIT 1;
 
--- name: GetStoryById :one
+-- name: GetStoryByID :one
 SELECT sqlc.embed(s), sqlc.embed(st), sqlc.embed(p), sqlc.embed(pt)
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id

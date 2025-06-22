@@ -11,7 +11,7 @@ import (
 	"github.com/eser/aya.is-services/pkg/lib/vars"
 )
 
-func (r *Repository) GetProfileIdBySlug(ctx context.Context, slug string) (string, error) {
+func (r *Repository) GetProfileIDBySlug(ctx context.Context, slug string) (string, error) {
 	var result string
 
 	err := r.cache.Execute(
@@ -19,7 +19,7 @@ func (r *Repository) GetProfileIdBySlug(ctx context.Context, slug string) (strin
 		"profile_id_by_slug:"+slug,
 		&result,
 		func(ctx context.Context) (any, error) {
-			row, err := r.queries.GetProfileIdBySlug(ctx, GetProfileIdBySlugParams{Slug: slug})
+			row, err := r.queries.GetProfileIDBySlug(ctx, GetProfileIDBySlugParams{Slug: slug})
 			if err != nil {
 				if errors.Is(err, sql.ErrNoRows) {
 					return nil, nil //nolint:nilnil
@@ -35,7 +35,7 @@ func (r *Repository) GetProfileIdBySlug(ctx context.Context, slug string) (strin
 	return result, err //nolint:wrapcheck
 }
 
-func (r *Repository) GetProfileIdByCustomDomain(
+func (r *Repository) GetProfileIDByCustomDomain(
 	ctx context.Context,
 	domain string,
 ) (*string, error) {
@@ -46,9 +46,9 @@ func (r *Repository) GetProfileIdByCustomDomain(
 		"profile_id_by_custom_domain:"+domain,
 		&result,
 		func(ctx context.Context) (any, error) {
-			row, err := r.queries.GetProfileIdByCustomDomain(
+			row, err := r.queries.GetProfileIDByCustomDomain(
 				ctx,
-				GetProfileIdByCustomDomainParams{
+				GetProfileIDByCustomDomainParams{
 					CustomDomain: sql.NullString{String: domain, Valid: true},
 				},
 			)
@@ -67,12 +67,12 @@ func (r *Repository) GetProfileIdByCustomDomain(
 	return result, err //nolint:wrapcheck
 }
 
-func (r *Repository) GetProfileById(
+func (r *Repository) GetProfileByID(
 	ctx context.Context,
 	localeCode string,
 	id string,
 ) (*profiles.Profile, error) {
-	row, err := r.queries.GetProfileById(ctx, GetProfileByIdParams{LocaleCode: localeCode, Id: id})
+	row, err := r.queries.GetProfileByID(ctx, GetProfileByIDParams{LocaleCode: localeCode, ID: id})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil //nolint:nilnil
@@ -82,11 +82,11 @@ func (r *Repository) GetProfileById(
 	}
 
 	result := &profiles.Profile{
-		Id:                row.Profile.Id,
+		ID:                row.Profile.ID,
 		Slug:              row.Profile.Slug,
 		Kind:              row.Profile.Kind,
 		CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
-		ProfilePictureUri: vars.ToStringPtr(row.Profile.ProfilePictureUri),
+		ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 		Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 		Title:             row.ProfileTx.Title,
 		Description:       row.ProfileTx.Description,
@@ -120,11 +120,11 @@ func (r *Repository) ListProfiles(
 	result := make([]*profiles.Profile, len(rows))
 	for i, row := range rows {
 		result[i] = &profiles.Profile{
-			Id:                row.Profile.Id,
+			ID:                row.Profile.ID,
 			Slug:              row.Profile.Slug,
 			Kind:              row.Profile.Kind,
 			CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
-			ProfilePictureUri: vars.ToStringPtr(row.Profile.ProfilePictureUri),
+			ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 			Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 			Title:             row.ProfileTx.Title,
 			Description:       row.ProfileTx.Description,
@@ -138,20 +138,20 @@ func (r *Repository) ListProfiles(
 	wrappedResponse.Data = result
 
 	if len(result) == cursor.Limit {
-		wrappedResponse.CursorPtr = &result[len(result)-1].Id
+		wrappedResponse.CursorPtr = &result[len(result)-1].ID
 	}
 
 	return wrappedResponse, nil
 }
 
-func (r *Repository) ListProfilePagesByProfileId(
+func (r *Repository) ListProfilePagesByProfileID(
 	ctx context.Context,
 	localeCode string,
-	profileId string,
+	profileID string,
 ) ([]*profiles.ProfilePageBrief, error) {
-	rows, err := r.queries.ListProfilePagesByProfileId(
+	rows, err := r.queries.ListProfilePagesByProfileID(
 		ctx,
-		ListProfilePagesByProfileIdParams{LocaleCode: localeCode, ProfileId: profileId},
+		ListProfilePagesByProfileIDParams{LocaleCode: localeCode, ProfileID: profileID},
 	)
 	if err != nil {
 		return nil, err
@@ -160,9 +160,9 @@ func (r *Repository) ListProfilePagesByProfileId(
 	profilePages := make([]*profiles.ProfilePageBrief, len(rows))
 	for i, row := range rows {
 		profilePages[i] = &profiles.ProfilePageBrief{
-			Id:              row.Id,
+			ID:              row.ID,
 			Slug:            row.Slug,
-			CoverPictureUri: vars.ToStringPtr(row.CoverPictureUri),
+			CoverPictureURI: vars.ToStringPtr(row.CoverPictureURI),
 			Title:           row.Title,
 			Summary:         row.Summary,
 		}
@@ -171,17 +171,17 @@ func (r *Repository) ListProfilePagesByProfileId(
 	return profilePages, nil
 }
 
-func (r *Repository) GetProfilePageByProfileIdAndSlug(
+func (r *Repository) GetProfilePageByProfileIDAndSlug(
 	ctx context.Context,
 	localeCode string,
-	profileId string,
+	profileID string,
 	pageSlug string,
 ) (*profiles.ProfilePage, error) {
-	row, err := r.queries.GetProfilePageByProfileIdAndSlug(
+	row, err := r.queries.GetProfilePageByProfileIDAndSlug(
 		ctx,
-		GetProfilePageByProfileIdAndSlugParams{
+		GetProfilePageByProfileIDAndSlugParams{
 			LocaleCode: localeCode,
-			ProfileId:  profileId,
+			ProfileID:  profileID,
 			PageSlug:   pageSlug,
 		},
 	)
@@ -194,9 +194,9 @@ func (r *Repository) GetProfilePageByProfileIdAndSlug(
 	}
 
 	result := &profiles.ProfilePage{
-		Id:              row.Id,
+		ID:              row.ID,
 		Slug:            row.Slug,
-		CoverPictureUri: vars.ToStringPtr(row.CoverPictureUri),
+		CoverPictureURI: vars.ToStringPtr(row.CoverPictureURI),
 		Title:           row.Title,
 		Summary:         row.Summary,
 		Content:         row.Content,
@@ -206,14 +206,14 @@ func (r *Repository) GetProfilePageByProfileIdAndSlug(
 	return result, nil
 }
 
-func (r *Repository) ListProfileLinksByProfileId(
+func (r *Repository) ListProfileLinksByProfileID(
 	ctx context.Context,
 	_localeCode string,
-	profileId string,
+	profileID string,
 ) ([]*profiles.ProfileLinkBrief, error) {
-	rows, err := r.queries.ListProfileLinksByProfileId(
+	rows, err := r.queries.ListProfileLinksByProfileID(
 		ctx,
-		ListProfileLinksByProfileIdParams{ProfileId: profileId},
+		ListProfileLinksByProfileIDParams{ProfileID: profileID},
 	)
 	if err != nil {
 		return nil, err
@@ -222,11 +222,11 @@ func (r *Repository) ListProfileLinksByProfileId(
 	profileLinks := make([]*profiles.ProfileLinkBrief, len(rows))
 	for i, row := range rows {
 		profileLinks[i] = &profiles.ProfileLinkBrief{
-			Id:         row.Id,
+			ID:         row.ID,
 			Kind:       row.Kind,
 			IsVerified: row.IsVerified,
-			PublicId:   row.PublicId.String,
-			Uri:        row.Uri.String,
+			PublicID:   row.PublicID.String,
+			URI:        row.URI.String,
 			Title:      row.Title,
 		}
 	}
@@ -234,10 +234,10 @@ func (r *Repository) ListProfileLinksByProfileId(
 	return profileLinks, nil
 }
 
-func (r *Repository) ListProfileContributions(
+func (r *Repository) ListProfileContributions( //nolint:funlen
 	ctx context.Context,
 	localeCode string,
-	profileId string,
+	profileID string,
 	kinds []string,
 	cursor *cursors.Cursor,
 ) (cursors.Cursored[[]*profiles.ProfileMembership], error) {
@@ -247,9 +247,9 @@ func (r *Repository) ListProfileContributions(
 		ctx,
 		ListProfileMembershipsParams{
 			LocaleCode:              localeCode,
-			FilterProfileId:         sql.NullString{String: "", Valid: false},
+			FilterProfileID:         sql.NullString{String: "", Valid: false},
 			FilterProfileKind:       sql.NullString{String: strings.Join(kinds, ","), Valid: true},
-			FilterMemberProfileId:   sql.NullString{String: profileId, Valid: true},
+			FilterMemberProfileID:   sql.NullString{String: profileID, Valid: true},
 			FilterMemberProfileKind: sql.NullString{String: "", Valid: false},
 		},
 	)
@@ -258,19 +258,19 @@ func (r *Repository) ListProfileContributions(
 	}
 
 	profileMemberships := make([]*profiles.ProfileMembership, len(rows))
-	for i, row := range rows {
+	for i, row := range rows { //nolint:dupl
 		profileMemberships[i] = &profiles.ProfileMembership{
-			Id:         row.ProfileMembership.Id,
+			ID:         row.ProfileMembership.ID,
 			Kind:       row.ProfileMembership.Kind,
 			StartedAt:  vars.ToTimePtr(row.ProfileMembership.StartedAt),
 			FinishedAt: vars.ToTimePtr(row.ProfileMembership.FinishedAt),
 			Properties: vars.ToObject(row.ProfileMembership.Properties),
 			Profile: &profiles.Profile{
-				Id:                row.Profile.Id,
+				ID:                row.Profile.ID,
 				Slug:              row.Profile.Slug,
 				Kind:              row.Profile.Kind,
 				CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
-				ProfilePictureUri: vars.ToStringPtr(row.Profile.ProfilePictureUri),
+				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 				Title:             row.ProfileTx.Title,
 				Description:       row.ProfileTx.Description,
@@ -280,11 +280,11 @@ func (r *Repository) ListProfileContributions(
 				DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
 			},
 			MemberProfile: &profiles.Profile{
-				Id:                row.Profile_2.Id,
+				ID:                row.Profile_2.ID,
 				Slug:              row.Profile_2.Slug,
 				Kind:              row.Profile_2.Kind,
 				CustomDomain:      vars.ToStringPtr(row.Profile_2.CustomDomain),
-				ProfilePictureUri: vars.ToStringPtr(row.Profile_2.ProfilePictureUri),
+				ProfilePictureURI: vars.ToStringPtr(row.Profile_2.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile_2.Pronouns),
 				Title:             row.ProfileTx_2.Title,
 				Description:       row.ProfileTx_2.Description,
@@ -299,7 +299,7 @@ func (r *Repository) ListProfileContributions(
 	wrappedResponse.Data = profileMemberships
 
 	if len(profileMemberships) == cursor.Limit {
-		wrappedResponse.CursorPtr = &profileMemberships[len(profileMemberships)-1].Id
+		wrappedResponse.CursorPtr = &profileMemberships[len(profileMemberships)-1].ID
 	}
 
 	return wrappedResponse, nil
@@ -309,7 +309,7 @@ func (r *Repository) ListProfileContributions(
 func (r *Repository) ListProfileMembers(
 	ctx context.Context,
 	localeCode string,
-	profileId string,
+	profileID string,
 	kinds []string,
 	cursor *cursors.Cursor,
 ) (cursors.Cursored[[]*profiles.ProfileMembership], error) {
@@ -319,9 +319,9 @@ func (r *Repository) ListProfileMembers(
 		ctx,
 		ListProfileMembershipsParams{
 			LocaleCode:              localeCode,
-			FilterProfileId:         sql.NullString{String: profileId, Valid: true},
+			FilterProfileID:         sql.NullString{String: profileID, Valid: true},
 			FilterProfileKind:       sql.NullString{String: "", Valid: false},
-			FilterMemberProfileId:   sql.NullString{String: "", Valid: false},
+			FilterMemberProfileID:   sql.NullString{String: "", Valid: false},
 			FilterMemberProfileKind: sql.NullString{String: strings.Join(kinds, ","), Valid: true},
 		},
 	)
@@ -332,17 +332,17 @@ func (r *Repository) ListProfileMembers(
 	profileMemberships := make([]*profiles.ProfileMembership, len(rows))
 	for i, row := range rows {
 		profileMemberships[i] = &profiles.ProfileMembership{
-			Id:         row.ProfileMembership.Id,
+			ID:         row.ProfileMembership.ID,
 			Kind:       row.ProfileMembership.Kind,
 			StartedAt:  vars.ToTimePtr(row.ProfileMembership.StartedAt),
 			FinishedAt: vars.ToTimePtr(row.ProfileMembership.FinishedAt),
 			Properties: vars.ToObject(row.ProfileMembership.Properties),
 			Profile: &profiles.Profile{
-				Id:                row.Profile.Id,
+				ID:                row.Profile.ID,
 				Slug:              row.Profile.Slug,
 				Kind:              row.Profile.Kind,
 				CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
-				ProfilePictureUri: vars.ToStringPtr(row.Profile.ProfilePictureUri),
+				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 				Title:             row.ProfileTx.Title,
 				Description:       row.ProfileTx.Description,
@@ -352,11 +352,11 @@ func (r *Repository) ListProfileMembers(
 				DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
 			},
 			MemberProfile: &profiles.Profile{
-				Id:                row.Profile_2.Id,
+				ID:                row.Profile_2.ID,
 				Slug:              row.Profile_2.Slug,
 				Kind:              row.Profile_2.Kind,
 				CustomDomain:      vars.ToStringPtr(row.Profile_2.CustomDomain),
-				ProfilePictureUri: vars.ToStringPtr(row.Profile_2.ProfilePictureUri),
+				ProfilePictureURI: vars.ToStringPtr(row.Profile_2.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile_2.Pronouns),
 				Title:             row.ProfileTx_2.Title,
 				Description:       row.ProfileTx_2.Description,
@@ -371,7 +371,7 @@ func (r *Repository) ListProfileMembers(
 	wrappedResponse.Data = profileMemberships
 
 	if len(profileMemberships) == cursor.Limit {
-		wrappedResponse.CursorPtr = &profileMemberships[len(profileMemberships)-1].Id
+		wrappedResponse.CursorPtr = &profileMemberships[len(profileMemberships)-1].ID
 	}
 
 	return wrappedResponse, nil

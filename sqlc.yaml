@@ -12,7 +12,10 @@ sql:
       go:
         out: "pkg/api/adapters/storage"
         sql_package: "database/sql"
-        initialisms: []
+        initialisms:
+          - "id"
+          - "uri"
+          - "url"
         query_parameter_limit: 0
         emit_interface: true
         emit_pointers_for_null_types: true

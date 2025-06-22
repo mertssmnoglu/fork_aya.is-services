@@ -22,6 +22,7 @@ linters:
   disable:
     - godox
     - tagliatelle
+    - ireturn
 
   settings:
     depguard:
@@ -32,65 +33,46 @@ linters:
               desc: The io/ioutil package has been deprecated, see https://go.dev/doc/go1.16#ioutil
           allow:
             - $gostd
-            - github.com/eser/ajan
             - github.com/eser/aya.is-services
-            - github.com/stretchr/testify
+            - github.com/getkin/kin-openapi
             - github.com/go-faker/faker/v4
-            - github.com/golang-jwt/jwt/v5
-            - github.com/pressly/goose/v3
-            - github.com/lib/pq
-            - github.com/sqlc-dev/pqtype
-            - github.com/spf13/cobra
             - github.com/go-rod/rod
+            - github.com/golang-jwt/jwt/v5
+            - github.com/lib/pq
+            - github.com/oklog/ulid/v2
+            - github.com/pressly/goose/v3
+            - github.com/rabbitmq/amqp091-go
+            - github.com/redis/go-redis/v9
+            - github.com/spf13/cobra
+            - github.com/sqlc-dev/pqtype
+            - github.com/stretchr/testify
+            - go.opentelemetry.io/otel
+            - golang.org/x/net/http/httpguts
+            - modernc.org/sqlite
     revive:
-      # enable-all-rules: true
-      severity: warning
       rules:
-        - name: var-naming
-          disabled: true
-          arguments: []
-        # - name: exported
-        #   severity: warning
-        # - name: error-return
-        #   severity: warning
-        # - name: error-naming
-        #   severity: warning
-        # - name: if-return
-        #   severity: warning
-        # - name: var-naming
-        #   severity: warning
-        # - name: var-declaration
-        #   severity: warning
-        # - name: receiver-naming
-        #   severity: warning
-        # - name: errorf
-        #   severity: warning
-        # - name: empty-block
-        #   severity: warning
-        # - name: unused-parameter
-        #   severity: warning
-        # - name: unreachable-code
-        #   severity: warning
-        # - name: redefines-builtin-id
-        #   severity: warning
-        # - name: superfluous-else
-        #   severity: warning
-        # - name: unexported-return
-        #   severity: warning
-        # - name: indent-error-flow
-        #   severity: warning
-        # - name: blank-imports
-        #   severity: warning
-        # - name: range
-        #   severity: warning
-        # - name: time-naming
-        #   severity: warning
-        # - name: context-as-argument
-        #   severity: warning
-        # - name: context-keys-type
-        #   severity: warning
-        # - name: indent-error-flow
-        #   severity: warning
+        - name: "var-naming"
+          severity: warning
+          disabled: false
+          arguments:
+            - [] # AllowList
+            - [] # DenyList
+            - - upper-case-const: false
+    varnamelen:
+      check-receiver: false
+      ignore-names:
+        - err
+      ignore-decls:
+        - ctx context.Context
+        - t testing.T
+        - i int
+        - n int
+        - const C
+        - T any
+        - r *http.Request
+        - w http.ResponseWriter
+        - w io.Writer
+        - c *httpfx.Context
   exclusions:
     paths:
       - ops

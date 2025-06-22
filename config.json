@@ -3,9 +3,10 @@
   "features": {
     "dummy": true
   },
-  "data": {
-    "sources": {
+  "conn": {
+    "targets": {
       "default": {
+        "protocol": "postgres",
         "dsn": "postgres://postgres:s3cr3t@localhost:5432/postgres?sslmode=disable"
       }
     }

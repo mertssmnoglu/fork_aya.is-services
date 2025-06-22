@@ -3,7 +3,7 @@ package stories
 import (
 	"time"
 
-	"github.com/eser/ajan/lib"
+	"github.com/eser/aya.is-services/pkg/ajan/lib"
 	"github.com/eser/aya.is-services/pkg/api/business/profiles"
 )
 
@@ -12,18 +12,18 @@ type RecordID string
 type RecordIDGenerator func() RecordID
 
 func DefaultIDGenerator() RecordID {
-	return RecordID(lib.IdsGenerateUnique())
+	return RecordID(lib.IDsGenerateUnique())
 }
 
 type Story struct {
 	CreatedAt       time.Time  `json:"created_at"`
 	Properties      any        `json:"properties"`
-	AuthorProfileId *string    `json:"author_profile_id"`
-	StoryPictureUri *string    `json:"story_picture_uri"`
+	AuthorProfileID *string    `json:"author_profile_id"`
+	StoryPictureURI *string    `json:"story_picture_uri"`
 	PublishedAt     *time.Time `json:"published_at"`
 	UpdatedAt       *time.Time `json:"updated_at"`
 	DeletedAt       *time.Time `json:"deleted_at"`
-	Id              string     `json:"id"`
+	ID              string     `json:"id"`
 	Slug            string     `json:"slug"`
 	Kind            string     `json:"kind"`
 	Status          string     `json:"status"`

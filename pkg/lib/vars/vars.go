@@ -25,7 +25,7 @@ func ToStringPtr(s sql.NullString) *string {
 	return nil
 }
 
-func ToSqlNullString(s *string) sql.NullString {
+func ToSQLNullString(s *string) sql.NullString {
 	if s != nil {
 		return sql.NullString{String: *s, Valid: true}
 	}
@@ -44,7 +44,7 @@ func ToTimePtr(t sql.NullTime) *time.Time {
 	return nil
 }
 
-func ToSqlNullTime(t *time.Time) sql.NullTime {
+func ToSQLNullTime(t *time.Time) sql.NullTime {
 	if t != nil {
 		return sql.NullTime{Time: *t, Valid: true}
 	}

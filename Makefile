@@ -1,6 +1,9 @@
 # .RECIPEPREFIX := $(.RECIPEPREFIX)<space>
 TESTCOVERAGE_THRESHOLD=0
 
+NAME_SERVICES=tempo pyroscope otel-collector postgres prometheus loki grafana
+NAME_APP=api
+
 # ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 
 default: help
@@ -8,7 +11,7 @@ default: help
 .PHONY: help
 help: ## Shows help for each of the Makefile recipes.
 	@echo 'Commands:'
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-32s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: dep
 dep: ## Downloads dependencies.
@@ -115,49 +118,49 @@ fix: ## Fixes code formatting and alignment.
 	go tool betteralign -apply ./...
 	go fmt ./...
 
-.PHONY: postgres-start
-postgres-start: ## Starts the postgres container.
-	docker compose --file ./ops/docker/compose.yml up --detach postgres
+.PHONY: services-start
+services-start: ## Starts services.
+	COMPOSE_BAKE=true docker compose --file ./ops/docker/compose.yml up --remove-orphans --detach $(NAME_SERVICES)
 
-.PHONY: postgres-stop
-postgres-stop: ## Stops the postgres container.
-	docker compose --file ./ops/docker/compose.yml stop postgres
+.PHONY: services-stop
+services-stop: ## Stops services.
+	docker compose --file ./ops/docker/compose.yml stop $(NAME_SERVICES)
 
-.PHONY: container-start
-container-start: ## Starts the container.
-	docker compose --file ./ops/docker/compose.yml up --detach api
+.PHONY: app-build
+app-build: ## (Re)builds the app container.
+	COMPOSE_BAKE=true docker compose --file ./ops/docker/compose.yml build $(NAME_APP)
 
-.PHONY: container-rebuild
-container-rebuild: ## Rebuilds the container.
-	docker compose --file ./ops/docker/compose.yml up --detach --build api
+.PHONY: app-up
+app-up: ## Starts the app container.
+	COMPOSE_BAKE=true docker compose --file ./ops/docker/compose.yml up --detach $(NAME_APP)
 
-.PHONY: container-restart
-container-restart: ## Restarts the container.
-	docker compose --file ./ops/docker/compose.yml restart api
+.PHONY: app-down
+app-down: ## Destroys the app container.
+	docker compose --file ./ops/docker/compose.yml down $(NAME_APP)
 
-.PHONY: container-stop
-container-stop: ## Stops the container.
-	docker compose --file ./ops/docker/compose.yml stop api
+.PHONY: app-start
+app-start: ## Starts the app container.
+	COMPOSE_BAKE=true docker compose --file ./ops/docker/compose.yml start $(NAME_APP)
 
-.PHONY: container-destroy
-container-destroy: ## Destroys the container.
-	docker compose --file ./ops/docker/compose.yml down api
+.PHONY: app-watch
+app-watch: ## Starts the app container and watches for changes.
+	COMPOSE_BAKE=true docker compose --file ./ops/docker/compose.yml watch $(NAME_APP)
 
-.PHONY: container-update
-container-update: ## Updates the container.
-	docker compose --file ./ops/docker/compose.yml pull api
+.PHONY: app-restart
+app-restart: ## Restarts the app container.
+	COMPOSE_BAKE=true docker compose --file ./ops/docker/compose.yml restart $(NAME_APP)
 
-.PHONY: container-dev
-container-dev: ## Watches the container.
-	docker compose --file ./ops/docker/compose.yml watch api
+.PHONY: app-stop
+app-stop: ## Stops the app container.
+	docker compose --file ./ops/docker/compose.yml stop $(NAME_APP)
 
-.PHONY: container-logs
-container-logs: ## Shows the logs of the container.
-	docker compose --file ./ops/docker/compose.yml logs api
+.PHONY: app-logs
+app-logs: ## Shows the logs of the app container.
+	docker compose --file ./ops/docker/compose.yml logs $(NAME_APP)
 
-.PHONY: container-cli
-container-cli: ## Opens a shell in the container.
-	docker compose --file ./ops/docker/compose.yml exec api bash
+.PHONY: app-cli
+app-cli: ## Opens a shell in the app container.
+	COMPOSE_BAKE=true docker compose --file ./ops/docker/compose.yml exec $(NAME_APP) bash
 
 %:
 	@:

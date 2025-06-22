@@ -12,7 +12,7 @@ func main() {
 		Long:  "aya.is-services CLI provides various functionalities for site management including reporting and administration.", //nolint:lll
 	}
 
-	rootCmd.AddCommand(subcommands.CmdId())
+	rootCmd.AddCommand(subcommands.CmdID())
 	rootCmd.AddCommand(subcommands.CmdReady())
 	rootCmd.AddCommand(subcommands.CmdProfiles())
 	rootCmd.AddCommand(subcommands.CmdScrape())

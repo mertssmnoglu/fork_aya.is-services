@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/eser/ajan/lib"
+	"github.com/eser/aya.is-services/pkg/ajan/lib"
 	"github.com/spf13/cobra"
 )
 
-func CmdId() *cobra.Command {
+func CmdID() *cobra.Command {
 	var flagCount int
 
 	idCmd := &cobra.Command{ //nolint:exhaustruct
@@ -16,7 +16,7 @@ func CmdId() *cobra.Command {
 		Short: "Generates id",
 		Long:  "Generates id",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return execId(cmd.Context(), flagCount)
+			return execID(cmd.Context(), flagCount)
 		},
 	}
 
@@ -25,9 +25,9 @@ func CmdId() *cobra.Command {
 	return idCmd
 }
 
-func execId(_ context.Context, count int) error {
+func execID(_ context.Context, count int) error {
 	for range count {
-		id := lib.IdsGenerateUnique()
+		id := lib.IDsGenerateUnique()
 
 		fmt.Println(id) //nolint:forbidigo
 	}

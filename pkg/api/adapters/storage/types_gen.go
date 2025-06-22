@@ -18,10 +18,10 @@ type Cache struct {
 }
 
 type Event struct {
-	Id              string         `db:"id" json:"id"`
+	ID              string         `db:"id" json:"id"`
 	Slug            string         `db:"slug" json:"slug"`
 	Kind            string         `db:"kind" json:"kind"`
-	EventPictureUri sql.NullString `db:"event_picture_uri" json:"event_picture_uri"`
+	EventPictureURI sql.NullString `db:"event_picture_uri" json:"event_picture_uri"`
 	Title           string         `db:"title" json:"title"`
 	Description     string         `db:"description" json:"description"`
 	TimeStart       time.Time      `db:"time_start" json:"time_start"`
@@ -29,16 +29,16 @@ type Event struct {
 	CreatedAt       time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt       sql.NullTime   `db:"updated_at" json:"updated_at"`
 	DeletedAt       sql.NullTime   `db:"deleted_at" json:"deleted_at"`
-	SeriesId        sql.NullString `db:"series_id" json:"series_id"`
+	SeriesID        sql.NullString `db:"series_id" json:"series_id"`
 	Status          string         `db:"status" json:"status"`
-	AttendanceUri   sql.NullString `db:"attendance_uri" json:"attendance_uri"`
+	AttendanceURI   sql.NullString `db:"attendance_uri" json:"attendance_uri"`
 	PublishedAt     sql.NullTime   `db:"published_at" json:"published_at"`
 }
 
 type EventAttendance struct {
-	Id        string       `db:"id" json:"id"`
-	EventId   string       `db:"event_id" json:"event_id"`
-	ProfileId string       `db:"profile_id" json:"profile_id"`
+	ID        string       `db:"id" json:"id"`
+	EventID   string       `db:"event_id" json:"event_id"`
+	ProfileID string       `db:"profile_id" json:"profile_id"`
 	Kind      string       `db:"kind" json:"kind"`
 	CreatedAt time.Time    `db:"created_at" json:"created_at"`
 	UpdatedAt sql.NullTime `db:"updated_at" json:"updated_at"`
@@ -46,9 +46,9 @@ type EventAttendance struct {
 }
 
 type EventSeries struct {
-	Id              string         `db:"id" json:"id"`
+	ID              string         `db:"id" json:"id"`
 	Slug            string         `db:"slug" json:"slug"`
-	EventPictureUri sql.NullString `db:"event_picture_uri" json:"event_picture_uri"`
+	EventPictureURI sql.NullString `db:"event_picture_uri" json:"event_picture_uri"`
 	Title           string         `db:"title" json:"title"`
 	Description     string         `db:"description" json:"description"`
 	CreatedAt       time.Time      `db:"created_at" json:"created_at"`
@@ -57,11 +57,11 @@ type EventSeries struct {
 }
 
 type Profile struct {
-	Id                string                `db:"id" json:"id"`
+	ID                string                `db:"id" json:"id"`
 	Slug              string                `db:"slug" json:"slug"`
 	Kind              string                `db:"kind" json:"kind"`
 	CustomDomain      sql.NullString        `db:"custom_domain" json:"custom_domain"`
-	ProfilePictureUri sql.NullString        `db:"profile_picture_uri" json:"profile_picture_uri"`
+	ProfilePictureURI sql.NullString        `db:"profile_picture_uri" json:"profile_picture_uri"`
 	Pronouns          sql.NullString        `db:"pronouns" json:"pronouns"`
 	Properties        pqtype.NullRawMessage `db:"properties" json:"properties"`
 	CreatedAt         time.Time             `db:"created_at" json:"created_at"`
@@ -70,16 +70,16 @@ type Profile struct {
 }
 
 type ProfileLink struct {
-	Id                        string                `db:"id" json:"id"`
-	ProfileId                 string                `db:"profile_id" json:"profile_id"`
+	ID                        string                `db:"id" json:"id"`
+	ProfileID                 string                `db:"profile_id" json:"profile_id"`
 	Kind                      string                `db:"kind" json:"kind"`
 	Order                     int32                 `db:"order" json:"order"`
 	IsManaged                 bool                  `db:"is_managed" json:"is_managed"`
 	IsVerified                bool                  `db:"is_verified" json:"is_verified"`
 	IsHidden                  bool                  `db:"is_hidden" json:"is_hidden"`
-	RemoteId                  sql.NullString        `db:"remote_id" json:"remote_id"`
-	PublicId                  sql.NullString        `db:"public_id" json:"public_id"`
-	Uri                       sql.NullString        `db:"uri" json:"uri"`
+	RemoteID                  sql.NullString        `db:"remote_id" json:"remote_id"`
+	PublicID                  sql.NullString        `db:"public_id" json:"public_id"`
+	URI                       sql.NullString        `db:"uri" json:"uri"`
 	Title                     string                `db:"title" json:"title"`
 	AuthProvider              sql.NullString        `db:"auth_provider" json:"auth_provider"`
 	AuthAccessTokenScope      sql.NullString        `db:"auth_access_token_scope" json:"auth_access_token_scope"`
@@ -94,9 +94,9 @@ type ProfileLink struct {
 }
 
 type ProfileLinkImport struct {
-	Id            string                `db:"id" json:"id"`
-	ProfileLinkId string                `db:"profile_link_id" json:"profile_link_id"`
-	RemoteId      sql.NullString        `db:"remote_id" json:"remote_id"`
+	ID            string                `db:"id" json:"id"`
+	ProfileLinkID string                `db:"profile_link_id" json:"profile_link_id"`
+	RemoteID      sql.NullString        `db:"remote_id" json:"remote_id"`
 	Properties    pqtype.NullRawMessage `db:"properties" json:"properties"`
 	CreatedAt     time.Time             `db:"created_at" json:"created_at"`
 	UpdatedAt     sql.NullTime          `db:"updated_at" json:"updated_at"`
@@ -104,9 +104,9 @@ type ProfileLinkImport struct {
 }
 
 type ProfileMembership struct {
-	Id              string                `db:"id" json:"id"`
-	ProfileId       string                `db:"profile_id" json:"profile_id"`
-	MemberProfileId string                `db:"member_profile_id" json:"member_profile_id"`
+	ID              string                `db:"id" json:"id"`
+	ProfileID       string                `db:"profile_id" json:"profile_id"`
+	MemberProfileID string                `db:"member_profile_id" json:"member_profile_id"`
 	Kind            string                `db:"kind" json:"kind"`
 	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
 	StartedAt       sql.NullTime          `db:"started_at" json:"started_at"`
@@ -117,11 +117,11 @@ type ProfileMembership struct {
 }
 
 type ProfilePage struct {
-	Id              string         `db:"id" json:"id"`
-	ProfileId       string         `db:"profile_id" json:"profile_id"`
+	ID              string         `db:"id" json:"id"`
+	ProfileID       string         `db:"profile_id" json:"profile_id"`
 	Slug            string         `db:"slug" json:"slug"`
 	Order           int32          `db:"order" json:"order"`
-	CoverPictureUri sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
+	CoverPictureURI sql.NullString `db:"cover_picture_uri" json:"cover_picture_uri"`
 	PublishedAt     sql.NullTime   `db:"published_at" json:"published_at"`
 	CreatedAt       time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt       sql.NullTime   `db:"updated_at" json:"updated_at"`
@@ -129,7 +129,7 @@ type ProfilePage struct {
 }
 
 type ProfilePageTx struct {
-	ProfilePageId string `db:"profile_page_id" json:"profile_page_id"`
+	ProfilePageID string `db:"profile_page_id" json:"profile_page_id"`
 	LocaleCode    string `db:"locale_code" json:"locale_code"`
 	Title         string `db:"title" json:"title"`
 	Summary       string `db:"summary" json:"summary"`
@@ -137,7 +137,7 @@ type ProfilePageTx struct {
 }
 
 type ProfileTx struct {
-	ProfileId   string                `db:"profile_id" json:"profile_id"`
+	ProfileID   string                `db:"profile_id" json:"profile_id"`
 	LocaleCode  string                `db:"locale_code" json:"locale_code"`
 	Title       string                `db:"title" json:"title"`
 	Description string                `db:"description" json:"description"`
@@ -145,36 +145,36 @@ type ProfileTx struct {
 }
 
 type Question struct {
-	Id            string         `db:"id" json:"id"`
-	UserId        string         `db:"user_id" json:"user_id"`
-	ProfileId     sql.NullString `db:"profile_id" json:"profile_id"`
+	ID            string         `db:"id" json:"id"`
+	UserID        string         `db:"user_id" json:"user_id"`
+	ProfileID     sql.NullString `db:"profile_id" json:"profile_id"`
 	Content       string         `db:"content" json:"content"`
 	IsHidden      bool           `db:"is_hidden" json:"is_hidden"`
 	CreatedAt     time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt     sql.NullTime   `db:"updated_at" json:"updated_at"`
 	DeletedAt     sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	AnsweredAt    sql.NullTime   `db:"answered_at" json:"answered_at"`
-	AnswerUri     sql.NullString `db:"answer_uri" json:"answer_uri"`
+	AnswerURI     sql.NullString `db:"answer_uri" json:"answer_uri"`
 	IsAnonymous   bool           `db:"is_anonymous" json:"is_anonymous"`
 	AnswerKind    sql.NullString `db:"answer_kind" json:"answer_kind"`
 	AnswerContent sql.NullString `db:"answer_content" json:"answer_content"`
 }
 
 type QuestionVote struct {
-	Id         string    `db:"id" json:"id"`
-	QuestionId string    `db:"question_id" json:"question_id"`
-	UserId     string    `db:"user_id" json:"user_id"`
+	ID         string    `db:"id" json:"id"`
+	QuestionID string    `db:"question_id" json:"question_id"`
+	UserID     string    `db:"user_id" json:"user_id"`
 	Score      int32     `db:"score" json:"score"`
 	CreatedAt  time.Time `db:"created_at" json:"created_at"`
 }
 
 type Session struct {
-	Id                       string         `db:"id" json:"id"`
+	ID                       string         `db:"id" json:"id"`
 	Status                   string         `db:"status" json:"status"`
 	OauthRequestState        string         `db:"oauth_request_state" json:"oauth_request_state"`
 	OauthRequestCodeVerifier string         `db:"oauth_request_code_verifier" json:"oauth_request_code_verifier"`
-	OauthRedirectUri         sql.NullString `db:"oauth_redirect_uri" json:"oauth_redirect_uri"`
-	LoggedInUserId           sql.NullString `db:"logged_in_user_id" json:"logged_in_user_id"`
+	OauthRedirectURI         sql.NullString `db:"oauth_redirect_uri" json:"oauth_redirect_uri"`
+	LoggedInUserID           sql.NullString `db:"logged_in_user_id" json:"logged_in_user_id"`
 	LoggedInAt               sql.NullTime   `db:"logged_in_at" json:"logged_in_at"`
 	ExpiresAt                sql.NullTime   `db:"expires_at" json:"expires_at"`
 	CreatedAt                time.Time      `db:"created_at" json:"created_at"`
@@ -182,13 +182,13 @@ type Session struct {
 }
 
 type Story struct {
-	Id              string                `db:"id" json:"id"`
-	AuthorProfileId sql.NullString        `db:"author_profile_id" json:"author_profile_id"`
+	ID              string                `db:"id" json:"id"`
+	AuthorProfileID sql.NullString        `db:"author_profile_id" json:"author_profile_id"`
 	Slug            string                `db:"slug" json:"slug"`
 	Kind            string                `db:"kind" json:"kind"`
 	Status          string                `db:"status" json:"status"`
 	IsFeatured      bool                  `db:"is_featured" json:"is_featured"`
-	StoryPictureUri sql.NullString        `db:"story_picture_uri" json:"story_picture_uri"`
+	StoryPictureURI sql.NullString        `db:"story_picture_uri" json:"story_picture_uri"`
 	Title           string                `db:"title" json:"title"`
 	Summary         string                `db:"summary" json:"summary"`
 	Content         string                `db:"content" json:"content"`
@@ -200,9 +200,9 @@ type Story struct {
 }
 
 type StoryPublication struct {
-	Id         string                `db:"id" json:"id"`
-	StoryId    string                `db:"story_id" json:"story_id"`
-	ProfileId  string                `db:"profile_id" json:"profile_id"`
+	ID         string                `db:"id" json:"id"`
+	StoryID    string                `db:"story_id" json:"story_id"`
+	ProfileID  string                `db:"profile_id" json:"profile_id"`
 	Kind       string                `db:"kind" json:"kind"`
 	Properties pqtype.NullRawMessage `db:"properties" json:"properties"`
 	CreatedAt  time.Time             `db:"created_at" json:"created_at"`
@@ -211,7 +211,7 @@ type StoryPublication struct {
 }
 
 type StoryTx struct {
-	StoryId    string `db:"story_id" json:"story_id"`
+	StoryID    string `db:"story_id" json:"story_id"`
 	LocaleCode string `db:"locale_code" json:"locale_code"`
 	Title      string `db:"title" json:"title"`
 	Summary    string `db:"summary" json:"summary"`
@@ -219,18 +219,18 @@ type StoryTx struct {
 }
 
 type User struct {
-	Id                  string         `db:"id" json:"id"`
+	ID                  string         `db:"id" json:"id"`
 	Kind                string         `db:"kind" json:"kind"`
 	Name                string         `db:"name" json:"name"`
 	Email               sql.NullString `db:"email" json:"email"`
 	Phone               sql.NullString `db:"phone" json:"phone"`
 	GithubHandle        sql.NullString `db:"github_handle" json:"github_handle"`
-	GithubRemoteId      sql.NullString `db:"github_remote_id" json:"github_remote_id"`
+	GithubRemoteID      sql.NullString `db:"github_remote_id" json:"github_remote_id"`
 	BskyHandle          sql.NullString `db:"bsky_handle" json:"bsky_handle"`
-	BskyRemoteId        sql.NullString `db:"bsky_remote_id" json:"bsky_remote_id"`
+	BskyRemoteID        sql.NullString `db:"bsky_remote_id" json:"bsky_remote_id"`
 	XHandle             sql.NullString `db:"x_handle" json:"x_handle"`
-	XRemoteId           sql.NullString `db:"x_remote_id" json:"x_remote_id"`
-	IndividualProfileId sql.NullString `db:"individual_profile_id" json:"individual_profile_id"`
+	XRemoteID           sql.NullString `db:"x_remote_id" json:"x_remote_id"`
+	IndividualProfileID sql.NullString `db:"individual_profile_id" json:"individual_profile_id"`
 	CreatedAt           time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt           sql.NullTime   `db:"updated_at" json:"updated_at"`
 	DeletedAt           sql.NullTime   `db:"deleted_at" json:"deleted_at"`

@@ -1,12 +1,11 @@
 package http
 
 import (
-	"net/http"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/eser/ajan/httpfx"
+	"github.com/eser/aya.is-services/pkg/ajan/httpfx"
 	"github.com/eser/aya.is-services/pkg/api/business/users"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -19,7 +18,7 @@ func AuthMiddleware(usersService *users.Service) httpfx.Handler {
 		auth := ctx.Request.Header.Get(AuthHeader)
 
 		if auth == "" || !strings.HasPrefix(auth, "Bearer ") {
-			return ctx.Results.Error(http.StatusUnauthorized, []byte("Unauthorized"))
+			return ctx.Results.Unauthorized(httpfx.WithPlainText("Unauthorized"))
 		}
 
 		tokenStr := strings.TrimPrefix(auth, "Bearer ")
@@ -29,27 +28,27 @@ func AuthMiddleware(usersService *users.Service) httpfx.Handler {
 		})
 
 		if err != nil || !token.Valid {
-			return ctx.Results.Error(http.StatusUnauthorized, []byte("Invalid token"))
+			return ctx.Results.Unauthorized(httpfx.WithPlainText("Invalid token"))
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
-			return ctx.Results.Error(http.StatusUnauthorized, []byte("Invalid claims"))
+			return ctx.Results.Unauthorized(httpfx.WithPlainText("Invalid claims"))
 		}
 
-		sessionId, _ := claims["session_id"].(string)
-		if sessionId == "" {
-			return ctx.Results.Error(http.StatusUnauthorized, []byte("No session"))
+		sessionID, _ := claims["session_id"].(string)
+		if sessionID == "" {
+			return ctx.Results.Unauthorized(httpfx.WithPlainText("No session"))
 		}
 
 		// Load session from repository
-		session, err := usersService.GetSessionById(ctx.Request.Context(), sessionId)
+		session, err := usersService.GetSessionByID(ctx.Request.Context(), sessionID)
 		if err != nil || session.Status != "active" {
-			return ctx.Results.Error(http.StatusUnauthorized, []byte("Session invalid"))
+			return ctx.Results.Unauthorized(httpfx.WithPlainText("Session invalid"))
 		}
 
 		// Update logged_in_at
-		_ = usersService.UpdateSessionLoggedInAt(ctx.Request.Context(), sessionId, time.Now())
+		_ = usersService.UpdateSessionLoggedInAt(ctx.Request.Context(), sessionID, time.Now())
 
 		result := ctx.Next()
 

@@ -1,16 +1,15 @@
-//nolint:dupl
 package http
 
 import (
 	"net/http"
 
-	"github.com/eser/ajan/httpfx"
-	"github.com/eser/ajan/logfx"
+	"github.com/eser/aya.is-services/pkg/ajan/httpfx"
+	"github.com/eser/aya.is-services/pkg/ajan/logfx"
 	"github.com/eser/aya.is-services/pkg/api/business/stories"
 	"github.com/eser/aya.is-services/pkg/lib/cursors"
 )
 
-func RegisterHttpRoutesForStories(
+func RegisterHTTPRoutesForStories(
 	routes *httpfx.Router,
 	logger *logfx.Logger,
 	storiesService *stories.Service,
@@ -23,10 +22,13 @@ func RegisterHttpRoutesForStories(
 
 			records, err := storiesService.List(ctx.Request.Context(), localeParam, cursor)
 			if err != nil {
-				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText(err.Error()),
+				)
 			}
 
-			return ctx.Results.Json(records)
+			return ctx.Results.JSON(records)
 		}).
 		HasSummary("List stories").
 		HasDescription("List stories.").
@@ -40,16 +42,19 @@ func RegisterHttpRoutesForStories(
 
 			record, err := storiesService.GetBySlug(ctx.Request.Context(), localeParam, slugParam)
 			if err != nil {
-				return ctx.Results.Error(http.StatusInternalServerError, []byte(err.Error()))
+				return ctx.Results.Error(
+					http.StatusInternalServerError,
+					httpfx.WithPlainText(err.Error()),
+				)
 			}
 
 			// if record == nil {
-			// 	return ctx.Results.Error(http.StatusNotFound, []byte("story not found"))
+			// 	return ctx.Results.NotFound(httpfx.WithPlainText("story not found"))
 			// }
 
 			wrappedResponse := cursors.WrapResponseWithCursor(record, nil)
 
-			return ctx.Results.Json(wrappedResponse)
+			return ctx.Results.JSON(wrappedResponse)
 		}).
 		HasSummary("Get story by slug").
 		HasDescription("Get story by slug.").

@@ -1,7 +1,7 @@
 package appcontext
 
 import (
-	"github.com/eser/ajan"
+	"github.com/eser/aya.is-services/pkg/ajan"
 	"github.com/eser/aya.is-services/pkg/api/adapters/arcade"
 )
 

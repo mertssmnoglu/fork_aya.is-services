@@ -14,7 +14,7 @@ services:
       DATA__SOURCES__DEFAULT__DSN: postgres://postgres:s3cr3t@postgres:5432/postgres?sslmode=disable
       LOG__PRETTY: false
     networks:
-      - acik-io-network
+      - aya-is-network
     ports:
       - 8080:8080
     depends_on:
@@ -33,10 +33,10 @@ services:
     volumes:
       - ./resources/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - acik-io-network
+      - aya-is-network
     ports:
       - 5435:5432
 
 networks:
-  acik-io-network:
+  aya-is-network:
     driver: bridge

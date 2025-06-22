@@ -95,7 +95,7 @@ type Querier interface {
 	//    AND updated_at > $2
 	//  LIMIT 1
 	GetFromCacheSince(ctx context.Context, arg GetFromCacheSinceParams) (*GetFromCacheSinceRow, error)
-	//GetProfileById
+	//GetProfileByID
 	//
 	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 	//  FROM "profile" p
@@ -104,24 +104,24 @@ type Querier interface {
 	//  WHERE p.id = $2
 	//    AND p.deleted_at IS NULL
 	//  LIMIT 1
-	GetProfileById(ctx context.Context, arg GetProfileByIdParams) (*GetProfileByIdRow, error)
-	//GetProfileIdByCustomDomain
+	GetProfileByID(ctx context.Context, arg GetProfileByIDParams) (*GetProfileByIDRow, error)
+	//GetProfileIDByCustomDomain
 	//
 	//  SELECT id
 	//  FROM "profile"
 	//  WHERE custom_domain = $1
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
-	GetProfileIdByCustomDomain(ctx context.Context, arg GetProfileIdByCustomDomainParams) (string, error)
-	//GetProfileIdBySlug
+	GetProfileIDByCustomDomain(ctx context.Context, arg GetProfileIDByCustomDomainParams) (string, error)
+	//GetProfileIDBySlug
 	//
 	//  SELECT id
 	//  FROM "profile"
 	//  WHERE slug = $1
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
-	GetProfileIdBySlug(ctx context.Context, arg GetProfileIdBySlugParams) (string, error)
-	//GetProfilePageByProfileIdAndSlug
+	GetProfileIDBySlug(ctx context.Context, arg GetProfileIDBySlugParams) (string, error)
+	//GetProfilePageByProfileIDAndSlug
 	//
 	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 	//  FROM "profile_page" pp
@@ -129,8 +129,8 @@ type Querier interface {
 	//    AND ppt.locale_code = $1
 	//  WHERE pp.profile_id = $2 AND pp.slug = $3 AND pp.deleted_at IS NULL
 	//  ORDER BY pp."order"
-	GetProfilePageByProfileIdAndSlug(ctx context.Context, arg GetProfilePageByProfileIdAndSlugParams) (*GetProfilePageByProfileIdAndSlugRow, error)
-	//GetSessionById
+	GetProfilePageByProfileIDAndSlug(ctx context.Context, arg GetProfilePageByProfileIDAndSlugParams) (*GetProfilePageByProfileIDAndSlugRow, error)
+	//GetSessionByID
 	//
 	//  SELECT
 	//    id,
@@ -147,8 +147,8 @@ type Querier interface {
 	//    session
 	//  WHERE
 	//    id = $1
-	GetSessionById(ctx context.Context, arg GetSessionByIdParams) (*Session, error)
-	//GetStoryById
+	GetSessionByID(ctx context.Context, arg GetSessionByIDParams) (*Session, error)
+	//GetStoryByID
 	//
 	//  SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content, p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 	//  FROM "story" s
@@ -159,15 +159,15 @@ type Querier interface {
 	//  WHERE s.id = $2
 	//    AND s.deleted_at IS NULL
 	//  LIMIT 1
-	GetStoryById(ctx context.Context, arg GetStoryByIdParams) (*GetStoryByIdRow, error)
-	//GetStoryIdBySlug
+	GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*GetStoryByIDRow, error)
+	//GetStoryIDBySlug
 	//
 	//  SELECT id
 	//  FROM "story"
 	//  WHERE slug = $1
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
-	GetStoryIdBySlug(ctx context.Context, arg GetStoryIdBySlugParams) (string, error)
+	GetStoryIDBySlug(ctx context.Context, arg GetStoryIDBySlugParams) (string, error)
 	//GetUserByEmail
 	//
 	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
@@ -176,15 +176,15 @@ type Querier interface {
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
 	GetUserByEmail(ctx context.Context, arg GetUserByEmailParams) (*User, error)
-	//GetUserById
+	//GetUserByID
 	//
 	//  SELECT id, kind, name, email, phone, github_handle, github_remote_id, bsky_handle, bsky_remote_id, x_handle, x_remote_id, individual_profile_id, created_at, updated_at, deleted_at
 	//  FROM "user"
 	//  WHERE id = $1
 	//    AND deleted_at IS NULL
 	//  LIMIT 1
-	GetUserById(ctx context.Context, arg GetUserByIdParams) (*User, error)
-	//ListProfileLinksByProfileId
+	GetUserByID(ctx context.Context, arg GetUserByIDParams) (*User, error)
+	//ListProfileLinksByProfileID
 	//
 	//  SELECT id, profile_id, kind, "order", is_managed, is_verified, is_hidden, remote_id, public_id, uri, title, auth_provider, auth_access_token_scope, auth_access_token, auth_access_token_expires_at, auth_refresh_token, auth_refresh_token_expires_at, properties, created_at, updated_at, deleted_at
 	//  FROM "profile_link"
@@ -192,7 +192,7 @@ type Querier interface {
 	//    AND is_hidden = FALSE
 	//    AND deleted_at IS NULL
 	//  ORDER BY "order"
-	ListProfileLinksByProfileId(ctx context.Context, arg ListProfileLinksByProfileIdParams) ([]*ProfileLink, error)
+	ListProfileLinksByProfileID(ctx context.Context, arg ListProfileLinksByProfileIDParams) ([]*ProfileLink, error)
 	//ListProfileLinksForKind
 	//
 	//  SELECT pl.id, pl.profile_id, pl.kind, pl."order", pl.is_managed, pl.is_verified, pl.is_hidden, pl.remote_id, pl.public_id, pl.uri, pl.title, pl.auth_provider, pl.auth_access_token_scope, pl.auth_access_token, pl.auth_access_token_expires_at, pl.auth_refresh_token, pl.auth_refresh_token_expires_at, pl.properties, pl.created_at, pl.updated_at, pl.deleted_at
@@ -227,7 +227,7 @@ type Querier interface {
 	//      AND ($4::TEXT IS NULL OR pm.profile_id = $4::TEXT)
 	//      AND ($5::TEXT IS NULL OR pm.member_profile_id = $5::TEXT)
 	ListProfileMemberships(ctx context.Context, arg ListProfileMembershipsParams) ([]*ListProfileMembershipsRow, error)
-	//ListProfilePagesByProfileId
+	//ListProfilePagesByProfileID
 	//
 	//  SELECT pp.id, pp.profile_id, pp.slug, pp."order", pp.cover_picture_uri, pp.published_at, pp.created_at, pp.updated_at, pp.deleted_at, ppt.profile_page_id, ppt.locale_code, ppt.title, ppt.summary, ppt.content
 	//  FROM "profile_page" pp
@@ -236,7 +236,7 @@ type Querier interface {
 	//  WHERE pp.profile_id = $2
 	//    AND pp.deleted_at IS NULL
 	//  ORDER BY pp."order"
-	ListProfilePagesByProfileId(ctx context.Context, arg ListProfilePagesByProfileIdParams) ([]*ListProfilePagesByProfileIdRow, error)
+	ListProfilePagesByProfileID(ctx context.Context, arg ListProfilePagesByProfileIDParams) ([]*ListProfilePagesByProfileIDRow, error)
 	//ListProfiles
 	//
 	//  SELECT p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties

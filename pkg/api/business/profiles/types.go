@@ -3,7 +3,7 @@ package profiles
 import (
 	"time"
 
-	"github.com/eser/ajan/lib"
+	"github.com/eser/aya.is-services/pkg/ajan/lib"
 )
 
 type RecordID string
@@ -11,18 +11,18 @@ type RecordID string
 type RecordIDGenerator func() RecordID
 
 func DefaultIDGenerator() RecordID {
-	return RecordID(lib.IdsGenerateUnique())
+	return RecordID(lib.IDsGenerateUnique())
 }
 
 type Profile struct {
 	CreatedAt         time.Time  `json:"created_at"`
 	Properties        any        `json:"properties"`
 	CustomDomain      *string    `json:"custom_domain"`
-	ProfilePictureUri *string    `json:"profile_picture_uri"`
+	ProfilePictureURI *string    `json:"profile_picture_uri"`
 	Pronouns          *string    `json:"pronouns"`
 	UpdatedAt         *time.Time `json:"updated_at"`
 	DeletedAt         *time.Time `json:"deleted_at"`
-	Id                string     `json:"id"`
+	ID                string     `json:"id"`
 	Slug              string     `json:"slug"`
 	Kind              string     `json:"kind"`
 	Title             string     `json:"title"`
@@ -36,9 +36,9 @@ type ProfileWithChildren struct {
 }
 
 type ProfilePage struct {
-	CoverPictureUri *string    `json:"cover_picture_uri"`
+	CoverPictureURI *string    `json:"cover_picture_uri"`
 	PublishedAt     *time.Time `json:"published_at"`
-	Id              string     `json:"id"`
+	ID              string     `json:"id"`
 	Slug            string     `json:"slug"`
 	Title           string     `json:"title"`
 	Summary         string     `json:"summary"`
@@ -46,18 +46,18 @@ type ProfilePage struct {
 }
 
 type ProfilePageBrief struct {
-	Id              string  `json:"id"`
+	ID              string  `json:"id"`
 	Slug            string  `json:"slug"`
-	CoverPictureUri *string `json:"cover_picture_uri"`
+	CoverPictureURI *string `json:"cover_picture_uri"`
 	Title           string  `json:"title"`
 	Summary         string  `json:"summary"`
 }
 
 type ProfileLinkBrief struct {
-	Id         string `json:"id"`
+	ID         string `json:"id"`
 	Kind       string `json:"kind"`
-	PublicId   string `json:"public_id"`
-	Uri        string `json:"uri"`
+	PublicID   string `json:"public_id"`
+	URI        string `json:"uri"`
 	Title      string `json:"title"`
 	IsVerified bool   `json:"is_verified"`
 }
@@ -68,13 +68,13 @@ type ProfileMembership struct {
 	MemberProfile *Profile   `json:"member_profile"`
 	StartedAt     *time.Time `json:"started_at"`
 	FinishedAt    *time.Time `json:"finished_at"`
-	Id            string     `json:"id"`
+	ID            string     `json:"id"`
 	Kind          string     `json:"kind"`
 }
 
 type ExternalPost struct {
 	CreatedAt *time.Time `json:"created_at"` //nolint:tagliatelle
-	Id        string     `json:"id"`
+	ID        string     `json:"id"`
 	Content   string     `json:"content"`
 	Permalink string     `json:"permalink"`
 }

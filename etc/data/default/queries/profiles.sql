@@ -1,18 +1,18 @@
--- name: GetProfileIdBySlug :one
+-- name: GetProfileIDBySlug :one
 SELECT id
 FROM "profile"
 WHERE slug = sqlc.arg(slug)
   AND deleted_at IS NULL
 LIMIT 1;
 
--- name: GetProfileIdByCustomDomain :one
+-- name: GetProfileIDByCustomDomain :one
 SELECT id
 FROM "profile"
 WHERE custom_domain = sqlc.arg(custom_domain)
   AND deleted_at IS NULL
 LIMIT 1;
 
--- name: GetProfileById :one
+-- name: GetProfileByID :one
 SELECT sqlc.embed(p), sqlc.embed(pt)
 FROM "profile" p
   INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
@@ -54,7 +54,7 @@ WHERE pl.kind = sqlc.arg(kind)
   AND pl.deleted_at IS NULL
 ORDER BY pl."order";
 
--- name: ListProfilePagesByProfileId :many
+-- name: ListProfilePagesByProfileID :many
 SELECT pp.*, ppt.*
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
@@ -63,7 +63,7 @@ WHERE pp.profile_id = sqlc.arg(profile_id)
   AND pp.deleted_at IS NULL
 ORDER BY pp."order";
 
--- name: GetProfilePageByProfileIdAndSlug :one
+-- name: GetProfilePageByProfileIDAndSlug :one
 SELECT pp.*, ppt.*
 FROM "profile_page" pp
   INNER JOIN "profile_page_tx" ppt ON ppt.profile_page_id = pp.id
@@ -71,7 +71,7 @@ FROM "profile_page" pp
 WHERE pp.profile_id = sqlc.arg(profile_id) AND pp.slug = sqlc.arg(page_slug) AND pp.deleted_at IS NULL
 ORDER BY pp."order";
 
--- name: ListProfileLinksByProfileId :many
+-- name: ListProfileLinksByProfileID :many
 SELECT *
 FROM "profile_link"
 WHERE profile_id = sqlc.arg(profile_id)

@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/eser/ajan/processfx"
+	"github.com/eser/aya.is-services/pkg/ajan/processfx"
 	"github.com/eser/aya.is-services/pkg/api/adapters/appcontext"
 	"github.com/eser/aya.is-services/pkg/api/adapters/http"
 )
@@ -24,8 +24,7 @@ func main() {
 	process.StartGoroutine("http-server", func(ctx context.Context) error {
 		cleanup, err := http.Run(
 			ctx,
-			&appContext.Config.Http,
-			appContext.Metrics,
+			&appContext.Config.HTTP,
 			appContext.Logger,
 			appContext.ProfilesService,
 			appContext.StoriesService,

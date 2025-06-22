@@ -1,4 +1,4 @@
--- name: GetSessionById :one
+-- name: GetSessionByID :one
 SELECT
   id,
   status,

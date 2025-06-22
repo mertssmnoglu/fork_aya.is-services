@@ -10,7 +10,7 @@ import (
 	"database/sql"
 )
 
-const getStoryById = `-- name: GetStoryById :one
+const getStoryByID = `-- name: GetStoryByID :one
 SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content, p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
@@ -22,19 +22,19 @@ WHERE s.id = $2
 LIMIT 1
 `
 
-type GetStoryByIdParams struct {
+type GetStoryByIDParams struct {
 	LocaleCode string `db:"locale_code" json:"locale_code"`
-	Id         string `db:"id" json:"id"`
+	ID         string `db:"id" json:"id"`
 }
 
-type GetStoryByIdRow struct {
+type GetStoryByIDRow struct {
 	Story     Story     `db:"story" json:"story"`
 	StoryTx   StoryTx   `db:"story_tx" json:"story_tx"`
 	Profile   Profile   `db:"profile" json:"profile"`
 	ProfileTx ProfileTx `db:"profile_tx" json:"profile_tx"`
 }
 
-// GetStoryById
+// GetStoryByID
 //
 //	SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content, p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 //	FROM "story" s
@@ -45,17 +45,17 @@ type GetStoryByIdRow struct {
 //	WHERE s.id = $2
 //	  AND s.deleted_at IS NULL
 //	LIMIT 1
-func (q *Queries) GetStoryById(ctx context.Context, arg GetStoryByIdParams) (*GetStoryByIdRow, error) {
-	row := q.db.QueryRowContext(ctx, getStoryById, arg.LocaleCode, arg.Id)
-	var i GetStoryByIdRow
+func (q *Queries) GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*GetStoryByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getStoryByID, arg.LocaleCode, arg.ID)
+	var i GetStoryByIDRow
 	err := row.Scan(
-		&i.Story.Id,
-		&i.Story.AuthorProfileId,
+		&i.Story.ID,
+		&i.Story.AuthorProfileID,
 		&i.Story.Slug,
 		&i.Story.Kind,
 		&i.Story.Status,
 		&i.Story.IsFeatured,
-		&i.Story.StoryPictureUri,
+		&i.Story.StoryPictureURI,
 		&i.Story.Title,
 		&i.Story.Summary,
 		&i.Story.Content,
@@ -64,22 +64,22 @@ func (q *Queries) GetStoryById(ctx context.Context, arg GetStoryByIdParams) (*Ge
 		&i.Story.CreatedAt,
 		&i.Story.UpdatedAt,
 		&i.Story.DeletedAt,
-		&i.StoryTx.StoryId,
+		&i.StoryTx.StoryID,
 		&i.StoryTx.LocaleCode,
 		&i.StoryTx.Title,
 		&i.StoryTx.Summary,
 		&i.StoryTx.Content,
-		&i.Profile.Id,
+		&i.Profile.ID,
 		&i.Profile.Slug,
 		&i.Profile.Kind,
 		&i.Profile.CustomDomain,
-		&i.Profile.ProfilePictureUri,
+		&i.Profile.ProfilePictureURI,
 		&i.Profile.Pronouns,
 		&i.Profile.Properties,
 		&i.Profile.CreatedAt,
 		&i.Profile.UpdatedAt,
 		&i.Profile.DeletedAt,
-		&i.ProfileTx.ProfileId,
+		&i.ProfileTx.ProfileID,
 		&i.ProfileTx.LocaleCode,
 		&i.ProfileTx.Title,
 		&i.ProfileTx.Description,
@@ -88,7 +88,7 @@ func (q *Queries) GetStoryById(ctx context.Context, arg GetStoryByIdParams) (*Ge
 	return &i, err
 }
 
-const getStoryIdBySlug = `-- name: GetStoryIdBySlug :one
+const getStoryIDBySlug = `-- name: GetStoryIDBySlug :one
 SELECT id
 FROM "story"
 WHERE slug = $1
@@ -96,19 +96,19 @@ WHERE slug = $1
 LIMIT 1
 `
 
-type GetStoryIdBySlugParams struct {
+type GetStoryIDBySlugParams struct {
 	Slug string `db:"slug" json:"slug"`
 }
 
-// GetStoryIdBySlug
+// GetStoryIDBySlug
 //
 //	SELECT id
 //	FROM "story"
 //	WHERE slug = $1
 //	  AND deleted_at IS NULL
 //	LIMIT 1
-func (q *Queries) GetStoryIdBySlug(ctx context.Context, arg GetStoryIdBySlugParams) (string, error) {
-	row := q.db.QueryRowContext(ctx, getStoryIdBySlug, arg.Slug)
+func (q *Queries) GetStoryIDBySlug(ctx context.Context, arg GetStoryIDBySlugParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getStoryIDBySlug, arg.Slug)
 	var id string
 	err := row.Scan(&id)
 	return id, err
@@ -133,9 +133,9 @@ ORDER BY s.published_at DESC
 
 type ListStoriesParams struct {
 	FilterKind                 sql.NullString `db:"filter_kind" json:"filter_kind"`
-	FilterAuthorProfileId      sql.NullString `db:"filter_author_profile_id" json:"filter_author_profile_id"`
+	FilterAuthorProfileID      sql.NullString `db:"filter_author_profile_id" json:"filter_author_profile_id"`
 	LocaleCode                 string         `db:"locale_code" json:"locale_code"`
-	FilterPublicationProfileId sql.NullString `db:"filter_publication_profile_id" json:"filter_publication_profile_id"`
+	FilterPublicationProfileID sql.NullString `db:"filter_publication_profile_id" json:"filter_publication_profile_id"`
 }
 
 type ListStoriesRow struct {
@@ -175,9 +175,9 @@ type ListStoriesRow struct {
 func (q *Queries) ListStories(ctx context.Context, arg ListStoriesParams) ([]*ListStoriesRow, error) {
 	rows, err := q.db.QueryContext(ctx, listStories,
 		arg.FilterKind,
-		arg.FilterAuthorProfileId,
+		arg.FilterAuthorProfileID,
 		arg.LocaleCode,
-		arg.FilterPublicationProfileId,
+		arg.FilterPublicationProfileID,
 	)
 	if err != nil {
 		return nil, err
@@ -187,13 +187,13 @@ func (q *Queries) ListStories(ctx context.Context, arg ListStoriesParams) ([]*Li
 	for rows.Next() {
 		var i ListStoriesRow
 		if err := rows.Scan(
-			&i.Story.Id,
-			&i.Story.AuthorProfileId,
+			&i.Story.ID,
+			&i.Story.AuthorProfileID,
 			&i.Story.Slug,
 			&i.Story.Kind,
 			&i.Story.Status,
 			&i.Story.IsFeatured,
-			&i.Story.StoryPictureUri,
+			&i.Story.StoryPictureURI,
 			&i.Story.Title,
 			&i.Story.Summary,
 			&i.Story.Content,
@@ -202,22 +202,22 @@ func (q *Queries) ListStories(ctx context.Context, arg ListStoriesParams) ([]*Li
 			&i.Story.CreatedAt,
 			&i.Story.UpdatedAt,
 			&i.Story.DeletedAt,
-			&i.StoryTx.StoryId,
+			&i.StoryTx.StoryID,
 			&i.StoryTx.LocaleCode,
 			&i.StoryTx.Title,
 			&i.StoryTx.Summary,
 			&i.StoryTx.Content,
-			&i.Profile.Id,
+			&i.Profile.ID,
 			&i.Profile.Slug,
 			&i.Profile.Kind,
 			&i.Profile.CustomDomain,
-			&i.Profile.ProfilePictureUri,
+			&i.Profile.ProfilePictureURI,
 			&i.Profile.Pronouns,
 			&i.Profile.Properties,
 			&i.Profile.CreatedAt,
 			&i.Profile.UpdatedAt,
 			&i.Profile.DeletedAt,
-			&i.ProfileTx.ProfileId,
+			&i.ProfileTx.ProfileID,
 			&i.ProfileTx.LocaleCode,
 			&i.ProfileTx.Title,
 			&i.ProfileTx.Description,

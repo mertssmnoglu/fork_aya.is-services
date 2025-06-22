@@ -187,7 +187,7 @@ $ make run
 02:27:53.026 INFO adding datasource connection {"name":"default","dialect":"postgres"}
 02:27:53.563 INFO successfully added datasource connection {"name":"default"}
 02:27:53.563 INFO Starting service {"name":"api","environment":"development","features":{"Dummy":true}}
-02:27:53.564 INFO HttpService is starting... {"addr":":8080"}
+02:27:53.564 INFO HTTPService is starting... {"addr":":8080"}
 ```
 
 - You can access http://localhost:8080/ to check if the project is running

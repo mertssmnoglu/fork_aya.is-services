@@ -8,24 +8,27 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/eser/ajan/httpclient"
 	"github.com/eser/aya.is-services/pkg/api/business/profiles"
 )
 
-type Arcade struct {
-	Config Config
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
 }
 
-func New(config Config) *Arcade {
+type Arcade struct {
+	HTTPClient HTTPClient
+	Config     Config
+}
+
+func New(config Config, httpClient HTTPClient) *Arcade {
 	return &Arcade{
-		Config: config,
+		Config:     config,
+		HTTPClient: httpClient,
 	}
 }
 
-func (arcade *Arcade) DoHttpCall(ctx context.Context, req *http.Request) (_ []byte, err error) {
-	client := httpclient.DefaultClient()
-
-	res, err := client.Do(req)
+func (arcade *Arcade) DoHTTPCall(ctx context.Context, req *http.Request) (_ []byte, err error) {
+	res, err := arcade.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err //nolint:wrapcheck
 	}
@@ -103,7 +106,7 @@ func endsWithTweetURL(text string) bool {
 func (arcade *Arcade) GetRecentPostsByUsername( //nolint:funlen
 	ctx context.Context,
 	username string,
-	userId string,
+	userID string,
 ) ([]*profiles.ExternalPost, error) {
 	url := arcade.Config.URL
 
@@ -113,7 +116,7 @@ func (arcade *Arcade) GetRecentPostsByUsername( //nolint:funlen
 			MaxResults: "100", // TODO(@eser) Hardcoded for now, consider making this configurable
 		},
 		ToolName: "X.SearchRecentTweetsByUsername@0.1.12", // TODO(@eser) Consider making this configurable
-		UserID:   userId,
+		UserID:   userID,
 	}
 
 	payloadBytes, err := json.Marshal(requestData)
@@ -136,7 +139,7 @@ func (arcade *Arcade) GetRecentPostsByUsername( //nolint:funlen
 	req.Header.Add("Authorization", "Bearer "+arcade.Config.APIKey)
 	req.Header.Add("Content-Type", "application/json")
 
-	result, err := arcade.DoHttpCall(ctx, req)
+	result, err := arcade.DoHTTPCall(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +166,7 @@ func (arcade *Arcade) GetRecentPostsByUsername( //nolint:funlen
 		}
 
 		posts[count] = &profiles.ExternalPost{
-			Id:        post.ID,
+			ID:        post.ID,
 			Content:   post.Text,
 			Permalink: post.TweetURL,
 			CreatedAt: nil,

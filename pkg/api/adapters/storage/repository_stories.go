@@ -12,7 +12,7 @@ import (
 	"github.com/eser/aya.is-services/pkg/lib/vars"
 )
 
-func (r *Repository) GetStoryIdBySlug(ctx context.Context, slug string) (string, error) {
+func (r *Repository) GetStoryIDBySlug(ctx context.Context, slug string) (string, error) {
 	var result string
 
 	err := r.cache.Execute(
@@ -20,7 +20,7 @@ func (r *Repository) GetStoryIdBySlug(ctx context.Context, slug string) (string,
 		"story_id_by_slug:"+slug,
 		&result,
 		func(ctx context.Context) (any, error) {
-			row, err := r.queries.GetStoryIdBySlug(ctx, GetStoryIdBySlugParams{Slug: slug})
+			row, err := r.queries.GetStoryIDBySlug(ctx, GetStoryIDBySlugParams{Slug: slug})
 			if err != nil {
 				if errors.Is(err, sql.ErrNoRows) {
 					return nil, nil //nolint:nilnil
@@ -36,12 +36,12 @@ func (r *Repository) GetStoryIdBySlug(ctx context.Context, slug string) (string,
 	return result, err //nolint:wrapcheck
 }
 
-func (r *Repository) GetStoryById(
+func (r *Repository) GetStoryByID(
 	ctx context.Context,
 	localeCode string,
 	id string,
 ) (*stories.StoryWithChildren, error) {
-	row, err := r.queries.GetStoryById(ctx, GetStoryByIdParams{LocaleCode: localeCode, Id: id})
+	row, err := r.queries.GetStoryByID(ctx, GetStoryByIDParams{LocaleCode: localeCode, ID: id})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil //nolint:nilnil
@@ -52,13 +52,13 @@ func (r *Repository) GetStoryById(
 
 	result := &stories.StoryWithChildren{
 		Story: &stories.Story{
-			Id:              row.Story.Id,
-			AuthorProfileId: vars.ToStringPtr(row.Story.AuthorProfileId),
+			ID:              row.Story.ID,
+			AuthorProfileID: vars.ToStringPtr(row.Story.AuthorProfileID),
 			Slug:            row.Story.Slug,
 			Kind:            row.Story.Kind,
 			Status:          row.Story.Status,
 			IsFeatured:      row.Story.IsFeatured,
-			StoryPictureUri: vars.ToStringPtr(row.Story.StoryPictureUri),
+			StoryPictureURI: vars.ToStringPtr(row.Story.StoryPictureURI),
 			Title:           row.StoryTx.Title,
 			Summary:         row.StoryTx.Summary,
 			Content:         row.StoryTx.Content,
@@ -69,11 +69,11 @@ func (r *Repository) GetStoryById(
 			DeletedAt:       vars.ToTimePtr(row.Story.DeletedAt),
 		},
 		AuthorProfile: &profiles.Profile{
-			Id:                row.Profile.Id,
+			ID:                row.Profile.ID,
 			Slug:              row.Profile.Slug,
 			Kind:              row.Profile.Kind,
 			CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
-			ProfilePictureUri: vars.ToStringPtr(row.Profile.ProfilePictureUri),
+			ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 			Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 			Title:             row.ProfileTx.Title,
 			Description:       row.ProfileTx.Description,
@@ -87,7 +87,7 @@ func (r *Repository) GetStoryById(
 	return result, nil
 }
 
-func (r *Repository) ListStories(
+func (r *Repository) ListStories( //nolint:funlen
 	ctx context.Context,
 	localeCode string,
 	cursor *cursors.Cursor,
@@ -99,11 +99,11 @@ func (r *Repository) ListStories(
 		ListStoriesParams{
 			LocaleCode: localeCode,
 			FilterKind: vars.MapValueToNullString(cursor.Filters, "kind"),
-			FilterAuthorProfileId: vars.MapValueToNullString(
+			FilterAuthorProfileID: vars.MapValueToNullString(
 				cursor.Filters,
 				"author_profile_id",
 			),
-			FilterPublicationProfileId: vars.MapValueToNullString(
+			FilterPublicationProfileID: vars.MapValueToNullString(
 				cursor.Filters,
 				"publication_profile_id",
 			),
@@ -117,13 +117,13 @@ func (r *Repository) ListStories(
 	for i, row := range rows {
 		result[i] = &stories.StoryWithChildren{
 			Story: &stories.Story{
-				Id:              row.Story.Id,
-				AuthorProfileId: vars.ToStringPtr(row.Story.AuthorProfileId),
+				ID:              row.Story.ID,
+				AuthorProfileID: vars.ToStringPtr(row.Story.AuthorProfileID),
 				Slug:            row.Story.Slug,
 				Kind:            row.Story.Kind,
 				Status:          row.Story.Status,
 				IsFeatured:      row.Story.IsFeatured,
-				StoryPictureUri: vars.ToStringPtr(row.Story.StoryPictureUri),
+				StoryPictureURI: vars.ToStringPtr(row.Story.StoryPictureURI),
 				Title:           row.StoryTx.Title,
 				Summary:         row.StoryTx.Summary,
 				Content:         row.StoryTx.Content,
@@ -134,11 +134,11 @@ func (r *Repository) ListStories(
 				DeletedAt:       vars.ToTimePtr(row.Story.DeletedAt),
 			},
 			AuthorProfile: &profiles.Profile{
-				Id:                row.Profile.Id,
+				ID:                row.Profile.ID,
 				Slug:              row.Profile.Slug,
 				Kind:              row.Profile.Kind,
 				CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
-				ProfilePictureUri: vars.ToStringPtr(row.Profile.ProfilePictureUri),
+				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
 				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
 				Title:             row.ProfileTx.Title,
 				Description:       row.ProfileTx.Description,
@@ -153,7 +153,7 @@ func (r *Repository) ListStories(
 	wrappedResponse.Data = result
 
 	if len(result) == cursor.Limit {
-		wrappedResponse.CursorPtr = &result[len(result)-1].Id
+		wrappedResponse.CursorPtr = &result[len(result)-1].ID
 	}
 
 	return wrappedResponse, nil

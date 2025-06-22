@@ -1,4 +1,4 @@
--- name: GetUserById :one
+-- name: GetUserByID :one
 SELECT *
 FROM "user"
 WHERE id = sqlc.arg(id)
