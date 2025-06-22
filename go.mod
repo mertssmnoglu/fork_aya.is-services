@@ -1,6 +1,6 @@
 module github.com/eser/aya.is-services
 
-go 1.24.2
+go 1.24.4
 
 require (
 	github.com/getkin/kin-openapi v0.132.0

@@ -22,7 +22,11 @@ services:
       PORT: 8080
       LOG__LEVEL: INFO
       LOG__PRETTY: false
+      # Database connection with both protocol and DSN
+      CONN__targets__default__protocol: postgres
       CONN__targets__default__dsn: postgres://postgres:s3cr3t@postgres:5432/postgres?sslmode=disable
+      # Telemetry connection
+      CONN__targets__telemetry__protocol: otlp
       CONN__targets__telemetry__dsn: otel-collector:4318
       CONN__targets__telemetry__properties__service_name: aya.is-services
     networks:

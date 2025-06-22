@@ -11,8 +11,13 @@ services:
       target: runner-production
     environment:
       PORT: 8080
-      DATA__SOURCES__DEFAULT__DSN: postgres://postgres:s3cr3t@postgres:5432/postgres?sslmode=disable
+      ENV: production
       LOG__PRETTY: false
+      # Database connection with both protocol and DSN
+      CONN__targets__default__protocol: postgres
+      CONN__targets__default__dsn: ${DATABASE_URL:-postgres://postgres:s3cr3t@postgres:5432/postgres?sslmode=disable}
+      # Arcade API configuration
+      EXTERNALS__arcade__apikey: ${ARCADE_API_KEY:-}
     networks:
       - aya-is-network
     ports:
