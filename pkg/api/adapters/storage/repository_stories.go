@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/eser/aya.is-services/pkg/api/business/profiles"
@@ -13,6 +14,8 @@ import (
 	"github.com/eser/aya.is-services/pkg/lib/cursors"
 	"github.com/eser/aya.is-services/pkg/lib/vars"
 )
+
+var ErrFailedToParseStoryWithChildren = errors.New("failed to parse story with children")
 
 func (r *Repository) GetStoryIDBySlug(ctx context.Context, slug string) (string, error) {
 	var result string
@@ -72,37 +75,15 @@ func (r *Repository) GetStoryByID(
 		return nil, err
 	}
 
-	result := &stories.StoryWithChildren{
-		Story: &stories.Story{
-			ID:              row.Story.ID,
-			AuthorProfileID: vars.ToStringPtr(row.Story.AuthorProfileID),
-			Slug:            row.Story.Slug,
-			Kind:            row.Story.Kind,
-			Status:          row.Story.Status,
-			IsFeatured:      row.Story.IsFeatured,
-			StoryPictureURI: vars.ToStringPtr(row.Story.StoryPictureURI),
-			Title:           row.StoryTx.Title,
-			Summary:         row.StoryTx.Summary,
-			Content:         row.StoryTx.Content,
-			Properties:      vars.ToObject(row.Story.Properties),
-			CreatedAt:       row.Story.CreatedAt,
-			UpdatedAt:       vars.ToTimePtr(row.Story.UpdatedAt),
-			DeletedAt:       vars.ToTimePtr(row.Story.DeletedAt),
-		},
-		AuthorProfile: &profiles.Profile{
-			ID:                row.Profile.ID,
-			Slug:              row.Profile.Slug,
-			Kind:              row.Profile.Kind,
-			CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
-			ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
-			Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
-			Title:             row.ProfileTx.Title,
-			Description:       row.ProfileTx.Description,
-			Properties:        vars.ToObject(row.Profile.Properties),
-			CreatedAt:         row.Profile.CreatedAt,
-			UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
-			DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
-		},
+	result, err := r.parseStoryWithChildren(
+		row.Profile,
+		row.ProfileTx,
+		row.Story,
+		row.StoryTx,
+		row.Publications,
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	return result, nil
@@ -136,85 +117,15 @@ func (r *Repository) ListStoriesOfPublication( //nolint:funlen
 
 	result := make([]*stories.StoryWithChildren, len(rows))
 	for i, row := range rows {
-		storyWithChildren := &stories.StoryWithChildren{
-			Story: &stories.Story{
-				ID:              row.Story.ID,
-				AuthorProfileID: vars.ToStringPtr(row.Story.AuthorProfileID),
-				Slug:            row.Story.Slug,
-				Kind:            row.Story.Kind,
-				Status:          row.Story.Status,
-				IsFeatured:      row.Story.IsFeatured,
-				StoryPictureURI: vars.ToStringPtr(row.Story.StoryPictureURI),
-				Title:           row.StoryTx.Title,
-				Summary:         row.StoryTx.Summary,
-				Content:         row.StoryTx.Content,
-				Properties:      vars.ToObject(row.Story.Properties),
-				CreatedAt:       row.Story.CreatedAt,
-				UpdatedAt:       vars.ToTimePtr(row.Story.UpdatedAt),
-				DeletedAt:       vars.ToTimePtr(row.Story.DeletedAt),
-			},
-			AuthorProfile: &profiles.Profile{
-				ID:                row.Profile.ID,
-				Slug:              row.Profile.Slug,
-				Kind:              row.Profile.Kind,
-				CustomDomain:      vars.ToStringPtr(row.Profile.CustomDomain),
-				ProfilePictureURI: vars.ToStringPtr(row.Profile.ProfilePictureURI),
-				Pronouns:          vars.ToStringPtr(row.Profile.Pronouns),
-				Title:             row.ProfileTx.Title,
-				Description:       row.ProfileTx.Description,
-				Properties:        vars.ToObject(row.Profile.Properties),
-				CreatedAt:         row.Profile.CreatedAt,
-				UpdatedAt:         vars.ToTimePtr(row.Profile.UpdatedAt),
-				DeletedAt:         vars.ToTimePtr(row.Profile.DeletedAt),
-			},
-			Publications: nil,
-		}
-
-		var publicationProfiles []struct {
-			Profile struct {
-				CreatedAt         time.Time        `db:"created_at"          json:"created_at"`
-				CustomDomain      *string          `db:"custom_domain"       json:"custom_domain"`
-				ProfilePictureURI *string          `db:"profile_picture_uri" json:"profile_picture_uri"`
-				Pronouns          *string          `db:"pronouns"            json:"pronouns"`
-				Properties        *json.RawMessage `db:"properties"          json:"properties"`
-				UpdatedAt         *time.Time       `db:"updated_at"          json:"updated_at"`
-				DeletedAt         *time.Time       `db:"deleted_at"          json:"deleted_at"`
-				ID                string           `db:"id"                  json:"id"`
-				Slug              string           `db:"slug"                json:"slug"`
-				Kind              string           `db:"kind"                json:"kind"`
-			} `json:"profile"`
-			ProfileTx struct {
-				Properties  *json.RawMessage `db:"properties"  json:"properties"`
-				ProfileID   string           `db:"profile_id"  json:"profile_id"`
-				LocaleCode  string           `db:"locale_code" json:"locale_code"`
-				Title       string           `db:"title"       json:"title"`
-				Description string           `db:"description" json:"description"`
-			} `json:"profile_tx"`
-		}
-
-		err := json.Unmarshal(row.Publications, &publicationProfiles)
+		storyWithChildren, err := r.parseStoryWithChildren(
+			row.Profile,
+			row.ProfileTx,
+			row.Story,
+			row.StoryTx,
+			row.Publications,
+		)
 		if err != nil {
-			r.logger.Error("failed to unmarshal publications", "error", err)
-
-			continue
-		}
-
-		storyWithChildren.Publications = make([]*profiles.Profile, len(publicationProfiles))
-		for j, publicationProfile := range publicationProfiles {
-			storyWithChildren.Publications[j] = &profiles.Profile{
-				ID:                publicationProfile.Profile.ID,
-				Slug:              publicationProfile.Profile.Slug,
-				Kind:              publicationProfile.Profile.Kind,
-				CustomDomain:      publicationProfile.Profile.CustomDomain,
-				ProfilePictureURI: publicationProfile.Profile.ProfilePictureURI,
-				Pronouns:          publicationProfile.Profile.Pronouns,
-				Title:             publicationProfile.ProfileTx.Title,
-				Description:       publicationProfile.ProfileTx.Description,
-				Properties:        publicationProfile.Profile.Properties,
-				CreatedAt:         publicationProfile.Profile.CreatedAt,
-				UpdatedAt:         publicationProfile.Profile.UpdatedAt,
-				DeletedAt:         publicationProfile.Profile.DeletedAt,
-			}
+			return wrappedResponse, err
 		}
 
 		result[i] = storyWithChildren
@@ -227,4 +138,95 @@ func (r *Repository) ListStoriesOfPublication( //nolint:funlen
 	}
 
 	return wrappedResponse, nil
+}
+
+func (r *Repository) parseStoryWithChildren( //nolint:funlen
+	profile Profile,
+	profileTx ProfileTx,
+	story Story,
+	storyTx StoryTx,
+	publications json.RawMessage,
+) (*stories.StoryWithChildren, error) {
+	storyWithChildren := &stories.StoryWithChildren{
+		Story: &stories.Story{
+			ID:              story.ID,
+			AuthorProfileID: vars.ToStringPtr(story.AuthorProfileID),
+			Slug:            story.Slug,
+			Kind:            story.Kind,
+			Status:          story.Status,
+			IsFeatured:      story.IsFeatured,
+			StoryPictureURI: vars.ToStringPtr(story.StoryPictureURI),
+			Title:           storyTx.Title,
+			Summary:         storyTx.Summary,
+			Content:         storyTx.Content,
+			Properties:      vars.ToObject(story.Properties),
+			CreatedAt:       story.CreatedAt,
+			UpdatedAt:       vars.ToTimePtr(story.UpdatedAt),
+			DeletedAt:       vars.ToTimePtr(story.DeletedAt),
+		},
+		AuthorProfile: &profiles.Profile{
+			ID:                profile.ID,
+			Slug:              profile.Slug,
+			Kind:              profile.Kind,
+			CustomDomain:      vars.ToStringPtr(profile.CustomDomain),
+			ProfilePictureURI: vars.ToStringPtr(profile.ProfilePictureURI),
+			Pronouns:          vars.ToStringPtr(profile.Pronouns),
+			Title:             profileTx.Title,
+			Description:       profileTx.Description,
+			Properties:        vars.ToObject(profile.Properties),
+			CreatedAt:         profile.CreatedAt,
+			UpdatedAt:         vars.ToTimePtr(profile.UpdatedAt),
+			DeletedAt:         vars.ToTimePtr(profile.DeletedAt),
+		},
+		Publications: nil,
+	}
+
+	var publicationProfiles []struct {
+		Profile struct {
+			CreatedAt         time.Time        `db:"created_at"          json:"created_at"`
+			CustomDomain      *string          `db:"custom_domain"       json:"custom_domain"`
+			ProfilePictureURI *string          `db:"profile_picture_uri" json:"profile_picture_uri"`
+			Pronouns          *string          `db:"pronouns"            json:"pronouns"`
+			Properties        *json.RawMessage `db:"properties"          json:"properties"`
+			UpdatedAt         *time.Time       `db:"updated_at"          json:"updated_at"`
+			DeletedAt         *time.Time       `db:"deleted_at"          json:"deleted_at"`
+			ID                string           `db:"id"                  json:"id"`
+			Slug              string           `db:"slug"                json:"slug"`
+			Kind              string           `db:"kind"                json:"kind"`
+		} `json:"profile"`
+		ProfileTx struct {
+			Properties  *json.RawMessage `db:"properties"  json:"properties"`
+			ProfileID   string           `db:"profile_id"  json:"profile_id"`
+			LocaleCode  string           `db:"locale_code" json:"locale_code"`
+			Title       string           `db:"title"       json:"title"`
+			Description string           `db:"description" json:"description"`
+		} `json:"profile_tx"`
+	}
+
+	err := json.Unmarshal(publications, &publicationProfiles)
+	if err != nil {
+		r.logger.Error("failed to unmarshal publications", "error", err)
+
+		return nil, fmt.Errorf("%w: %w", ErrFailedToParseStoryWithChildren, err)
+	}
+
+	storyWithChildren.Publications = make([]*profiles.Profile, len(publicationProfiles))
+	for j, publicationProfile := range publicationProfiles {
+		storyWithChildren.Publications[j] = &profiles.Profile{
+			ID:                publicationProfile.Profile.ID,
+			Slug:              publicationProfile.Profile.Slug,
+			Kind:              publicationProfile.Profile.Kind,
+			CustomDomain:      publicationProfile.Profile.CustomDomain,
+			ProfilePictureURI: publicationProfile.Profile.ProfilePictureURI,
+			Pronouns:          publicationProfile.Profile.Pronouns,
+			Title:             publicationProfile.ProfileTx.Title,
+			Description:       publicationProfile.ProfileTx.Description,
+			Properties:        publicationProfile.Profile.Properties,
+			CreatedAt:         publicationProfile.Profile.CreatedAt,
+			UpdatedAt:         publicationProfile.Profile.UpdatedAt,
+			DeletedAt:         publicationProfile.Profile.DeletedAt,
+		}
+	}
+
+	return storyWithChildren, nil
 }
