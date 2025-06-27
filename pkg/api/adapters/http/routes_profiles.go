@@ -186,6 +186,41 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop
 
 	routes.
 		Route(
+			"GET /{locale}/profiles/{slug}/stories/{storySlug}",
+			func(ctx *httpfx.Context) httpfx.Result {
+				// get variables from path
+				localeParam := ctx.Request.PathValue("locale")
+				// slugParam := ctx.Request.PathValue("slug")
+				storySlugParam := ctx.Request.PathValue("storySlug")
+
+				// TODO(@eser) pass profile slug too for getting story by profile slug and story slug
+				record, err := storiesService.GetBySlug(
+					ctx.Request.Context(),
+					localeParam,
+					storySlugParam,
+				)
+				if err != nil {
+					return ctx.Results.Error(
+						http.StatusInternalServerError,
+						httpfx.WithPlainText(err.Error()),
+					)
+				}
+
+				// if record == nil {
+				// 	return ctx.Results.NotFound(httpfx.WithPlainText("story not found"))
+				// }
+
+				wrappedResponse := cursors.WrapResponseWithCursor(record, nil)
+
+				return ctx.Results.JSON(wrappedResponse)
+			},
+		).
+		HasSummary("Get story by profile slug and story slug").
+		HasDescription("Get story by profile slug and story slug.").
+		HasResponse(http.StatusOK)
+
+	routes.
+		Route(
 			"GET /{locale}/profiles/{slug}/contributions",
 			func(ctx *httpfx.Context) httpfx.Result {
 				// get variables from path

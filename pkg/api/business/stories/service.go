@@ -20,8 +20,13 @@ type Repository interface {
 	GetProfileIDBySlug(ctx context.Context, slug string) (string, error)
 	GetProfileByID(ctx context.Context, localeCode string, id string) (*profiles.Profile, error)
 	GetStoryIDBySlug(ctx context.Context, slug string) (string, error)
-	GetStoryByID(ctx context.Context, localeCode string, id string) (*StoryWithChildren, error)
-	ListStories(
+	GetStoryByID(
+		ctx context.Context,
+		localeCode string,
+		id string,
+		authorProfileID *string,
+	) (*StoryWithChildren, error)
+	ListStoriesOfPublication(
 		ctx context.Context,
 		localeCode string,
 		cursor *cursors.Cursor,
@@ -43,7 +48,7 @@ func (s *Service) GetByID(
 	localeCode string,
 	id string,
 ) (*StoryWithChildren, error) {
-	record, err := s.repo.GetStoryByID(ctx, localeCode, id)
+	record, err := s.repo.GetStoryByID(ctx, localeCode, id, nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w(id: %s): %w", ErrFailedToGetRecord, id, err)
 	}
@@ -61,7 +66,7 @@ func (s *Service) GetBySlug(
 		return nil, fmt.Errorf("%w(slug: %s): %w", ErrFailedToGetRecord, slug, err)
 	}
 
-	record, err := s.repo.GetStoryByID(ctx, localeCode, storyID)
+	record, err := s.repo.GetStoryByID(ctx, localeCode, storyID, nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w(story_id: %s): %w", ErrFailedToGetRecord, storyID, err)
 	}
@@ -74,41 +79,7 @@ func (s *Service) List(
 	localeCode string,
 	cursor *cursors.Cursor,
 ) (cursors.Cursored[[]*StoryWithChildren], error) {
-	records, err := s.repo.ListStories(ctx, localeCode, cursor)
-	if err != nil {
-		return cursors.Cursored[[]*StoryWithChildren]{}, fmt.Errorf(
-			"%w: %w",
-			ErrFailedToListRecords,
-			err,
-		)
-	}
-
-	return records, nil
-}
-
-func (s *Service) ListByAuthorProfileSlug(
-	ctx context.Context,
-	localeCode string,
-	authorProfileSlug string,
-	cursor *cursors.Cursor,
-) (cursors.Cursored[[]*StoryWithChildren], error) {
-	authorProfileID, err := s.repo.GetProfileIDBySlug(ctx, authorProfileSlug)
-	if err != nil {
-		return cursors.Cursored[[]*StoryWithChildren]{}, fmt.Errorf(
-			"%w(slug: %s): %w",
-			ErrFailedToGetRecord,
-			authorProfileSlug,
-			err,
-		)
-	}
-
-	cursor.Filters["author_profile_id"] = authorProfileID
-
-	records, err := s.repo.ListStories(
-		ctx,
-		localeCode,
-		cursor,
-	)
+	records, err := s.repo.ListStoriesOfPublication(ctx, localeCode, cursor)
 	if err != nil {
 		return cursors.Cursored[[]*StoryWithChildren]{}, fmt.Errorf(
 			"%w: %w",
@@ -138,7 +109,7 @@ func (s *Service) ListByPublicationProfileSlug(
 
 	cursor.Filters["publication_profile_id"] = publicationProfileID
 
-	records, err := s.repo.ListStories(
+	records, err := s.repo.ListStoriesOfPublication(
 		ctx,
 		localeCode,
 		cursor,

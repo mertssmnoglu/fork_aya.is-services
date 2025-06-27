@@ -193,7 +193,6 @@ type Story struct {
 	Summary         string                `db:"summary" json:"summary"`
 	Content         string                `db:"content" json:"content"`
 	Properties      pqtype.NullRawMessage `db:"properties" json:"properties"`
-	PublishedAt     sql.NullTime          `db:"published_at" json:"published_at"`
 	CreatedAt       time.Time             `db:"created_at" json:"created_at"`
 	UpdatedAt       sql.NullTime          `db:"updated_at" json:"updated_at"`
 	DeletedAt       sql.NullTime          `db:"deleted_at" json:"deleted_at"`

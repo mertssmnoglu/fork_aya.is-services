@@ -8,45 +8,96 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 )
 
 const getStoryByID = `-- name: GetStoryByID :one
-SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content, p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
+SELECT
+  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.created_at, s.updated_at, s.deleted_at,
+  st.story_id, st.locale_code, st.title, st.summary, st.content,
+  p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at,
+  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties,
+  pb.publications
 FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
   AND st.locale_code = $1
-  LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
-  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = $1
-WHERE s.id = $2
+  LEFT JOIN "profile" p ON p.id = s.author_profile_id
+  AND p.deleted_at IS NULL
+  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+  AND pt.locale_code = $1
+  LEFT JOIN LATERAL (
+    SELECT JSONB_AGG(
+      JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
+    ) AS "publications"
+    FROM story_publication sp
+      INNER JOIN "profile" p2 ON p2.id = sp.profile_id
+      AND p2.deleted_at IS NULL
+      INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+      AND p2t.locale_code = $1
+    WHERE sp.story_id = s.id
+      AND ($2::CHAR(26) IS NULL OR sp.profile_id = $2::CHAR(26))
+      AND sp.deleted_at IS NULL
+  ) pb ON TRUE
+WHERE s.id = $3
+  AND ($4::CHAR(26) IS NULL OR s.author_profile_id = $4::CHAR(26))
   AND s.deleted_at IS NULL
 LIMIT 1
 `
 
 type GetStoryByIDParams struct {
-	LocaleCode string `db:"locale_code" json:"locale_code"`
-	ID         string `db:"id" json:"id"`
+	LocaleCode                 string         `db:"locale_code" json:"locale_code"`
+	FilterPublicationProfileID sql.NullString `db:"filter_publication_profile_id" json:"filter_publication_profile_id"`
+	ID                         string         `db:"id" json:"id"`
+	FilterAuthorProfileID      sql.NullString `db:"filter_author_profile_id" json:"filter_author_profile_id"`
 }
 
 type GetStoryByIDRow struct {
-	Story     Story     `db:"story" json:"story"`
-	StoryTx   StoryTx   `db:"story_tx" json:"story_tx"`
-	Profile   Profile   `db:"profile" json:"profile"`
-	ProfileTx ProfileTx `db:"profile_tx" json:"profile_tx"`
+	Story        Story           `db:"story" json:"story"`
+	StoryTx      StoryTx         `db:"story_tx" json:"story_tx"`
+	Profile      Profile         `db:"profile" json:"profile"`
+	ProfileTx    ProfileTx       `db:"profile_tx" json:"profile_tx"`
+	Publications json.RawMessage `db:"publications" json:"publications"`
 }
 
 // GetStoryByID
 //
-//	SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content, p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
+//	SELECT
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.created_at, s.updated_at, s.deleted_at,
+//	  st.story_id, st.locale_code, st.title, st.summary, st.content,
+//	  p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at,
+//	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties,
+//	  pb.publications
 //	FROM "story" s
 //	  INNER JOIN "story_tx" st ON st.story_id = s.id
 //	  AND st.locale_code = $1
-//	  LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
-//	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = $1
-//	WHERE s.id = $2
+//	  LEFT JOIN "profile" p ON p.id = s.author_profile_id
+//	  AND p.deleted_at IS NULL
+//	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+//	  AND pt.locale_code = $1
+//	  LEFT JOIN LATERAL (
+//	    SELECT JSONB_AGG(
+//	      JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
+//	    ) AS "publications"
+//	    FROM story_publication sp
+//	      INNER JOIN "profile" p2 ON p2.id = sp.profile_id
+//	      AND p2.deleted_at IS NULL
+//	      INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+//	      AND p2t.locale_code = $1
+//	    WHERE sp.story_id = s.id
+//	      AND ($2::CHAR(26) IS NULL OR sp.profile_id = $2::CHAR(26))
+//	      AND sp.deleted_at IS NULL
+//	  ) pb ON TRUE
+//	WHERE s.id = $3
+//	  AND ($4::CHAR(26) IS NULL OR s.author_profile_id = $4::CHAR(26))
 //	  AND s.deleted_at IS NULL
 //	LIMIT 1
 func (q *Queries) GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*GetStoryByIDRow, error) {
-	row := q.db.QueryRowContext(ctx, getStoryByID, arg.LocaleCode, arg.ID)
+	row := q.db.QueryRowContext(ctx, getStoryByID,
+		arg.LocaleCode,
+		arg.FilterPublicationProfileID,
+		arg.ID,
+		arg.FilterAuthorProfileID,
+	)
 	var i GetStoryByIDRow
 	err := row.Scan(
 		&i.Story.ID,
@@ -60,7 +111,6 @@ func (q *Queries) GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*Ge
 		&i.Story.Summary,
 		&i.Story.Content,
 		&i.Story.Properties,
-		&i.Story.PublishedAt,
 		&i.Story.CreatedAt,
 		&i.Story.UpdatedAt,
 		&i.Story.DeletedAt,
@@ -84,6 +134,7 @@ func (q *Queries) GetStoryByID(ctx context.Context, arg GetStoryByIDParams) (*Ge
 		&i.ProfileTx.Title,
 		&i.ProfileTx.Description,
 		&i.ProfileTx.Properties,
+		&i.Publications,
 	)
 	return &i, err
 }
@@ -114,43 +165,55 @@ func (q *Queries) GetStoryIDBySlug(ctx context.Context, arg GetStoryIDBySlugPara
 	return id, err
 }
 
-const listStories = `-- name: ListStories :many
+const listStoriesOfPublication = `-- name: ListStoriesOfPublication :many
 
 SELECT
-  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at,
+  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.created_at, s.updated_at, s.deleted_at,
   st.story_id, st.locale_code, st.title, st.summary, st.content,
-  p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at,
-  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
-FROM "story_publication" sp
-  INNER JOIN "story" s ON s.id = sp.story_id
-  AND s.deleted_at IS NULL
-  AND s.published_at IS NOT NULL
+  p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at,
+  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties,
+  pb.publications
+FROM "story" s
   INNER JOIN "story_tx" st ON st.story_id = s.id
-  AND ($1::TEXT IS NULL OR s.kind = ANY(string_to_array($1::TEXT, ',')))
-  AND ($2::CHAR(26) IS NULL OR s.author_profile_id = $2::CHAR(26))
-  AND st.locale_code = $3
-  LEFT JOIN "profile" p ON p.id = s.author_profile_id
-  AND p.deleted_at IS NULL
-  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-  AND pt.locale_code = $3
+  AND st.locale_code = $1
+  LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
+  AND p1.deleted_at IS NULL
+  INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+  AND p1t.locale_code = $1
+  LEFT JOIN LATERAL (
+    SELECT JSONB_AGG(
+      JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
+    ) AS "publications"
+    FROM story_publication sp
+      INNER JOIN "profile" p2 ON p2.id = sp.profile_id
+      AND p2.deleted_at IS NULL
+      INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+      AND p2t.locale_code = $1
+    WHERE sp.story_id = s.id
+      AND ($2::CHAR(26) IS NULL OR sp.profile_id = $2::CHAR(26))
+      AND sp.deleted_at IS NULL
+  ) pb ON TRUE
 WHERE
-  ($4::CHAR(26) IS NULL OR sp.profile_id = $4::CHAR(26))
+  pb.publications IS NOT NULL
+  AND ($3::TEXT IS NULL OR s.kind = ANY(string_to_array($3::TEXT, ',')))
+  AND ($4::CHAR(26) IS NULL OR s.author_profile_id = $4::CHAR(26))
   AND s.deleted_at IS NULL
-ORDER BY s.published_at DESC
+ORDER BY s.created_at DESC
 `
 
-type ListStoriesParams struct {
-	FilterKind                 sql.NullString `db:"filter_kind" json:"filter_kind"`
-	FilterAuthorProfileID      sql.NullString `db:"filter_author_profile_id" json:"filter_author_profile_id"`
+type ListStoriesOfPublicationParams struct {
 	LocaleCode                 string         `db:"locale_code" json:"locale_code"`
 	FilterPublicationProfileID sql.NullString `db:"filter_publication_profile_id" json:"filter_publication_profile_id"`
+	FilterKind                 sql.NullString `db:"filter_kind" json:"filter_kind"`
+	FilterAuthorProfileID      sql.NullString `db:"filter_author_profile_id" json:"filter_author_profile_id"`
 }
 
-type ListStoriesRow struct {
-	Story     Story     `db:"story" json:"story"`
-	StoryTx   StoryTx   `db:"story_tx" json:"story_tx"`
-	Profile   Profile   `db:"profile" json:"profile"`
-	ProfileTx ProfileTx `db:"profile_tx" json:"profile_tx"`
+type ListStoriesOfPublicationRow struct {
+	Story        Story           `db:"story" json:"story"`
+	StoryTx      StoryTx         `db:"story_tx" json:"story_tx"`
+	Profile      Profile         `db:"profile" json:"profile"`
+	ProfileTx    ProfileTx       `db:"profile_tx" json:"profile_tx"`
+	Publications json.RawMessage `db:"publications" json:"publications"`
 }
 
 // -- name: ListStories :many
@@ -165,43 +228,54 @@ type ListStoriesRow struct {
 //	INNER JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = sqlc.arg(locale_code)
 //
 // WHERE s.deleted_at IS NULL
-// ORDER BY s.published_at DESC;
+// ORDER BY s.created_at DESC;
 //
 //	SELECT
-//	  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at,
+//	  s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.created_at, s.updated_at, s.deleted_at,
 //	  st.story_id, st.locale_code, st.title, st.summary, st.content,
-//	  p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at,
-//	  pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
-//	FROM "story_publication" sp
-//	  INNER JOIN "story" s ON s.id = sp.story_id
-//	  AND s.deleted_at IS NULL
-//	  AND s.published_at IS NOT NULL
+//	  p1.id, p1.slug, p1.kind, p1.custom_domain, p1.profile_picture_uri, p1.pronouns, p1.properties, p1.created_at, p1.updated_at, p1.deleted_at,
+//	  p1t.profile_id, p1t.locale_code, p1t.title, p1t.description, p1t.properties,
+//	  pb.publications
+//	FROM "story" s
 //	  INNER JOIN "story_tx" st ON st.story_id = s.id
-//	  AND ($1::TEXT IS NULL OR s.kind = ANY(string_to_array($1::TEXT, ',')))
-//	  AND ($2::CHAR(26) IS NULL OR s.author_profile_id = $2::CHAR(26))
-//	  AND st.locale_code = $3
-//	  LEFT JOIN "profile" p ON p.id = s.author_profile_id
-//	  AND p.deleted_at IS NULL
-//	  INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
-//	  AND pt.locale_code = $3
+//	  AND st.locale_code = $1
+//	  LEFT JOIN "profile" p1 ON p1.id = s.author_profile_id
+//	  AND p1.deleted_at IS NULL
+//	  INNER JOIN "profile_tx" p1t ON p1t.profile_id = p1.id
+//	  AND p1t.locale_code = $1
+//	  LEFT JOIN LATERAL (
+//	    SELECT JSONB_AGG(
+//	      JSONB_BUILD_OBJECT('profile', row_to_json(p2), 'profile_tx', row_to_json(p2t))
+//	    ) AS "publications"
+//	    FROM story_publication sp
+//	      INNER JOIN "profile" p2 ON p2.id = sp.profile_id
+//	      AND p2.deleted_at IS NULL
+//	      INNER JOIN "profile_tx" p2t ON p2t.profile_id = p2.id
+//	      AND p2t.locale_code = $1
+//	    WHERE sp.story_id = s.id
+//	      AND ($2::CHAR(26) IS NULL OR sp.profile_id = $2::CHAR(26))
+//	      AND sp.deleted_at IS NULL
+//	  ) pb ON TRUE
 //	WHERE
-//	  ($4::CHAR(26) IS NULL OR sp.profile_id = $4::CHAR(26))
+//	  pb.publications IS NOT NULL
+//	  AND ($3::TEXT IS NULL OR s.kind = ANY(string_to_array($3::TEXT, ',')))
+//	  AND ($4::CHAR(26) IS NULL OR s.author_profile_id = $4::CHAR(26))
 //	  AND s.deleted_at IS NULL
-//	ORDER BY s.published_at DESC
-func (q *Queries) ListStories(ctx context.Context, arg ListStoriesParams) ([]*ListStoriesRow, error) {
-	rows, err := q.db.QueryContext(ctx, listStories,
-		arg.FilterKind,
-		arg.FilterAuthorProfileID,
+//	ORDER BY s.created_at DESC
+func (q *Queries) ListStoriesOfPublication(ctx context.Context, arg ListStoriesOfPublicationParams) ([]*ListStoriesOfPublicationRow, error) {
+	rows, err := q.db.QueryContext(ctx, listStoriesOfPublication,
 		arg.LocaleCode,
 		arg.FilterPublicationProfileID,
+		arg.FilterKind,
+		arg.FilterAuthorProfileID,
 	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []*ListStoriesRow{}
+	items := []*ListStoriesOfPublicationRow{}
 	for rows.Next() {
-		var i ListStoriesRow
+		var i ListStoriesOfPublicationRow
 		if err := rows.Scan(
 			&i.Story.ID,
 			&i.Story.AuthorProfileID,
@@ -214,7 +288,6 @@ func (q *Queries) ListStories(ctx context.Context, arg ListStoriesParams) ([]*Li
 			&i.Story.Summary,
 			&i.Story.Content,
 			&i.Story.Properties,
-			&i.Story.PublishedAt,
 			&i.Story.CreatedAt,
 			&i.Story.UpdatedAt,
 			&i.Story.DeletedAt,
@@ -238,6 +311,7 @@ func (q *Queries) ListStories(ctx context.Context, arg ListStoriesParams) ([]*Li
 			&i.ProfileTx.Title,
 			&i.ProfileTx.Description,
 			&i.ProfileTx.Properties,
+			&i.Publications,
 		); err != nil {
 			return nil, err
 		}

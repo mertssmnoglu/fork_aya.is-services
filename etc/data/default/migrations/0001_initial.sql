@@ -204,7 +204,6 @@ CREATE TABLE IF NOT EXISTS "story" (
   "summary" TEXT NOT NULL,
   "content" TEXT NOT NULL,
   "properties" JSONB,
-  "published_at" TIMESTAMP WITH TIME ZONE,
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   "updated_at" TIMESTAMP WITH TIME ZONE,
   "deleted_at" TIMESTAMP WITH TIME ZONE,

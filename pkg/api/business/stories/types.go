@@ -20,7 +20,6 @@ type Story struct {
 	Properties      any        `json:"properties"`
 	AuthorProfileID *string    `json:"author_profile_id"`
 	StoryPictureURI *string    `json:"story_picture_uri"`
-	PublishedAt     *time.Time `json:"published_at"`
 	UpdatedAt       *time.Time `json:"updated_at"`
 	DeletedAt       *time.Time `json:"deleted_at"`
 	ID              string     `json:"id"`
@@ -35,5 +34,6 @@ type Story struct {
 
 type StoryWithChildren struct {
 	*Story
-	AuthorProfile *profiles.Profile `json:"author_profile"`
+	AuthorProfile *profiles.Profile   `json:"author_profile"`
+	Publications  []*profiles.Profile `json:"publications"`
 }
