@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/eser/aya.is-services/pkg/ajan/connfx"
+	"github.com/eser/aya.is-services/pkg/ajan/logfx"
 	"github.com/eser/aya.is-services/pkg/lib/caching"
 )
 
@@ -20,14 +21,22 @@ var ErrDatasourceNotFound = errors.New("datasource not found")
 type Repository struct {
 	queries  *Queries
 	cache    *caching.Cache
+	logger   *logfx.Logger
 	cacheTTL time.Duration
 }
 
-func NewRepositoryFromDefault(dataRegistry *connfx.Registry) (*Repository, error) {
-	return NewRepositoryFromNamed(dataRegistry, connfx.DefaultConnection)
+func NewRepositoryFromDefault(
+	logger *logfx.Logger,
+	dataRegistry *connfx.Registry,
+) (*Repository, error) {
+	return NewRepositoryFromNamed(logger, dataRegistry, connfx.DefaultConnection)
 }
 
-func NewRepositoryFromNamed(dataRegistry *connfx.Registry, name string) (*Repository, error) {
+func NewRepositoryFromNamed(
+	logger *logfx.Logger,
+	dataRegistry *connfx.Registry,
+	name string,
+) (*Repository, error) {
 	sqlDB, err := connfx.GetTypedConnection[*sql.DB](dataRegistry, name)
 	if err != nil {
 		return nil, err
@@ -36,6 +45,7 @@ func NewRepositoryFromNamed(dataRegistry *connfx.Registry, name string) (*Reposi
 	repository := &Repository{ //nolint:exhaustruct
 		queries:  &Queries{db: sqlDB},
 		cacheTTL: DefaultCacheTTL,
+		logger:   logger,
 	}
 
 	repository.cache = caching.NewCache(

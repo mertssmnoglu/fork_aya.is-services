@@ -259,15 +259,23 @@ type Querier interface {
 	// ORDER BY s.published_at DESC;
 	//
 	//
-	//  SELECT s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at, st.story_id, st.locale_code, st.title, st.summary, st.content, p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at, pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
+	//  SELECT
+	//    s.id, s.author_profile_id, s.slug, s.kind, s.status, s.is_featured, s.story_picture_uri, s.title, s.summary, s.content, s.properties, s.published_at, s.created_at, s.updated_at, s.deleted_at,
+	//    st.story_id, st.locale_code, st.title, st.summary, st.content,
+	//    p.id, p.slug, p.kind, p.custom_domain, p.profile_picture_uri, p.pronouns, p.properties, p.created_at, p.updated_at, p.deleted_at,
+	//    pt.profile_id, pt.locale_code, pt.title, pt.description, pt.properties
 	//  FROM "story_publication" sp
 	//    INNER JOIN "story" s ON s.id = sp.story_id
+	//    AND s.deleted_at IS NULL
+	//    AND s.published_at IS NOT NULL
 	//    INNER JOIN "story_tx" st ON st.story_id = s.id
 	//    AND ($1::TEXT IS NULL OR s.kind = ANY(string_to_array($1::TEXT, ',')))
 	//    AND ($2::CHAR(26) IS NULL OR s.author_profile_id = $2::CHAR(26))
 	//    AND st.locale_code = $3
-	//    LEFT JOIN "profile" p ON p.id = s.author_profile_id AND p.deleted_at IS NULL
-	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id AND pt.locale_code = $3
+	//    LEFT JOIN "profile" p ON p.id = s.author_profile_id
+	//    AND p.deleted_at IS NULL
+	//    INNER JOIN "profile_tx" pt ON pt.profile_id = p.id
+	//    AND pt.locale_code = $3
 	//  WHERE
 	//    ($4::CHAR(26) IS NULL OR sp.profile_id = $4::CHAR(26))
 	//    AND s.deleted_at IS NULL

@@ -81,7 +81,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop
 			localeParam := ctx.Request.PathValue("locale")
 			slugParam := ctx.Request.PathValue("slug")
 
-			record, err := profilesService.ListPagesBySlug(
+			records, err := profilesService.ListPagesBySlug(
 				ctx.Request.Context(),
 				localeParam,
 				slugParam,
@@ -93,7 +93,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop
 				)
 			}
 
-			wrappedResponse := cursors.WrapResponseWithCursor(record, nil)
+			wrappedResponse := cursors.WrapResponseWithCursor(records, nil)
 
 			return ctx.Results.JSON(wrappedResponse)
 		}).
@@ -110,7 +110,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop
 				slugParam := ctx.Request.PathValue("slug")
 				pageSlugParam := ctx.Request.PathValue("pageSlug")
 
-				record, err := profilesService.GetPageBySlug(
+				records, err := profilesService.GetPageBySlug(
 					ctx.Request.Context(),
 					localeParam,
 					slugParam,
@@ -123,7 +123,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop
 					)
 				}
 
-				wrappedResponse := cursors.WrapResponseWithCursor(record, nil)
+				wrappedResponse := cursors.WrapResponseWithCursor(records, nil)
 
 				return ctx.Results.JSON(wrappedResponse)
 			},
@@ -138,7 +138,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop
 			localeParam := ctx.Request.PathValue("locale")
 			slugParam := ctx.Request.PathValue("slug")
 
-			record, err := profilesService.ListLinksBySlug(
+			records, err := profilesService.ListLinksBySlug(
 				ctx.Request.Context(),
 				localeParam,
 				slugParam,
@@ -150,7 +150,7 @@ func RegisterHTTPRoutesForProfiles( //nolint:funlen,cyclop
 				)
 			}
 
-			wrappedResponse := cursors.WrapResponseWithCursor(record, nil)
+			wrappedResponse := cursors.WrapResponseWithCursor(records, nil)
 
 			return ctx.Results.JSON(wrappedResponse)
 		}).

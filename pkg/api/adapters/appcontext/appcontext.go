@@ -117,7 +117,7 @@ func (a *AppContext) Init(ctx context.Context) error {
 	// ----------------------------------------------------
 	// Adapter: Repository
 	// ----------------------------------------------------
-	a.Repository, err = storage.NewRepositoryFromDefault(a.Connections)
+	a.Repository, err = storage.NewRepositoryFromDefault(a.Logger, a.Connections)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrInitFailed, err)
 	}
